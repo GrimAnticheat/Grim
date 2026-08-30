@@ -36,6 +36,9 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.viaversion.viaversion.api.Via;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Set;
+
 @RequiredArgsConstructor
 public class MovementTicker {
     public final GrimPlayer player;
@@ -59,7 +62,7 @@ public class MovementTicker {
             playerBox.encompass(GetBoundingBox.getBoundingBoxFromPosAndSize(player, player.x, player.y, player.z, 0.6f, 1.8f).expand(player.getMovementThreshold()));
             playerBox.expand(0.2);
 
-            final TeamHandler teamHandler = player.checkManager.getPacketCheck(TeamHandler.class);
+            final TeamHandler teamHandler = player.checkManager.get(TeamHandler.class);
             final EntityTeam playerTeam = teamHandler != null ? teamHandler.getPlayerTeam() : null;
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                 // TODO actually handle entity collisions instead of this awfulness
@@ -96,12 +99,40 @@ public class MovementTicker {
         double horizontalLengthSquared = collide.getX() * collide.getX() + collide.getZ() * collide.getZ();
         if (horizontalLengthSquared < 1E-5F) return false;
 
-        float xxa = (float) player.predictedVelocity.input.getX();
-        float zza = (float) player.predictedVelocity.input.getZ();
-
         float yawInRadians = player.yaw * (float) (Math.PI / 180.0);
         double sin = player.trigHandler.sin(yawInRadians);
         double cos = player.trigHandler.cos(yawInRadians);
+
+        Vector3dm input = player.predictedVelocity.input;
+        if (input != null) {
+            return isHorizontalCollisionSoft(collide, horizontalLengthSquared, sin, cos, (float) input.getX(), (float) input.getZ());
+        } else { // elytra
+            ArrayList<VectorData> results = new ArrayList<>();
+            new PredictionEngine().loopVectors(
+                    player,
+                    Set.of(new VectorData(new Vector3dm(), VectorData.VectorType.Normal)),
+                    0,
+                    results,
+                    false
+            );
+
+            for (VectorData data : results) {
+                if (isHorizontalCollisionSoft(
+                        collide, horizontalLengthSquared,
+                        sin, cos,
+                        (float) data.input.getX(), (float) data.input.getZ())) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    private boolean isHorizontalCollisionSoft(
+            Vector3dm collide, double horizontalLengthSquared,
+            double sin, double cos,
+            float xxa, float zza) {
         double g = xxa * cos - zza * sin;
         double h = zza * cos + xxa * sin;
         double i = g * g + h * h;

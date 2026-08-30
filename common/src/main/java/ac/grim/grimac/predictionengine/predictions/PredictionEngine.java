@@ -79,7 +79,7 @@ public class PredictionEngine {
         // Computers are actually really fast at sorting, I don't see sorting as a problem
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
-        player.checkManager.getPostPredictionCheck(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
+        player.checkManager.get(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
 
         double bestInput = Double.MAX_VALUE;
 
@@ -289,7 +289,7 @@ public class PredictionEngine {
 
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
-        loopVectors(player, possibleVectors, speed, returnVectors);
+        loopVectors(player, possibleVectors, speed, returnVectors, true);
         return returnVectors;
     }
 
@@ -609,7 +609,7 @@ public class PredictionEngine {
         box.combineToMinimum(box.minX, levitation, box.minZ);
 
 
-        SneakingEstimator sneaking = player.checkManager.getPostPredictionCheck(SneakingEstimator.class);
+        SneakingEstimator sneaking = player.checkManager.get(SneakingEstimator.class);
         box.minX += sneaking.getSneakingPotentialHiddenVelocity().minX;
         box.minZ += sneaking.getSneakingPotentialHiddenVelocity().minZ;
         box.maxX += sneaking.getSneakingPotentialHiddenVelocity().maxX;
@@ -724,7 +724,7 @@ public class PredictionEngine {
         player.lastWasClimbing = 0;
     }
 
-    private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
+    public void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors, boolean doStuckSpeed) {
         // Stop omni-sprint
         // Optimization - Also cuts down scenarios by 2/3
         // For some reason the player sprints while swimming no matter what
@@ -779,6 +779,11 @@ public class PredictionEngine {
                                     .add(inputTransformer.getMovementResultFromInput(player, input, speed, player.yaw)),
                                     possibleLastTickOutput, VectorData.VectorType.InputResult);
                             result.input = input.vector();
+
+                            if (!doStuckSpeed) {
+                                returnVectors.add(result);
+                                continue;
+                            }
 
                             if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
                                 // only simulate no stuck speed if player is leaving

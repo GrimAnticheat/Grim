@@ -2,7 +2,8 @@ package ac.grim.grimac.checks.impl.elytra;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -11,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 @CheckData(name = "ElytraC", stableKey = "grim.elytra.too_frequent", description = "Started gliding too frequently")
-public class ElytraC extends Check implements PostPredictionCheck {
+public class ElytraC extends Check implements PacketReceiveListener, PostPredictionListener {
     private boolean glideThisTick, glideLastTick, setback;
     private int flags;
     public boolean exempt;
@@ -40,7 +41,7 @@ public class ElytraC extends Check implements PostPredictionCheck {
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
-                        player.resyncPose();
+                        player.resyncGlidingState();
                     }
                 }
             }

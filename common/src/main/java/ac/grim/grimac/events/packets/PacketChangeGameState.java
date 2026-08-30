@@ -1,8 +1,8 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -11,9 +11,10 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
 
-public class PacketChangeGameState extends Check implements PacketCheck {
-    public PacketChangeGameState(GrimPlayer playerData) {
-        super(playerData);
+public class PacketChangeGameState extends GrimProcessor implements PacketSendListener {
+
+    public PacketChangeGameState(GrimPlayer player) {
+        super(player);
     }
 
     @Override

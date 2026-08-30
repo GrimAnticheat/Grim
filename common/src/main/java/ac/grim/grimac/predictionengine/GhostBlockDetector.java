@@ -1,14 +1,14 @@
 package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-public class GhostBlockDetector extends Check implements PostPredictionCheck {
+public class GhostBlockDetector extends GrimProcessor implements PostPredictionListener {
 
     public GhostBlockDetector(GrimPlayer player) {
         super(player);

@@ -42,13 +42,8 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     }
 
     @Override
-    public boolean isSneaking() {
-        return handle().isSneaking();
-    }
-
-    @Override
-    public void setSneaking(boolean isSneaking) {
-        handle().setSneaking(isSneaking);
+    public void resyncSharedFlags() {
+        handle().resyncSharedFlags();
     }
 
     @Override

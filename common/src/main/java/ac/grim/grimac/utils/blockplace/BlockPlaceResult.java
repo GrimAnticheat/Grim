@@ -249,18 +249,9 @@ public enum BlockPlaceResult {
         BlockFace face = place.getFace();
 
         switch (face) {
-            case EAST:
-            case WEST:
-                chain.setAxis(Axis.X);
-                break;
-            case NORTH:
-            case SOUTH:
-                chain.setAxis(Axis.Z);
-                break;
-            case UP:
-            case DOWN:
-                chain.setAxis(Axis.Y);
-                break;
+            case EAST, WEST -> chain.setAxis(Axis.X);
+            case NORTH, SOUTH -> chain.setAxis(Axis.Z);
+            case UP, DOWN -> chain.setAxis(Axis.Y);
         }
 
         place.set(chain);

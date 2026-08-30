@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -12,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 
 @CheckData(name = "FarPlace", stableKey = "grim.scaffolding.far_place", description = "Placing blocks from too far away")
-public class FarPlace extends BlockPlaceCheck {
+public class FarPlace extends BlockPlaceCheck implements BlockPlaceListener {
     public FarPlace(GrimPlayer player) {
         super(player);
     }

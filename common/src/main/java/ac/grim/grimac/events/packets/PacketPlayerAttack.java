@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
+import ac.grim.grimac.checks.impl.combat.InvalidInteractTarget;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -153,8 +153,8 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         if (!player.compensatedEntities.entityMap.containsKey(entityId) && !player.compensatedEntities.serverPositionsMap.containsKey(entityId)
                 // the list of entities used to raytrace isn't the same as the list of entities in the world in pre-1.14 (wtf mojang)
                 && (!player.compensatedEntities.entitiesRemovedThisTick.contains(entityId) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14))) {
-            final BadPacketsW badPacketsW = player.checkManager.getCheck(BadPacketsW.class);
-            if (badPacketsW.flag("entityId=" + entityId) && badPacketsW.shouldModifyPackets()) {
+            final InvalidInteractTarget check = player.checkManager.get(InvalidInteractTarget.class);
+            if (check.flag("entityId=" + entityId) && check.shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

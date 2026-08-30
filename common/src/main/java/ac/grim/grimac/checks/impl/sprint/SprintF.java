@@ -2,13 +2,13 @@ package ac.grim.grimac.checks.impl.sprint;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 @CheckData(name = "SprintF", stableKey = "grim.sprint.gliding", description = "Sprinting while gliding", experimental = true)
-public class SprintF extends Check implements PostPredictionCheck {
+public class SprintF extends Check implements PostPredictionListener {
     public SprintF(GrimPlayer player) {
         super(player);
     }

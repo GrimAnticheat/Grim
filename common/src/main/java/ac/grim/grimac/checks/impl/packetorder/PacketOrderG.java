@@ -3,7 +3,8 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -15,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import java.util.ArrayDeque;
 
 @CheckData(name = "PacketOrderG", stableKey = "grim.packetorder.hotbar_inventory_manage_order", description = "Managed hotbar or inventory while performing another conflicting action", experimental = true)
-public class PacketOrderG extends Check implements PostPredictionCheck {
+public class PacketOrderG extends Check implements PacketReceiveListener, PostPredictionListener {
     private static final Verbose V = Verbose.of(
             "action={str}, attacking={bool}, releasing={bool}, rightClicking={bool}, picking={bool}, digging={bool}");
 
