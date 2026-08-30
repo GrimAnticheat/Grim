@@ -41,6 +41,9 @@ spectators:
     allowed-worlds:
         - ""
 
+# The minimum allowed delay between clicks in inventories
+min-inv-click-delay: 1
+
 # 在玩家无法接收 GrimAC 的 transaction 数据包后,多少秒对玩家进行踢出
 # 默认踢出原因为: disconnect.timeout
 # 玩家超时踢出时间（单位：秒）（默认 = 60）
@@ -256,4 +259,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 11
+config-version: 12

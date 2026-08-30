@@ -57,6 +57,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     // Player inventory is -1
     // Unsupported inventory is -2
     private int packetSendingInventorySize = PLAYER_INVENTORY_CASE;
+    private long lastClickTime;
 
     // The item held at the start of the current client tick (processed at the end of the previous tick)
     // also updated before slot changes to account for the delay when using hotbar keybinds
@@ -258,8 +259,22 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
                 inventory.getSlot(action.getSlot()).set(action.getItemStack());
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
             }
-        } else if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
+        } else if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
+
+            long now = System.nanoTime();
+            long delay = now - lastClickTime;
+            long min = player.getMinInvClickDelay();
+            if (click.getWindowClickType() != WrapperPlayClientClickWindow.WindowClickType.PICKUP_ALL
+                    && click.getWindowClickType() != WrapperPlayClientClickWindow.WindowClickType.QUICK_CRAFT
+                    && (click.getWindowClickType() != WrapperPlayClientClickWindow.WindowClickType.QUICK_MOVE
+                    || menu.getCarried().isEmpty() || click.getButton() != 0) && delay < min) {
+                event.setCancelled(true);
+            }
+
+            lastClickTime = now;
+
+            if (event.isCancelled()) return;
 
             // How is this possible? Maybe transaction splitting.
             if (click.getWindowId() != openWindowID) {

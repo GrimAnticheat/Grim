@@ -40,6 +40,9 @@ spectators:
     allowed-worlds:
         - ""
 
+# The minimum allowed delay between clicks in inventories
+min-inv-click-delay: 1
+
 # Au bout de combien de temps les joueurs doivent-ils être expulsés en cas de perte de connexion ? Défault = 60 secondes
 max-transaction-time: 60
 
@@ -237,4 +240,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 11
+config-version: 12

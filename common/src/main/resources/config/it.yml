@@ -41,6 +41,9 @@ spectators:
     allowed-worlds:
         - ""
 
+# The minimum allowed delay between clicks in inventories
+min-inv-click-delay: 1
+
 max-transaction-time: 60
 
 # Enable this to stop Grim cancelling pongs received from players.
@@ -218,4 +221,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 11
+config-version: 12

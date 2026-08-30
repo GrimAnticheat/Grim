@@ -260,6 +260,7 @@ public class GrimPlayer implements GrimUser {
     public boolean intersectedWithNetherPortal;
     // start config
     private boolean debugPacketCancel;
+    @Getter private int minInvClickDelay = (int) 1e6;
     private int spamThreshold = 100;
     private int maxTransactionTime = 60;
     @Getter private boolean ignoreDuplicatePacketRotation;
@@ -984,6 +985,7 @@ public class GrimPlayer implements GrimUser {
         featureManager.onReload(config);
         debugPacketCancel = config.getBooleanElse("debug-packet-cancel", false);
         spamThreshold = config.getIntElse("packet-spam-threshold", 100);
+        minInvClickDelay = (int) (GrimMath.clamp(config.getDoubleElse("min-inv-click-delay", 1), 0, 25) * 1e6);
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
         cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);

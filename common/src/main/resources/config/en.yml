@@ -40,6 +40,9 @@ spectators:
     allowed-worlds:
         - ""
 
+# The minimum allowed delay between clicks in inventories
+min-inv-click-delay: 1
+
 # How long should players have until we kick them for timing out? Default = 60 seconds
 max-transaction-time: 60
 
@@ -236,4 +239,4 @@ update-permission-ticks: -1
 #   config-version: bumped on every breaking shape change. Old configs
 #                   auto-migrate up via the bundled updater on next start.
 config-flavor: V2
-config-version: 11
+config-version: 12

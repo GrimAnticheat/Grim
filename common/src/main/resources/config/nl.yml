@@ -40,6 +40,9 @@ spectators:
     allowed-worlds:
         - ""
 
+# The minimum allowed delay between clicks in inventories
+min-inv-click-delay: 1
+
 # Hoe lang moeten spelers hebben voordat we ze schoppen voor timing-out? Standaard = 60 seconden
 max-transaction-time: 60
 
@@ -239,4 +242,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 11
+config-version: 12
