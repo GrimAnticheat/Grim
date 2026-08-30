@@ -115,8 +115,8 @@ public class GrimMath {
     }
 
     @Contract(pure = true)
-    public static int sign(double x) {
-        return x == 0.0 ? 0 : x > 0.0 ? 1 : -1;
+    public static int sign(double value) {
+        return value == 0.0 ? 0 : value > 0.0 ? 1 : -1;
     }
 
     @Contract(pure = true)

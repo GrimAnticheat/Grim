@@ -4,7 +4,7 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -12,12 +12,12 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
 
 @CheckData(name = "CrashF", stableKey = "grim.crash.button_crash", description = "Sent an inventory click with an invalid button or slot value")
-public class CrashF extends Check implements PacketCheck {
+public class CrashF extends Check implements PacketReceiveListener {
     private static final Verbose V =
             Verbose.of("clickType={clicktype}, button={sint}[, slot={sint}]");
 
-    public CrashF(GrimPlayer playerData) {
-        super(playerData);
+    public CrashF(GrimPlayer player) {
+        super(player);
     }
 
     @Override

@@ -5,22 +5,22 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.multiactions.MultiActionsC;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatCommandUnsigned;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientChatMessage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 @CheckData(name = "ChatC", stableKey = "grim.chat.moving_while_chatting", description = "Moving while chatting", experimental = true)
-public class ChatC extends Check implements PacketCheck {
-    private static final Verbose V =
-            Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
+public class ChatC extends Check implements PreViaPacketReceiveListener {
+    private static final Verbose V = Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
 
     public ChatC(GrimPlayer player) {
         super(player);
@@ -30,7 +30,7 @@ public class ChatC extends Check implements PacketCheck {
     private @Nullable Predicate<String> exemptRegex;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
             check(new WrapperPlayClientChatMessage(event).getMessage(), event);
         }
@@ -61,7 +61,7 @@ public class ChatC extends Check implements PacketCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         String regexString = config.getStringElse(getConfigName() + ".exempt-regex", null);
         exemptRegex = regexString == null ? null : Pattern.compile(regexString).asMatchPredicate();
     }

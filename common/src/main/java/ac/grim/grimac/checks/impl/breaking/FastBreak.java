@@ -4,7 +4,8 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.BlockBreakListener;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -27,7 +28,7 @@ import java.util.Set;
 // Also based loosely off of NoCheatPlus FastBreak
 // Also based off minecraft wiki: https://minecraft.wiki/w/Breaking#Instant_breaking
 @CheckData(name = "FastBreak", stableKey = "grim.breaking.fast_break", description = "Breaking blocks too quickly")
-public class FastBreak extends Check implements BlockBreakCheck {
+public class FastBreak extends Check implements BlockBreakListener, PreViaPacketReceiveListener {
     private static final Verbose V =
             Verbose.of("[delay={ulong}ms|diff={f64:%.1f}ms, balance={f64:%.1f}ms], type={block}");
 
@@ -36,8 +37,8 @@ public class FastBreak extends Check implements BlockBreakCheck {
     private static final Set<StateType> EXEMPT_STATES = Set.of();
     private final boolean clientOlderThanServer = PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion() > player.getClientVersion().getProtocolVersion();
 
-    public FastBreak(GrimPlayer playerData) {
-        super(playerData);
+    public FastBreak(GrimPlayer player) {
+        super(player);
     }
 
     // The block the player is currently breaking
@@ -74,6 +75,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0); // ???
             targetBlockPosition = blockBreak.position;
 
+            // FIXME: getBlockDamage might not return the correct value if the player switched slots before this
             maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, block);
 
             double breakDelay = System.currentTimeMillis() - lastFinishBreak;
@@ -120,7 +122,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         // Find the most optimal block damage using the animation packet, which is sent at least once a tick when breaking blocks
         // On 1.8 clients, via screws with this packet meaning we must fall back to the 1.8 idle flying packet
         //

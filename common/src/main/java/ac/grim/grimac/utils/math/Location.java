@@ -77,7 +77,7 @@ public class Location implements Cloneable {
     }
 
     public @NotNull Location add(@NotNull Location vec) {
-        if (Objects.requireNonNull(vec).getWorld() == this.getWorld()) {
+        if (Objects.requireNonNull(vec, "vec").getWorld() == this.getWorld()) {
             this.x += vec.x;
             this.y += vec.y;
             this.z += vec.z;
@@ -95,7 +95,7 @@ public class Location implements Cloneable {
     }
 
     public @NotNull Location subtract(@NotNull Location vec) {
-        if (Objects.requireNonNull(vec).getWorld() == this.getWorld()) {
+        if (Objects.requireNonNull(vec, "vec").getWorld() == this.getWorld()) {
             this.x -= vec.x;
             this.y -= vec.y;
             this.z -= vec.z;

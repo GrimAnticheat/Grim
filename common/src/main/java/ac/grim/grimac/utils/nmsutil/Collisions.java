@@ -213,7 +213,7 @@ public final class Collisions {
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-            PacketWorldBorder border = player.checkManager.getPacketCheck(PacketWorldBorder.class);
+            PacketWorldBorder border = player.checkManager.get(PacketWorldBorder.class);
 
             double minX = Math.floor(border.getMinX());
             double minZ = Math.floor(border.getMinZ());
@@ -475,22 +475,26 @@ public final class Collisions {
         PacketEntity riding = player.compensatedEntities.self.getRiding();
         boolean stuckEntityIsLiving = riding == null || riding.isLivingEntity;
 
+        if (blockType == StateTypes.NETHER_PORTAL) {
+            player.intersectedWithNetherPortal = true;
+        }
+
         if (!onlyApplyVelocity && blockType == StateTypes.COBWEB) {
             if (stuckEntityIsLiving && player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
-                player.setStuckSpeedMultiplier(StuckSpeed.COBWEB_WEAVING);
+                player.stuckSpeedMultiplier = StuckSpeed.COBWEB_WEAVING;
             } else {
-                player.setStuckSpeedMultiplier(StuckSpeed.COBWEB);
+                player.stuckSpeedMultiplier = StuckSpeed.COBWEB;
             }
         }
 
         if (!onlyApplyVelocity && stuckEntityIsLiving && blockType == StateTypes.SWEET_BERRY_BUSH
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            player.setStuckSpeedMultiplier(StuckSpeed.SWEET_BERRY_BUSH);
+            player.stuckSpeedMultiplier = StuckSpeed.SWEET_BERRY_BUSH;
         }
 
         if (!onlyApplyVelocity && blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.setStuckSpeedMultiplier(StuckSpeed.POWDER_SNOW);
+            player.stuckSpeedMultiplier = StuckSpeed.POWDER_SNOW;
         }
 
         if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
@@ -590,7 +594,7 @@ public final class Collisions {
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
-            player.setStuckSpeedMultiplier(StuckSpeed.NONE);
+            player.stuckSpeedMultiplier = StuckSpeed.NONE;
         }
     }
 

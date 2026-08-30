@@ -326,7 +326,7 @@ public class GrimHistory implements BuildableCommand {
     }
 
     private static @Nullable Pattern compileFlag(CommandContext<Sender> ctx, String flag) {
-        String raw = ctx.flags().<String>get(flag);
+        String raw = ctx.flags().get(flag);
         if (raw == null) return null;
         try {
             return Pattern.compile(raw, Pattern.CASE_INSENSITIVE);
@@ -558,7 +558,7 @@ public class GrimHistory implements BuildableCommand {
         List<CheckDefinition> definitions = new ArrayList<>();
         Set<String> seenStableKeys = new HashSet<>();
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            for (AbstractCheck check : player.checkManager.allChecks.values()) {
+            for (AbstractCheck check : player.getChecks()) {
                 String stableKey = check.getStableKey();
                 if (stableKey == null || stableKey.isBlank()) continue;
                 if (!seenStableKeys.add(stableKey)) continue;
@@ -779,7 +779,7 @@ public class GrimHistory implements BuildableCommand {
             if (uuid == null) return List.of();
             DataStoreLifecycle dsl = GrimAPI.INSTANCE.getDataStoreLifecycle();
             if (dsl == null || !dsl.isLoaded() || dsl.historyService() == null) return List.of();
-            String sessionRaw = ctx.<String>getOrDefault("session", null);
+            String sessionRaw = ctx.getOrDefault("session", null);
             if (sessionRaw == null) return List.of();
             try {
                 Integer ordinal = resolveSessionOrdinal(sessionRaw, uuid, dsl.historyService());
@@ -805,7 +805,7 @@ public class GrimHistory implements BuildableCommand {
     }
 
     private static @Nullable UUID resolveTargetUuid(CommandContext<Sender> ctx) {
-        String target = ctx.<String>getOrDefault("target", null);
+        String target = ctx.getOrDefault("target", null);
         if (target == null) return null;
         return resolveUuid(target, GrimAPI.INSTANCE.getDataStoreLifecycle(), null);
     }

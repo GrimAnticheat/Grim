@@ -11,6 +11,9 @@ tasks.named<ShadowJar>("shadowJar") {
         // ServiceLoader, so minimize() strips it and adventure's static init then throws
         // (ServiceConfigurationError) on enable. Keep the gson serializer's classes.
         exclude(dependency("net.kyori:adventure-text-serializer-gson:.*"))
+        // slf4j-jdk14's provider is reached only through ServiceLoader, so minimize()
+        // drops it and the shaded slf4j goes back to printing that it found no providers.
+        exclude(dependency("org.slf4j:slf4j-jdk14:.*"))
     }
     archiveFileName = "${rootProject.name}-${project.name}-${rootProject.version}.jar"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -22,7 +25,7 @@ tasks.named<ShadowJar>("shadowJar") {
             relocate("net.kyori", "ac.grim.grimac.shaded.kyori") // use PE's built-in adventure instead when not shading PE
         }
         relocate("club.minnced", "ac.grim.grimac.shaded.discord-webhooks")
-        relocate("org.slf4j", "ac.grim.grimac.shaded.slf4j") // Required by discord-webhooks
+        relocate("org.slf4j", "ac.grim.grimac.shaded.slf4j") // Required by HikariCP; slf4j-jdk14 ships beside it as the provider
         relocate("github.scarsz.configuralize", "ac.grim.grimac.shaded.configuralize")
         relocate("com.github.puregero", "ac.grim.grimac.shaded.com.github.puregero")
         relocate("com.google.code.gson", "ac.grim.grimac.shaded.gson")

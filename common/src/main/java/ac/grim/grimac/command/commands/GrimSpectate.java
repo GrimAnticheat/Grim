@@ -46,7 +46,7 @@ public class GrimSpectate implements BuildableCommand {
             return;
         }
 
-        @NotNull PlatformPlayer platformPlayer = Objects.requireNonNull(sender.getPlatformPlayer());
+        @NotNull PlatformPlayer platformPlayer = Objects.requireNonNull(sender.getPlatformPlayer(), "platformPlayer");
 
         // hide player from tab list
         if (GrimAPI.INSTANCE.getSpectateManager().enable(platformPlayer)) {
@@ -54,6 +54,6 @@ public class GrimSpectate implements BuildableCommand {
         }
 
         platformPlayer.setGameMode(GameMode.SPECTATOR);
-        platformPlayer.teleportAsync(Objects.requireNonNull(targetPlatformPlayer).getLocation());
+        platformPlayer.teleportAsync(Objects.requireNonNull(targetPlatformPlayer, "targetPlatformPlayer").getLocation());
     }
 }

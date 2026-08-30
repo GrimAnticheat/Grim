@@ -168,7 +168,7 @@ public class BlockEffectsResolverV1_21_10 implements BlockEffectsResolver {
             }
 
             Optional<Vector3d> collisionPoint = BlockCollisions.clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
-            if (!collisionPoint.isEmpty()) {
+            if (collisionPoint.isPresent()) {
                 iterationCount++;
                 Vector3d collisionVec = collisionPoint.get();
                 double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);

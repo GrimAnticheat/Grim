@@ -4,7 +4,8 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
@@ -23,13 +24,14 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Deque;
 import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", stableKey = "grim.velocity.anti_explosion", configName = "Explosion", description = "Did not take the expected explosion knockback", setback = 10)
-public class ExplosionHandler extends Check implements PostPredictionCheck {
+public class ExplosionHandler extends Check implements PacketSendListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("[ignored explosion|o: {offset}]");
 
     private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
@@ -259,7 +261,7 @@ public class ExplosionHandler extends Check implements PostPredictionCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         offsetToFlag = config.getDoubleElse("Explosion.threshold", 0.00001);
     }
 }

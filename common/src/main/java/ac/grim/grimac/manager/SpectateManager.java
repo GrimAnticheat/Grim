@@ -44,9 +44,9 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
     }
 
     public boolean shouldHidePlayer(GrimPlayer receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
-        return playerData.getUser() != null
-                && playerData.getUser().getUUID() != null
-                && shouldHidePlayer(receiver, playerData.getUser().getUUID());
+        return playerData.getUserProfile() != null
+                && playerData.getUserProfile().getUUID() != null
+                && shouldHidePlayer(receiver, playerData.getUserProfile().getUUID());
     }
 
     public boolean shouldHidePlayer(GrimPlayer receiver, UUID uuid) {

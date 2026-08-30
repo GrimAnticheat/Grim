@@ -1,9 +1,9 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.change.BlockModification;
@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3i;
 
 @CheckData(name = "AirLiquidPlace", stableKey = "grim.scaffolding.air_liquid_place", description = "Placed a block against an invalid support")
-public class AirLiquidPlace extends BlockPlaceCheck {
+public class AirLiquidPlace extends BlockPlaceCheck implements BlockPlaceListener {
     public AirLiquidPlace(GrimPlayer player) {
         super(player);
     }
@@ -85,7 +85,7 @@ public class AirLiquidPlace extends BlockPlaceCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
-        this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 0);
+    protected int getDefaultCancelVL() {
+        return 0;
     }
 }

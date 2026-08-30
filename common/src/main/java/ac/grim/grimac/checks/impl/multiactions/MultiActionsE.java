@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.multiactions;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
 @CheckData(name = "MultiActionsE", stableKey = "grim.multiactions.swing_while_using", description = "Swinging while using an item", experimental = true)
-public class MultiActionsE extends Check implements PacketCheck {
+public class MultiActionsE extends Check implements PreViaPacketReceiveListener {
     private boolean dropping;
 
     public MultiActionsE(GrimPlayer player) {
@@ -20,7 +20,7 @@ public class MultiActionsE extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (!dropping && player.packetStateData.isSlowedByUsingItem()
                 && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.itemInUseHand == InteractionHand.OFF_HAND)
                 && event.getPacketType() == PacketType.Play.Client.ANIMATION) {

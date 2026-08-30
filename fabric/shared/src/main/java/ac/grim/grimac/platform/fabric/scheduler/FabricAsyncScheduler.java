@@ -52,7 +52,7 @@ public class FabricAsyncScheduler implements AsyncScheduler {
 
     @Override
     public TaskHandle runNow(@NotNull GrimPlugin plugin, @NotNull Runnable task) {
-        return schedule(plugin, task, true, body -> executor.submit(body));
+        return schedule(plugin, task, true, executor::submit);
     }
 
     @Override

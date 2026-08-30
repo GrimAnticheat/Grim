@@ -3,8 +3,10 @@ package ac.grim.grimac.checks.impl.misc;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
@@ -25,7 +27,7 @@ import java.util.Locale;
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post", stableKey = "grim.post.invalid_order", description = "Sent packets out of the expected movement tick order")
-public class Post extends Check implements PacketCheck, PostPredictionCheck {
+public class Post extends Check implements PacketReceiveListener, PacketSendListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("{str}");
 
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
@@ -35,8 +37,8 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
     private boolean sentFlying = false;
     private int isExemptFromSwingingCheck = Integer.MIN_VALUE;
 
-    public Post(GrimPlayer playerData) {
-        super(playerData);
+    public Post(GrimPlayer player) {
+        super(player);
     }
 
     @Override

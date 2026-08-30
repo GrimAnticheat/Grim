@@ -91,7 +91,7 @@ public record SystemArgumentFactory(Map<String, String> arguments,
                     exception("Failed to read environment variables", e);
                 }
             }
-            //
+
             return new SystemArgumentFactory(Map.copyOf(builder), Map.copyOf(parseBuilder), registerListener, optionModifier);
         }
 

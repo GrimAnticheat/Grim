@@ -11,13 +11,12 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class PunishmentManager implements ConfigReloadable {
@@ -54,7 +53,7 @@ public class PunishmentManager implements ConfigReloadable {
             groups.clear();
 
             // To support reloading
-            for (AbstractCheck check : player.checkManager.allChecks.values()) {
+            for (AbstractCheck check : player.getChecks()) {
                 check.setEnabled(false);
             }
 
@@ -75,7 +74,7 @@ public class PunishmentManager implements ConfigReloadable {
                         exclude = true;
                         command = command.substring(1);
                     }
-                    for (AbstractCheck check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
+                    for (AbstractCheck check : player.getChecks()) { // o(n) * o(n)?
                         if (check.getCheckName() != null &&
                                 (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
                                         || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
@@ -209,7 +208,7 @@ public class PunishmentManager implements ConfigReloadable {
         try {
             String value = supplier.get();
             return value == null ? "" : value;
-        } catch (Throwable ignored) {
+        } catch (RuntimeException ignored) {
             return "";
         }
     }
@@ -221,21 +220,15 @@ public class PunishmentManager implements ConfigReloadable {
     public void handleViolation(Check check) {
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
-                long currentTime = System.currentTimeMillis();
+                long currentTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
 
-                group.violations.put(currentTime, check);
-                // Remove violations older than the defined time in the config
-                group.violations.long2ObjectEntrySet().removeIf(time -> currentTime - time.getLongKey() > group.removeViolationsAfter);
+                group.violations.record(currentTime, check, group.removeViolationsAfter);
             }
         }
     }
 
     private int getViolations(PunishGroup group, Check check) {
-        int vl = 0;
-        for (Check value : group.violations.values()) {
-            if (value == check) vl++;
-        }
-        return vl;
+        return group.violations.count(check);
     }
 }
 
@@ -243,7 +236,7 @@ public class PunishmentManager implements ConfigReloadable {
 class PunishGroup {
     public final List<AbstractCheck> checks;
     public final List<ParsedCommand> commands;
-    public final Long2ObjectMap<Check> violations = new Long2ObjectOpenHashMap<>();
+    public final ViolationHistory<Check> violations = new ViolationHistory<>();
     public final int removeViolationsAfter; // time to remove violations after in milliseconds
 }
 

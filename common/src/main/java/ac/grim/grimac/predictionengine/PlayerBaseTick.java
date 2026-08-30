@@ -24,6 +24,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -34,7 +35,7 @@ public final class PlayerBaseTick {
         return Collisions.isEmpty(player, getBoundingBoxForPose(player, pose, x, y, z).expand(-1.0E-7D));
     }
 
-    private static SimpleCollisionBox getBoundingBoxForPose(GrimPlayer player, Pose pose, double x, double y, double z) {
+    private static @NotNull SimpleCollisionBox getBoundingBoxForPose(GrimPlayer player, Pose pose, double x, double y, double z) {
         final float scale = (float) player.compensatedEntities.self.getAttributeValue(Attributes.SCALE);
         final float width = pose.width * scale;
         final float height = pose.height * scale;
@@ -44,8 +45,8 @@ public final class PlayerBaseTick {
 
     public static void doBaseTick(GrimPlayer player) {
         // Keep track of basetick stuff
-        player.baseTickAddition = new Vector3dm();
-        player.baseTickWaterPushing = new Vector3dm();
+        player.baseTickAddition.zero();
+        player.baseTickWaterPushing.zero();
 
         if (player.isFlying && player.isSneaking && !player.inVehicle()) {
             Vector3dm flyingShift = new Vector3dm(0, player.flySpeed * -3, 0);

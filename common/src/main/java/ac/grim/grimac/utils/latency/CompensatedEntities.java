@@ -292,8 +292,17 @@ public class CompensatedEntities {
                 id = 14;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
-            } else {
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_26_2)) {
                 id = 16;
+            } else {
+                final EntityType type = sizeable.getType();
+                // 26.2 cube mobs have different index (phantoms and others still retain old index)
+                final boolean cubeMob = type == EntityTypes.SLIME || type == EntityTypes.MAGMA_CUBE || type == EntityTypes.SULFUR_CUBE;
+                if (cubeMob) {
+                    id = 18;
+                } else {
+                    id = 16;
+                }
             }
 
             EntityData<?> sizeObject = WatchableIndexUtil.getIndex(watchableObjects, id);
@@ -491,12 +500,10 @@ public class CompensatedEntities {
                 if (attachedEntityID == player.entityID) {
                     player.fireworks.addNewFirework(entityID);
                 }
-            } else { // 1.14+
-                Optional<Integer> attachedEntityID = (Optional<Integer>) fireworkWatchableObject.getValue();
-
-                if (attachedEntityID.isPresent() && attachedEntityID.get().equals(player.entityID)) {
-                    player.fireworks.addNewFirework(entityID);
-                }
+            } else if (fireworkWatchableObject.getValue() instanceof Optional<?> optional
+                    && optional.isPresent() && optional.get() instanceof Integer attachedEntityID
+                    && attachedEntityID.equals(player.entityID)) { // 1.14+
+                player.fireworks.addNewFirework(entityID);
             }
         }
 

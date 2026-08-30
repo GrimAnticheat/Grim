@@ -2,7 +2,8 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -10,7 +11,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 @CheckData(name = "BadPacketsX", stableKey = "grim.badpackets.extra_input_actions", description = "Sent duplicate sneak or sprint input actions before the next movement packet", experimental = true)
-public class BadPacketsX extends Check implements PostPredictionCheck {
+public class BadPacketsX extends Check implements PacketReceiveListener, PostPredictionListener {
     private boolean sprint;
     private boolean sneak;
     private int flags;

@@ -4,7 +4,8 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.BlockBreakListener;
+import ac.grim.grimac.checks.type.PostFlyingBlockBreakListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -24,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 @CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", description = "Tried to break a block without looking at it", experimental = true)
-public class RotationBreak extends Check implements BlockBreakCheck {
+public class RotationBreak extends Check implements BlockBreakListener, PostFlyingBlockBreakListener {
     private static final Verbose V = Verbose.of("[pre-flying|post-flying], action={digging}");
 
     private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.

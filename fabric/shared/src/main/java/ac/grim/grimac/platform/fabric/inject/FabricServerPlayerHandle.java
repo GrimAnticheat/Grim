@@ -4,9 +4,7 @@ import java.util.UUID;
 
 public interface FabricServerPlayerHandle {
 
-    boolean isSneaking();
-
-    void setSneaking(boolean sneaking);
+    void resyncSharedFlags();
 
     boolean isDead();
 

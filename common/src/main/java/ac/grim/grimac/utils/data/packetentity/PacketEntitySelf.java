@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -44,7 +45,7 @@ public class PacketEntitySelf extends PacketEntity {
         }
 
         getAttribute(Attributes.SCALE).orElseThrow().withSetRewriter((oldValue, newValue) -> {
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_20_5) || newValue == oldValue) {
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) || newValue == oldValue) {
                 return oldValue;
             } else {
                 // Elytra, standing, sneaking (1.14)
@@ -150,7 +151,7 @@ public class PacketEntitySelf extends PacketEntity {
     @Override
     public void addPotionEffect(PotionType effect, int amplifier) {
         if (effect == PotionTypes.BLINDNESS && !hasPotionEffect(PotionTypes.BLINDNESS)) {
-            player.checkManager.getPostPredictionCheck(SprintD.class).startedSprintingBeforeBlind = player.isSprinting;
+            player.checkManager.get(SprintD.class).startedSprintingBeforeBlind = player.isSprinting;
         }
 
         player.pointThreeEstimator.updatePlayerPotions(effect, amplifier);
@@ -164,7 +165,8 @@ public class PacketEntitySelf extends PacketEntity {
     }
 
     @Override
-    public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ, GrimPlayer player) {
+    public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ,
+                                   @Nullable Float packetXRot, @Nullable Float packetYRot, GrimPlayer player) {
         // Player ignores this
     }
 

@@ -4,7 +4,8 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -14,15 +15,15 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 
 @CheckData(name = "BadPacketsP", stableKey = "grim.badpackets.invalid_click", description = "Invalid window click packet", experimental = true)
-public class BadPacketsP extends Check implements PacketCheck {
+public class BadPacketsP extends Check implements PacketReceiveListener, PacketSendListener {
     private static final Verbose V =
             Verbose.of("clickType={clicktype_lower}, button={sint}[, container={sint}]");
 
     private int containerType = -1;
     private int containerId = -1;
 
-    public BadPacketsP(GrimPlayer playerData) {
-        super(playerData);
+    public BadPacketsP(GrimPlayer player) {
+        super(player);
     }
 
     @Override

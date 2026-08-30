@@ -2,13 +2,13 @@ package ac.grim.grimac.checks.impl.crash;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PrePredictionPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "CrashA", stableKey = "grim.crash.large_position", description = "Sent a position outside the valid world bounds")
-public class CrashA extends Check implements PacketCheck {
+public class CrashA extends Check implements PrePredictionPacketReceiveListener {
     private static final double HARD_CODED_BORDER = 2.9999999E7D;
 
     public CrashA(GrimPlayer player) {
@@ -16,7 +16,7 @@ public class CrashA extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPrePredictionPacketReceive(PacketReceiveEvent event) {
         if (player.packetStateData.lastPacketWasTeleport) return;
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(event);

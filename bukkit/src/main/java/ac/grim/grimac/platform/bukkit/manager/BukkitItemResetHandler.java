@@ -65,11 +65,11 @@ public class BukkitItemResetHandler implements ItemResetHandler {
             if (version.isNewerThanOrEquals(ServerVersion.V_1_10)) {
                 isUsingItem = Player::isHandRaised;
             } else {
-                Method method = clazz.getMethod(switch (Objects.requireNonNull(nmsPackage)) {
+                Method method = clazz.getMethod(switch (Objects.requireNonNull(nmsPackage, "nmsPackage")) {
                     case "v1_8_R3" -> "bS";
                     case "v1_9_R1" -> "cs";
                     case "v1_9_R2" -> "ct";
-                    default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
+                    default -> throw new IllegalStateException("You are using an unsupported server version: " + nmsPackage + "/" + version.getReleaseName());
                 });
                 isUsingItem = player -> {
                     try {
@@ -89,7 +89,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                           : InteractionHand.MAIN_HAND
                         : null;
             } else {
-                Method method = clazz.getMethod(nmsPackage != null ? switch (Objects.requireNonNull(nmsPackage)) {
+                Method method = clazz.getMethod(nmsPackage != null ? switch (Objects.requireNonNull(nmsPackage, "nmsPackage")) {
                     case "v1_9_R1" -> "ct";
                     case "v1_9_R2" -> "cu";
                     case "v1_10_R1" -> "cy";
@@ -111,7 +111,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_21_R5" -> "fH";
                     case "v1_21_R6" -> "fP";
                     case "v1_21_R7" -> "ga";
-                    default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
+                    default -> throw new IllegalStateException("You are using an unsupported server version: " + nmsPackage + "/" + version.getReleaseName());
                 } : "getUsedItemHand");
 
                 getItemUsageHand = player -> {
@@ -172,7 +172,7 @@ public class BukkitItemResetHandler implements ItemResetHandler {
                     case "v1_21_R5" -> "fM";
                     case "v1_21_R6" -> "fU";
                     case "v1_21_R7" -> "gf";
-                    default -> throw new IllegalStateException("You are using an unsupported server version! (" + version.getReleaseName() + ")");
+                    default -> throw new IllegalStateException("You are using an unsupported server version: " + nmsPackage + "/" + version.getReleaseName());
                 } : "stopUsingItem");
 
                 if (legacy) { // 1.8.8
