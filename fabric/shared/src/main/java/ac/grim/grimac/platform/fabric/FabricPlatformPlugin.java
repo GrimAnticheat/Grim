@@ -12,7 +12,7 @@ public class FabricPlatformPlugin implements PlatformPlugin {
 
     @Contract(pure = true)
     public FabricPlatformPlugin(@NotNull ModContainer modContainer) {
-        this.modContainer = Objects.requireNonNull(modContainer);
+        this.modContainer = Objects.requireNonNull(modContainer, "modContainer");
     }
 
     @Override

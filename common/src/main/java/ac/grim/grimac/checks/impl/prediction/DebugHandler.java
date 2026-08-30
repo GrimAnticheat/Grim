@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.prediction;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.debug.AbstractDebugHandler;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-public class DebugHandler extends AbstractDebugHandler implements PostPredictionCheck {
+public class DebugHandler extends AbstractDebugHandler implements PostPredictionListener {
     private static final Component GRAY_ARROW = MiniMessage.miniMessage().deserialize("<gray>→0.03→</gray>");
     private static final Component P_PREFIX = MiniMessage.miniMessage().deserialize("<reset>P: </reset>");
     private static final Component A_PREFIX = MiniMessage.miniMessage().deserialize("<reset>A: </reset>");
@@ -103,7 +103,7 @@ public class DebugHandler extends AbstractDebugHandler implements PostPrediction
         }
 
         for (GrimPlayer listener : listeners) {
-            Component listenerPrefix = listener == getPlayer() ? Component.empty() : prefixComponent;
+            Component listenerPrefix = listener == player ? Component.empty() : prefixComponent;
             listener.sendMessage(listenerPrefix.append(p));
             listener.sendMessage(listenerPrefix.append(a));
             listener.sendMessage(listenerPrefix.append(o));

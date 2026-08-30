@@ -2,7 +2,8 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -15,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCo
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDeathCombatEvent;
 
 @CheckData(name = "BadPacketsM", stableKey = "grim.badpackets.respawn_alive", description = "Tried to respawn while alive", experimental = true)
-public class BadPacketsM extends Check implements PacketCheck {
+public class BadPacketsM extends Check implements PreViaPacketReceiveListener, PreViaPacketSendListener {
     public BadPacketsM(final GrimPlayer player) {
         super(player);
     }
@@ -26,7 +27,7 @@ public class BadPacketsM extends Check implements PacketCheck {
     private boolean menu;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() != PacketType.Play.Client.CLIENT_STATUS
                 || new WrapperPlayClientClientStatus(event).getAction() != WrapperPlayClientClientStatus.Action.PERFORM_RESPAWN) {
             return;
@@ -46,7 +47,7 @@ public class BadPacketsM extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
+    public void onPreViaPacketSend(PacketSendEvent event) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
         }
@@ -100,10 +101,5 @@ public class BadPacketsM extends Check implements PacketCheck {
         if (player.packetStateData.showsDeathScreen) {
             menu = true;
         }
-    }
-
-    // via sends a respawn packet for pre-1.15 clients on 1.15+ servers with the immediate_respawn gamerule enabled
-    public void exemptVia() {
-        exempt++;
     }
 }

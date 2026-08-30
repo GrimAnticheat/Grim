@@ -64,6 +64,7 @@ import ac.grim.grimac.internal.storage.verbose.VerboseRegistryImpl;
 import ac.grim.grimac.manager.init.start.StartableInitable;
 import ac.grim.grimac.manager.init.stop.StoppableInitable;
 import com.mongodb.client.MongoDatabase;
+import lombok.Getter;
 import org.bson.BsonBinarySubType;
 import org.bson.Document;
 import org.bson.types.Binary;
@@ -131,7 +132,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private ScheduledExecutorService duplicateWarningExecutor;
     private ScheduledExecutorService recoverySweepExecutor;
 
+    @Getter
     private boolean enabled = true;
+    @Getter
     private boolean loaded;
 
     private final List<BackendV2> v2Backends = new ArrayList<>();
@@ -170,12 +173,12 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             this.loaded = buildAndStart(dataFolder);
         } catch (FatalStorageStartupException e) {
             logger.log(Level.SEVERE, "[grim-datastore] fatal storage startup failure - shutting down server", e);
-            try { close(); } catch (Exception ignore) {}
+            try { close(); } catch (Exception closeEx) { logger.log(Level.FINE, "[grim-datastore] close during shutdown failed", closeEx); }
             this.enabled = false;
             shutdownServerAfterFatalStorageStartup();
         } catch (Exception | LinkageError e) {
             logger.log(Level.SEVERE, "[grim-datastore] failed to initialise storage - falling back to disabled", e);
-            try { close(); } catch (Exception ignore) {}
+            try { close(); } catch (Exception closeEx) { logger.log(Level.FINE, "[grim-datastore] close during fallback failed", closeEx); }
             this.enabled = false;
             installLocalVerboseRegistry();
         }
@@ -1140,9 +1143,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             violationSink = null;
         }
     }
-
-    public boolean isEnabled() { return enabled; }
-    public boolean isLoaded() { return loaded; }
 
     public @Nullable DataStore dataStore() { return loaded ? dataStore : null; }
     public @Nullable HistoryService historyService() { return historyService; }

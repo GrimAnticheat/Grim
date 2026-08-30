@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import static java.util.Objects.requireNonNull;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -42,7 +42,7 @@ public class EmbedField implements JsonSerializable {
 
     @Contract(value = "_ -> this", mutates = "this")
     public @NotNull EmbedField name(@NotNull String name) {
-        requireNonNull(name, "Embed field name cannot be null!");
+        Objects.requireNonNull(name, "Embed field name cannot be null!");
         if (name.length() > MAX_NAME_LENGTH) {
             throw new IllegalArgumentException("Embed field name too long, " + name.length() + " > " + MAX_NAME_LENGTH);
         }
@@ -53,7 +53,7 @@ public class EmbedField implements JsonSerializable {
 
     @Contract(value = "_ -> this", mutates = "this")
     public @NotNull EmbedField value(@NotNull String value) {
-        requireNonNull(value, "Embed field value cannot be null!");
+        Objects.requireNonNull(value, "Embed field value cannot be null!");
         if (value.length() > MAX_VALUE_LENGTH) {
             throw new IllegalArgumentException("Embed field value too long, " + value.length() + " > " + MAX_VALUE_LENGTH);
         }

@@ -19,7 +19,7 @@ public class BukkitOfflinePlatformPlayer implements OfflinePlatformPlayer {
 
     @Override
     public @NotNull String getName() {
-        return Objects.requireNonNull(offlinePlayer.getName());
+        return Objects.requireNonNull(offlinePlayer.getName(), "this.offlinePlayer.getName()");
     }
 
     @Override

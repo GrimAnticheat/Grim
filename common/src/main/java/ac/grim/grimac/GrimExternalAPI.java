@@ -58,6 +58,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         return api.getEventBus();
     }
 
+    @Deprecated
     @Override
     public @Nullable GrimUser getGrimUser(Player player) {
         return getGrimUser(player.getUniqueId());

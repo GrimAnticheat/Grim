@@ -46,7 +46,7 @@ public abstract class AbstractPlatformPlayerFactory<T> implements PlatformPlayer
     @SuppressWarnings("unchecked")
     @Override
     public final PlatformPlayer getFromNativePlayerType(@NotNull Object playerObject) {
-        T nativePlayer = (T) Objects.requireNonNull(playerObject);
+        T nativePlayer = (T) Objects.requireNonNull(playerObject, "playerObject");
         UUID uuid = getPlayerUUID(nativePlayer);
 
         // Check cache first

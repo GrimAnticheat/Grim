@@ -2,7 +2,8 @@ package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -11,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 @CheckData(name = "PacketOrderH", stableKey = "grim.packetorder.sneak_sprint_order", description = "Sent sprinting and sneaking state changes in an invalid packet order", experimental = true)
-public class PacketOrderH extends Check implements PostPredictionCheck {
+public class PacketOrderH extends Check implements PacketReceiveListener, PostPredictionListener {
     public PacketOrderH(final GrimPlayer player) {
         super(player);
     }

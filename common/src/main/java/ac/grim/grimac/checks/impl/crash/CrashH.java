@@ -3,14 +3,14 @@ package ac.grim.grimac.checks.impl.crash;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
 
 @CheckData(name = "CrashH", stableKey = "grim.crash.invalid_tab_complete", description = "Sent a tab complete request with invalid or excessive length")
-public class CrashH extends Check implements PacketCheck {
+public class CrashH extends Check implements PacketReceiveListener {
     private static final Verbose V = Verbose.of("[(length)|(invalid)] length={sint}");
 
     public CrashH(GrimPlayer player) {

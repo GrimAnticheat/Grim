@@ -18,6 +18,7 @@ public interface Payload {
         return ByteBufHelper.array(buffer);
     }
 
+    @Deprecated
     @OverrideOnly
     void write(PacketWrapper<?> wrapper);
 

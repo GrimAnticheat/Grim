@@ -4,6 +4,9 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -16,9 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "MultiPlace", stableKey = "grim.scaffolding.multi_place", description = "Placed multiple blocks in a tick", experimental = true)
-public class MultiPlace extends BlockPlaceCheck {
-    private static final Verbose V =
-            Verbose.of("face={face}, lastFace={face}, cursor={cursor}, lastCursor={cursor}, pos={mcpos}, lastPos={mcpos}");
+public class MultiPlace extends BlockPlaceCheck implements PacketReceiveListener, PostPredictionListener, BlockPlaceListener {
+    private static final Verbose V = Verbose.of("face={face}, lastFace={face}, cursor={cursor}, lastCursor={cursor}, pos={mcpos}, lastPos={mcpos}");
 
     private final List<FlagData> flags = new ArrayList<>();
     private boolean hasPlaced;
@@ -90,6 +92,5 @@ public class MultiPlace extends BlockPlaceCheck {
             Vector3f cursor,
             Vector3f lastCursor,
             Vector3i pos,
-            Vector3i lastPos) {
-    }
+            Vector3i lastPos) {}
 }

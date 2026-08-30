@@ -1,3 +1,4 @@
+@Suppress("PropertyName")
 val minecraft_version: String by project
 
 dependencies {

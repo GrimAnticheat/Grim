@@ -4,7 +4,7 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.type.BlockBreakListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 @CheckData(name = "PositionBreakA", stableKey = "grim.breaking.position_break_a", description = "Tried to break a block face from an impossible eye position")
-public class PositionBreakA extends Check implements BlockBreakCheck {
+public class PositionBreakA extends Check implements BlockBreakListener {
     private static final Verbose V = Verbose.of("action={digging}, face={face}");
 
     public PositionBreakA(GrimPlayer player) {
@@ -58,12 +58,11 @@ public class PositionBreakA extends Check implements BlockBreakCheck {
             default -> false;
         };
 
-        if (flag) {
-            if (flag(V.write(verbose())
-                    .uint(VerboseCodecs.enumId(blockBreak.action))
-                    .uint(VerboseCodecs.enumId(blockBreak.face))) && shouldModifyPackets()) {
-                blockBreak.cancel();
-            }
+        if (flag && flag(V.write(verbose())
+                .uint(VerboseCodecs.enumId(blockBreak.action))
+                .uint(VerboseCodecs.enumId(blockBreak.face)))
+                && shouldModifyPackets()) {
+            blockBreak.cancel();
         }
     }
 }

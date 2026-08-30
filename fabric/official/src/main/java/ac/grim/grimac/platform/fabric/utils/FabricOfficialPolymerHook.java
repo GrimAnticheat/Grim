@@ -27,7 +27,7 @@ public class FabricOfficialPolymerHook {
                 MethodHandles.Lookup lookup = MethodHandles.publicLookup();
                 Class<?> utilsClass = Class.forName("eu.pb4.polymer.core.api.block.PolymerBlockUtils");
 
-                Class<?> contextClass = null;
+                Class<?> contextClass;
                 try {
                     contextClass = Class.forName("net.fabricmc.fabric.api.networking.v1.context.PacketContext");
                     Class<?> providerClass = Class.forName("net.fabricmc.fabric.api.networking.v1.context.PacketContextProvider");

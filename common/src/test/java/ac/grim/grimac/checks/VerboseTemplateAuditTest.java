@@ -235,7 +235,7 @@ class VerboseTemplateAuditTest {
                 if (i > 0) template.append('|');
                 template.append(concatLiterals(segments[i]));
             }
-            if (template.length() > 0) templates.add(template.toString());
+            if (!template.isEmpty()) templates.add(template.toString());
             searchFrom = statementEnd;
         }
         return templates;

@@ -11,11 +11,13 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakCheck {
+public class BlockPlaceCheck extends Check {
     private static final List<StateType> weirdBoxes = new ArrayList<>();
     private static final List<StateType> buggyBoxes = new ArrayList<>();
 
@@ -48,17 +50,16 @@ public class BlockPlaceCheck extends Check implements RotationCheck, BlockBreakC
         super(player);
     }
 
-    // Method called immediately after a block is placed, before forwarding block place to server
-    public void onBlockPlace(final BlockPlace place) {
-    }
-
-    // Method called the flying packet after the block place
-    public void onPostFlyingBlockPlace(BlockPlace place) {
-    }
-
     @Override
-    public void onReload(ConfigManager config) {
-        this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", 5);
+    public void onReload(@NotNull ConfigManager config) {
+        if (getConfigName() != null) {
+            this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", getDefaultCancelVL());
+        }
+    }
+
+    @Contract(pure = true)
+    protected int getDefaultCancelVL() {
+        return 5;
     }
 
     protected boolean shouldCancel() {

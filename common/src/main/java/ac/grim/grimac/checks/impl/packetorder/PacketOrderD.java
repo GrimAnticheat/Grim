@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 
 @CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", description = "Sent offhand entity interaction before the matching mainhand interaction", experimental = true)
-public class PacketOrderD extends Check implements PacketCheck {
+public class PacketOrderD extends Check implements PreViaPacketReceiveListener {
     private static final Verbose V = Verbose.of(
             "[Skipped Mainhand|requiredEntity={sint}, entity={sint}, requiredSneaking={bool}, sneaking={bool}]");
 
@@ -21,13 +21,18 @@ public class PacketOrderD extends Check implements PacketCheck {
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+    }
+
     private boolean sentMainhand;
     private int requiredEntity;
     private boolean requiredSneaking;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             InteractAction action = packet.getAction();
             if (action != InteractAction.ATTACK) {

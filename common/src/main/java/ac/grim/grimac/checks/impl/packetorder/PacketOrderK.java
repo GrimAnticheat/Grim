@@ -3,17 +3,19 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClientStatus;
 
 import java.util.ArrayDeque;
 
 @CheckData(name = "PacketOrderK", stableKey = "grim.packetorder.inventory_open_order", description = "Opened, clicked, or closed inventory in the wrong packet order", experimental = true)
-public class PacketOrderK extends Check implements PostPredictionCheck {
+public class PacketOrderK extends Check implements PacketReceiveListener, PostPredictionListener {
     // Shape index == KIND_* constant value.
     private static final Verbose V = Verbose
             .of("open, clicking={bool}, closing={bool}")
@@ -26,6 +28,11 @@ public class PacketOrderK extends Check implements PostPredictionCheck {
 
     public PacketOrderK(final GrimPlayer player) {
         super(player);
+    }
+
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isOlderThan(ClientVersion.V_1_12);
     }
 
     private final ArrayDeque<FlagData> flags = new ArrayDeque<>();

@@ -2,13 +2,14 @@ package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.util.Vector3f;
 
-@CheckData(name = "InvalidPlaceA", stableKey = "grim.scaffolding.invalid_place_a", description = "Sent invalid cursor position")
-public class InvalidPlaceA extends BlockPlaceCheck {
-    public InvalidPlaceA(GrimPlayer player) {
+@CheckData(name = "InvalidPlaceCursor", stableKey = "grim.scaffolding.invalid_place_a", description = "Sent invalid cursor position")
+public class InvalidPlaceCursor extends BlockPlaceCheck implements BlockPlaceListener {
+    public InvalidPlaceCursor(GrimPlayer player) {
         super(player);
     }
 

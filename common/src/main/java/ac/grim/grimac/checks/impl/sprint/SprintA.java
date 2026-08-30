@@ -3,13 +3,13 @@ package ac.grim.grimac.checks.impl.sprint;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 
 @CheckData(name = "SprintA", stableKey = "grim.sprint.hunger", description = "Sprinting with too low hunger", setback = 0)
-public class SprintA extends Check implements PostPredictionCheck {
+public class SprintA extends Check implements PostPredictionListener {
     private static final Verbose V = Verbose.of("hunger={uint}");
 
     public SprintA(GrimPlayer player) {
@@ -26,12 +26,7 @@ public class SprintA extends Check implements PostPredictionCheck {
 
         if (player.food <= 6.0F) {
             if (player.isSprinting) {
-                if (flag(V.write(verbose()).uint(player.food))) {
-                    if (shouldModifyPackets()) {
-                        player.onPacketCancel();
-                    }
-                    setbackIfAboveSetbackVL();
-                }
+                flagWithSetback(V.write(verbose()).uint(player.food));
             } else {
                 reward();
             }

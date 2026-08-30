@@ -1,5 +1,6 @@
 import versioning.BuildConfig
 
+@Suppress("PropertyName")
 val minecraft_version: String by project
 
 plugins {

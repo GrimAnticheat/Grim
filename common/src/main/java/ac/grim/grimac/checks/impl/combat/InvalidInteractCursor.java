@@ -1,9 +1,9 @@
-package ac.grim.grimac.checks.impl.badpackets;
+package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -14,23 +14,26 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 
-@CheckData(name = "BadPacketsT", stableKey = "grim.badpackets.invalid_interact_vector", description = "Sent an entity interaction vector outside the target player's hitbox")
-public class BadPacketsT extends Check implements PacketCheck {
+@CheckData(name = "InvalidInteractCursor", stableKey = "grim.badpackets.invalid_interact_vector", description = "Sent an entity interaction vector outside the target player's hitbox")
+public class InvalidInteractCursor extends Check implements PacketReceiveListener {
     private static final Verbose V = Verbose.of("{f64:%.5f}/{f64:%.5f}/{f64:%.5f}");
 
     private final double maxHorizontalDisplacement;
     private final double minVerticalDisplacement;
     private final double maxVerticalDisplacement;
 
-    public BadPacketsT(final GrimPlayer player) {
+    public InvalidInteractCursor(final GrimPlayer player) {
         super(player);
-        // 1.7 and 1.8 seem to have different hitbox "expansion" values than 1.9+
-        // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872458702
-        // https://github.com/GrimAnticheat/Grim/pull/1274#issuecomment-1872533497
-        double expansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1 : 0;
+        // pre-1.9 expands hitboxes by 0.1 on all sides; this is not lenience, it is vanilla.
+        double expansion = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) ? 0.1f : 0;
         maxHorizontalDisplacement = 0.3001 + expansion;
         minVerticalDisplacement = -0.0001 - expansion;
         maxVerticalDisplacement = 1.8001 + expansion;
+    }
+
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8);
     }
 
     @Override
@@ -41,6 +44,11 @@ public class BadPacketsT extends Check implements PacketCheck {
             if (wrapper.getAction() != WrapperPlayClientInteractEntity.InteractAction.INTERACT_AT) return;
             Vector3d targetVector = wrapper.getLocation();
             if (targetVector == null) return; // shouldn't ever happen, but whatever
+
+            if (!Double.isFinite(targetVector.x) || !Double.isFinite(targetVector.y) || !Double.isFinite(targetVector.z)) {
+                flag(V.write(verbose()).f64(targetVector.x).f64(targetVector.y).f64(targetVector.z));
+                return;
+            }
 
             final PacketEntity packetEntity = player.compensatedEntities.getEntity(wrapper.getEntityId());
             // Don't continue if the compensated entity hasn't been resolved

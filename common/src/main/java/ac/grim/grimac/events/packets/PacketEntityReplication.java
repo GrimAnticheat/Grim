@@ -2,8 +2,9 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.SprintingState;
@@ -52,13 +53,14 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPlayer;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PacketEntityReplication extends Check implements PacketCheck {
+public class PacketEntityReplication extends GrimProcessor implements PacketReceiveListener, PacketSendListener {
 
     private final AtomicBoolean hasSentPreWavePacket = new AtomicBoolean(true);
 
@@ -518,7 +520,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
                 xRotEntity.steps = entity.isBoat ? 10 : 3;
             }
 
-            entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
+            entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, yaw, pitch, player);
         });
 
         player.latencyUtils.addRealTimeTask(lastTrans + 1, () -> {
@@ -618,7 +620,7 @@ public class PacketEntityReplication extends Check implements PacketCheck {
     }
 
     @Override
-    public void onReload(ConfigManager config) {
+    public void onReload(@NotNull ConfigManager config) {
         maxFireworkBoostPing = config.getIntElse("max-ping-firework-boost", 1000);
     }
 

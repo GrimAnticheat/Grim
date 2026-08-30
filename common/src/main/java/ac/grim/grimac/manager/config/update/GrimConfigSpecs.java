@@ -105,7 +105,6 @@ public final class GrimConfigSpecs {
             case "SQLITE" -> "sqlite";
             case "MYSQL" -> "mysql";
             case "POSTGRESQL", "POSTGRES" -> "postgres";
-            case "NOOP", "NONE", "DISABLED" -> null;
             default -> null;
         };
     }

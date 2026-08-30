@@ -3,7 +3,8 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -14,7 +15,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import java.util.ArrayDeque;
 
 @CheckData(name = "PacketOrderF", stableKey = "grim.packetorder.input_tick_to_sneak_sprint_order", description = "Sent action packets after sneak or sprint input in an invalid order", experimental = true)
-public class PacketOrderF extends Check implements PostPredictionCheck {
+public class PacketOrderF extends Check implements PacketReceiveListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("action={str}, sprinting={bool}, sneaking={bool}");
 
     static final int ACTION_INTERACT = 0;

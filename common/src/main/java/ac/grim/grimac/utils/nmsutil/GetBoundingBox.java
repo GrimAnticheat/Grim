@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 @UtilityClass
 public class GetBoundingBox {
-    public static SimpleCollisionBox getCollisionBoxForPlayer(@NotNull GrimPlayer player, double centerX, double centerY, double centerZ) {
+    public static @NotNull SimpleCollisionBox getCollisionBoxForPlayer(@NotNull GrimPlayer player, double centerX, double centerY, double centerZ) {
         if (player.inVehicle()) {
             return getPacketEntityBoundingBox(player, centerX, centerY, centerZ, player.compensatedEntities.self.getRiding());
         }
