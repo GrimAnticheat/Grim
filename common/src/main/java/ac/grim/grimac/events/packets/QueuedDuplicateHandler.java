@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.connection.ConnectionUtils;
 import ac.grim.grimac.utils.data.QueuedDuplicate;
@@ -10,7 +10,6 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +30,7 @@ public class QueuedDuplicateHandler extends PacketListenerAbstract {
         if (player == null) return;
 
         if (event.getConnectionState() != ConnectionState.PLAY
-                || Check.isAsync(event.getPacketType())
+                || GrimProcessor.isAsync(event.getPacketType())
                 || player.packetStateData.isReceivingQueuedDuplicate) return;
 
         QueuedDuplicate queuedDuplicate = player.packetStateData.queuedDuplicate;
