@@ -21,7 +21,7 @@ public class PacketOrderA extends Check implements PacketReceiveListener, PostPr
     @Override
     public boolean isApplicable() {
         // before 1.13, keyboard and mouse input were handled on tick.
-        // Keyboard input was always handled before mouse input, which is why this works,
+        // Keyboard input was always handled after mouse input, which is why this works,
         // but after 1.13, keyboard and mouse input are handled in the order they occur, breaking this check.
         return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2);
     }
