@@ -41,9 +41,6 @@ spectators:
     allowed-worlds:
         - ""
 
-# The minimum allowed delay between clicks in inventories
-min-inv-click-delay: 1
-
 # Quanto tempo os jogadores tem até expulsarmos eles por inatividade? Padrão = 60 segundos.
 max-transaction-time: 60
 
@@ -248,4 +245,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 12
+config-version: 11
