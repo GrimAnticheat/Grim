@@ -44,7 +44,7 @@ public class AttackCooldownHandler extends GrimProcessor implements PacketReceiv
             if (!stackChanged) {
                 ++ticksSinceLastSwing;
             }
-            updateHeldItem();
+            updateHeldItem(true);
             stackChanged = false;
         }
     }
@@ -54,7 +54,8 @@ public class AttackCooldownHandler extends GrimProcessor implements PacketReceiv
     }
 
     // called on client tick and whenever the slot gets updated
-    public void updateHeldItem() {
+    public void updateHeldItem(boolean tick) {
+        if (!tick && player.supportsEndTick()) return;
         ItemStack held = player.inventory.getHeldItem().copy();
 
         if (!(stack.isEmpty() && held.isEmpty() || stack.getType() == held.getType() && (stack.isDamageableItem() || stack.getLegacyData() == held.getLegacyData()))) {

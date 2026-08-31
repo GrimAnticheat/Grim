@@ -259,6 +259,6 @@ public class Inventory extends AbstractContainerMenu {
 
     public void setSelected(int selected) {
         this.selected = selected;
-        this.player.attackCooldown.updateHeldItem();
+        this.player.attackCooldown.updateHeldItem(false);
     }
 }
