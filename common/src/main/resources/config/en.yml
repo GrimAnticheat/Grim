@@ -63,6 +63,11 @@ cancel-duplicate-packet: true
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
 
+# How many inventory clicks should we allow per server tick?
+# Any clicks after this threshold is reached will be cancelled.
+# Set to -1 to disable.
+max-clicks-per-tick: 3
+
 Simulation:
     # How much should we multiply total advantage by when the player is legit
     # This is what the default config looks like (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/d4ufgxrxer
@@ -236,4 +241,4 @@ update-permission-ticks: -1
 #   config-version: bumped on every breaking shape change. Old configs
 #                   auto-migrate up via the bundled updater on next start.
 config-flavor: V2
-config-version: 11
+config-version: 12
