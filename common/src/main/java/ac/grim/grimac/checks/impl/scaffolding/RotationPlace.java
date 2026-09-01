@@ -102,7 +102,9 @@ public class RotationPlace extends BlockPlaceCheck implements BlockPlaceListener
         // End checking if the player is in the block
 
         // 1.9+ players could be a tick behind because we don't get skipped ticks
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+        // Fixes the one-tick rotation desync present only in 1.9–1.16, as in 1.17+ Mojang already fixed yaw/pitch synchronization themselves
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
+                && player.getClientVersion().isOlderThan(ClientVersion.V_1_17)) {
             possibleLookDirs.add(new Vector3f(player.lastYaw, player.lastPitch, 0));
         }
 
