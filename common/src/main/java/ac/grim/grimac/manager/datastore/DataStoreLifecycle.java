@@ -638,7 +638,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                     ownershipFence,
                     config.serverName(),
                     startupStartedEpochMs,
-                    dbNow,
                     metadata.hostname(),
                     metadata.grimVersion(),
                     metadata.serverVersionString(),

@@ -83,6 +83,21 @@ class LeaseStartupLivenessTest {
     }
 
     @Test
+    void lastSeenNeverPrecedesTheStartupsOwnStamps() {
+        ownership.put(instanceId, lease(startupId, DB_NOW, ServerOwnershipSnapshot.OPEN, 10_000L));
+        assertEquals(startup.lastHeartbeatEpochMs(), liveness.lastSeenEpochMs(startup));
+    }
+
+    @Test
+    void refreshRereadsOwnershipOnTheNextVerdict() {
+        assertFalse(liveness.isAlive(startup));
+        ownership.put(instanceId, lease(startupId, DB_NOW + 1L, ServerOwnershipSnapshot.OPEN, 90_000L));
+        assertFalse(liveness.isAlive(startup), "the cached miss still answers");
+        liveness.refresh();
+        assertTrue(liveness.isAlive(startup));
+    }
+
+    @Test
     void startupWithoutItsOwnLeaseWasLastSeenAtItsNewestOwnStamp() {
         ownership.put(instanceId, lease(UUID.randomUUID(), DB_NOW + 1L, ServerOwnershipSnapshot.OPEN, 90_000L));
         assertEquals(startup.lastHeartbeatEpochMs(), liveness.lastSeenEpochMs(startup));

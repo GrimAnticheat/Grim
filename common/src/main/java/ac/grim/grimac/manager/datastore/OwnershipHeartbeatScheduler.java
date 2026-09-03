@@ -48,7 +48,6 @@ final class OwnershipHeartbeatScheduler {
     private @Nullable ScheduledExecutorService executor;
     private @Nullable ScheduledFuture<?> task;
     private volatile @Nullable Thread schedulerThread;
-    private volatile long lastSuccessfulRenewEpochMs;
 
     OwnershipHeartbeatScheduler(
             @NotNull ServerOwnershipAdapter ownership,
@@ -58,7 +57,6 @@ final class OwnershipHeartbeatScheduler {
             @NotNull UUID fence,
             @NotNull String serverName,
             long startedEpochMs,
-            long initialHeartbeatEpochMs,
             @Nullable String hostname,
             @Nullable String grimVersion,
             @Nullable String serverVersionString,
@@ -88,7 +86,6 @@ final class OwnershipHeartbeatScheduler {
         this.publish = publish;
         this.lostOwnership = lostOwnership;
         this.logger = logger;
-        this.lastSuccessfulRenewEpochMs = initialHeartbeatEpochMs;
     }
 
     void start() {
@@ -101,11 +98,10 @@ final class OwnershipHeartbeatScheduler {
                 return t;
             });
             long periodMs = Math.max(1L, interval.toMillis());
-            task = executor.scheduleAtFixedRate(this::renewTick, 0L, periodMs, TimeUnit.MILLISECONDS);
+            task = executor.scheduleAtFixedRate(this::tick, 0L, periodMs, TimeUnit.MILLISECONDS);
         }
     }
 
-    /** Writes the startup row once, for a manifest change or the startup barrier. Renewals never write it. */
     void publishNowAndWait() {
         ScheduledExecutorService current;
         synchronized (lifecycleLock) {
@@ -113,16 +109,16 @@ final class OwnershipHeartbeatScheduler {
         }
         if (current == null || lost.get()) return;
         if (Thread.currentThread() == schedulerThread) {
-            publishOnce();
+            tick();
             return;
         }
-        Future<?> future = current.submit(this::publishOnce);
+        Future<?> future = current.submit(this::tick);
         try {
             future.get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            logger.log(Level.WARNING, "ownership heartbeat publish failed for startup " + startupId, e.getCause());
+            logger.log(Level.WARNING, "ownership heartbeat failed for startup " + startupId, e.getCause());
         }
     }
 
@@ -140,7 +136,7 @@ final class OwnershipHeartbeatScheduler {
         }
     }
 
-    private void renewTick() {
+    private void tick() {
         if (lost.get()) return;
         try {
             OwnershipRenewResult renewed = ownership.renewOwnership(
@@ -149,27 +145,21 @@ final class OwnershipHeartbeatScheduler {
                 onLostOwnership();
                 return;
             }
-            lastSuccessfulRenewEpochMs = renewed.dbNowEpochMs();
             gate.extend(startupId, fence, leaseTtlMs, safetyMarginMs);
+            ServerStartupEvent event = new ServerStartupEvent()
+                    .startupId(startupId)
+                    .instanceId(instanceId)
+                    .serverName(serverName)
+                    .startedEpochMs(startedEpochMs)
+                    .lastHeartbeatEpochMs(renewed.dbNowEpochMs())
+                    .hostname(hostname)
+                    .grimVersion(grimVersion)
+                    .serverVersionString(serverVersionString)
+                    .verboseManifest(verboseManifest.get());
+            publish.accept(event);
         } catch (Exception e) {
-            // A thrown tick would cancel the fixed-rate schedule and silently end renewals.
             logger.log(Level.WARNING, "ownership heartbeat failed for startup " + startupId, e);
         }
-    }
-
-    private void publishOnce() {
-        if (lost.get()) return;
-        ServerStartupEvent event = new ServerStartupEvent()
-                .startupId(startupId)
-                .instanceId(instanceId)
-                .serverName(serverName)
-                .startedEpochMs(startedEpochMs)
-                .lastHeartbeatEpochMs(lastSuccessfulRenewEpochMs)
-                .hostname(hostname)
-                .grimVersion(grimVersion)
-                .serverVersionString(serverVersionString)
-                .verboseManifest(verboseManifest.get());
-        publish.accept(event);
     }
 
     private void onLostOwnership() {

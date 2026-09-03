@@ -109,6 +109,7 @@ final class V2InstanceRegistry {
 
     /** Repairs every open startup the liveness rejects. Repeats change no rows, so peers need no coordination. */
     long recoverStaleStartups(@NotNull UUID currentStartupId, @NotNull LeaseStartupLiveness liveness) {
+        liveness.refresh();
         long closed = 0L;
         Cursor cursor = null;
         do {

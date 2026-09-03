@@ -50,11 +50,17 @@ final class LeaseStartupLiveness implements StartupLiveness {
         return row != null && row.ownerStartupId().equals(startup.startupId()) && row.activeAt(dbNowEpochMs());
     }
 
-    /** When a dead startup last wrote: its last lease renew if the lease still names it, else its own newest stamp. */
+    /** When a dead startup last wrote: the newest of its own stamps and its last lease renew, if the lease still names it. */
     long lastSeenEpochMs(@NotNull ServerStartupRecord startup) {
+        long own = Math.max(startup.startedEpochMs(), startup.lastHeartbeatEpochMs());
         ServerOwnershipSnapshot row = ownership == null ? null : ownershipOf(startup.instanceId());
-        if (row != null && row.ownerStartupId().equals(startup.startupId())) return row.lastRenewedAtEpochMs();
-        return Math.max(startup.startedEpochMs(), startup.lastHeartbeatEpochMs());
+        return row != null && row.ownerStartupId().equals(startup.startupId()) ? Math.max(own, row.lastRenewedAtEpochMs()) : own;
+    }
+
+    /** Drops cached rows so the next verdicts read the store. Recovery calls this first: a stale row must never close a live peer. */
+    void refresh() {
+        leases.clear();
+        dbNow = null;
     }
 
     private @Nullable ServerOwnershipSnapshot ownershipOf(@NotNull UUID instanceId) {
