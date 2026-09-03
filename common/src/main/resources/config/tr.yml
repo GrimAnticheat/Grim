@@ -47,6 +47,8 @@ max-transaction-time: 60
 # This may improve compatibility with other anticheats. It may cause issues with packet limiters.
 # Do not enable this if you are not sure what you are doing.
 disable-pong-cancelling: false
+# Exempt players with Geyser/Floodgate UUID format (starting with 00000000-0000-0000-0009)
+exempt-geyser-by-uuid: true
 
 # Varsayılan blok yeniden senkronizasyon işleyicisi devre dışı bırakılsın mı?
 # Varsayılan olarak Grim, blokları sunucu dünyasından okur ve senkronizasyon bozukluğunu düzeltmek için istemciye gönderir.

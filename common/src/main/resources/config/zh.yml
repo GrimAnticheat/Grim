@@ -50,6 +50,8 @@ max-transaction-time: 60
 # 可能会优化和其他反作弊的兼容性，但可能会与数据包限制器冲突
 # 在你不知道你在干什么的情况下，不要启用。
 disable-pong-cancelling: false
+# Exempt players with Geyser/Floodgate UUID format (starting with 00000000-0000-0000-0009)
+exempt-geyser-by-uuid: true
 
 # 是否应禁用默认的方块重新同步处理程序？
 # 默认情况下，Grim 会从服务器世界读取方块并将它们发送给客户端以修复不同步问题。
