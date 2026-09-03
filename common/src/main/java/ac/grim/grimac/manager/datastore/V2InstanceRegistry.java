@@ -13,7 +13,6 @@ import ac.grim.grimac.api.storage.category.Category;
 import ac.grim.grimac.api.storage.check.CheckCatalogPersistence;
 import ac.grim.grimac.api.storage.check.CheckCatalogRepairResult;
 import ac.grim.grimac.api.storage.event.ServerStartupEvent;
-import ac.grim.grimac.api.storage.event.SessionEvent;
 import ac.grim.grimac.api.storage.kind.ops.EntityOps;
 import ac.grim.grimac.api.storage.model.ServerStartupRecord;
 import ac.grim.grimac.api.storage.model.SessionRecord;
@@ -45,17 +44,14 @@ final class V2InstanceRegistry {
 
     private final DataStore store;
     private final StorageEventHandler<ServerStartupEvent> directStartupWriter;
-    private final StorageEventHandler<SessionEvent> directSessionWriter;
     private final Logger logger;
 
-    private V2InstanceRegistry(
+    V2InstanceRegistry(
             @NotNull DataStore store,
-            @NotNull V2Routes.Route<?> startupsRoute,
-            @NotNull V2Routes.Route<?> sessionsRoute,
+            @NotNull StorageEventHandler<ServerStartupEvent> directStartupWriter,
             @NotNull Logger logger) {
         this.store = store;
-        this.directStartupWriter = directWriter(startupsRoute, STARTUPS);
-        this.directSessionWriter = directWriter(sessionsRoute, Categories.SESSION);
+        this.directStartupWriter = directStartupWriter;
         this.logger = logger;
     }
 
@@ -64,9 +60,8 @@ final class V2InstanceRegistry {
             @NotNull V2Routes routes,
             @NotNull Logger logger) {
         V2Routes.Route<?> startups = routes.routeFor(STARTUPS);
-        V2Routes.Route<?> sessions = routes.routeFor(Categories.SESSION);
-        if (startups == null || sessions == null) return null;
-        return new V2InstanceRegistry(store, startups, sessions, logger);
+        if (startups == null || !routes.contains(Categories.SESSION)) return null;
+        return new V2InstanceRegistry(store, directWriter(startups, STARTUPS), logger);
     }
 
     void publish(@NotNull ServerStartupEvent source) {
@@ -102,7 +97,7 @@ final class V2InstanceRegistry {
                 + " startupId=" + startupId
                 + " fence=" + fence + ".";
         logger.info(message);
-        return StartupClaim.enabled(startupId, instanceId, 0L, message);
+        return StartupClaim.enabled(startupId, instanceId, message);
     }
 
     long closeCurrentStartup(@NotNull UUID startupId, long closedAtEpochMs) {
@@ -112,104 +107,41 @@ final class V2InstanceRegistry {
         return closed;
     }
 
-    long recoverStaleStartups(
-            @NotNull UUID currentStartupId,
-            long now,
-            long staleThresholdMs) {
+    /** Repairs every open startup the liveness rejects. Repeats change no rows, so peers need no coordination. */
+    long recoverStaleStartups(@NotNull UUID currentStartupId, @NotNull LeaseStartupLiveness liveness) {
         long closed = 0L;
         Cursor cursor = null;
-        boolean stop = false;
         do {
             Page<ServerStartupRecord> page = await(store.execute(new EntityOps.FindByIndexOp<>(
-                    STARTUPS,
-                    "by_open_heartbeat",
-                    ServerStartupRecord.OPEN,
-                    cursor,
-                    PAGE_SIZE)), "query stale server startups");
+                    STARTUPS, "by_open_heartbeat", ServerStartupRecord.OPEN, cursor, PAGE_SIZE)),
+                    "query open server startups");
             for (ServerStartupRecord row : page.items()) {
-                if (row.isClosed()) continue;
-                if (!isStale(row, now, staleThresholdMs)) {
-                    stop = true;
-                    break;
-                }
-                if (currentStartupId.equals(row.startupId())) continue;
-                closed += recoverStartup(row, "stale");
+                if (currentStartupId.equals(row.startupId()) || liveness.isAlive(row)) continue;
+                closed += recoverStartup(row, liveness.lastSeenEpochMs(row));
             }
-            cursor = stop ? null : page.nextCursor();
+            cursor = page.nextCursor();
         } while (cursor != null);
         return closed;
     }
 
-    long recoverStartup(@NotNull UUID startupId, @NotNull String reason) {
-        Optional<ServerStartupRecord> startup = startupById(startupId);
-        return startup.map(row -> recoverStartup(row, reason)).orElse(0L);
-    }
-
-    private long recoverStartup(@NotNull ServerStartupRecord startup, @NotNull String reason) {
-        long closed = closeOpenSessions(startup.startupId(), SessionRecord.OPEN);
-        long closeAt = Math.max(startup.startedEpochMs(), startup.lastHeartbeatEpochMs());
-        markStartupClosed(startup, closeAt, reason);
+    private long recoverStartup(@NotNull ServerStartupRecord startup, long lastSeenEpochMs) {
+        long closed = closeOpenSessions(startup.startupId(), null);
+        markStartupClosed(startup, lastSeenEpochMs, "stale");
         if (closed > 0) {
             logger.warning("[grim-datastore] recovered startupId=" + startup.startupId()
-                    + " serverName='" + startup.serverName() + "' reason=" + reason
-                    + " and closed " + closed + " open session(s).");
+                    + " serverName='" + startup.serverName() + "' and closed " + closed + " open session(s).");
         }
         return closed;
     }
 
-    private long closeOpenSessions(@NotNull UUID startupId, long closedAtEpochMs) {
-        long closed = 0L;
-        Cursor cursor = null;
-        boolean reachedClosedRows;
-        do {
-            reachedClosedRows = false;
-            Page<SessionRecord> page = await(store.execute(new EntityOps.FindByIndexOp<>(
-                    Categories.SESSION,
-                    "by_startup_open",
-                    startupId,
-                    cursor,
-                    PAGE_SIZE)), "query open sessions for startup " + startupId);
-            for (SessionRecord session : page.items()) {
-                if (!startupId.equals(session.startupId())) continue;
-                if (session.isClosed()) {
-                    reachedClosedRows = true;
-                    continue;
-                }
-                long closeAt = closedAtEpochMs == SessionRecord.OPEN
-                        ? session.lastActivityEpochMs()
-                        : closedAtEpochMs;
-                closeSession(session, closeAt);
-                closed++;
-            }
-            cursor = reachedClosedRows ? null : page.nextCursor();
-        } while (cursor != null);
-        return closed;
+    /** One conditional update over the startup's open sessions. A null close time copies each row's last_activity. */
+    private long closeOpenSessions(@NotNull UUID startupId, @Nullable Long closedAtEpochMs) {
+        return await(store.execute(new EntityOps.SetIfSentinelOp(Categories.SESSION, "by_startup_open", startupId,
+                "closed_at", SessionRecord.OPEN, closedAtEpochMs, closedAtEpochMs == null ? "last_activity" : null)),
+                "close open sessions for startup " + startupId);
     }
 
-    private void closeSession(@NotNull SessionRecord source, long closedAtEpochMs) {
-        SessionEvent event = new SessionEvent()
-                .sessionId(source.sessionId())
-                .playerUuid(source.playerUuid())
-                .startedEpochMs(source.startedEpochMs())
-                .lastActivityEpochMs(source.lastActivityEpochMs())
-                .closedAtEpochMs(closedAtEpochMs)
-                .clientBrand(source.clientBrand())
-                .clientVersion(source.clientVersion())
-                .startupId(source.startupId());
-        try {
-            directSessionWriter.onEvent(event, 0L, true);
-        } catch (Exception e) {
-            throw new RuntimeException("failed to close session " + source.sessionId(), e);
-        }
-    }
-
-    private void markStartupClosed(
-            @NotNull ServerStartupRecord source,
-            long closedAtEpochMs,
-            @NotNull String reason) {
-        long closeAt = closedAtEpochMs == ServerStartupRecord.OPEN
-                ? Math.max(source.startedEpochMs(), source.lastHeartbeatEpochMs())
-                : closedAtEpochMs;
+    private void markStartupClosed(@NotNull ServerStartupRecord source, long closedAtEpochMs, @NotNull String reason) {
         ServerStartupRecord closed = new ServerStartupRecord(
                 source.startupId(),
                 source.instanceId(),
@@ -218,8 +150,8 @@ final class V2InstanceRegistry {
                 source.serverVersionString(),
                 source.hostname(),
                 source.startedEpochMs(),
-                Math.max(source.lastHeartbeatEpochMs(), closeAt),
-                closeAt,
+                Math.max(source.lastHeartbeatEpochMs(), closedAtEpochMs),
+                closedAtEpochMs,
                 reason,
                 source.verboseManifest());
         writeStartup(closed);
@@ -254,14 +186,6 @@ final class V2InstanceRegistry {
                 STARTUPS, startupId)), "query server startup " + startupId);
     }
 
-    private static boolean isStale(@NotNull ServerStartupRecord row, long now, long staleThresholdMs) {
-        return heartbeatAgeMs(now, row) > staleThresholdMs;
-    }
-
-    private static long heartbeatAgeMs(long now, @NotNull ServerStartupRecord row) {
-        return Math.max(0L, now - row.lastHeartbeatEpochMs());
-    }
-
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static <E> @NotNull StorageEventHandler<E> directWriter(
             @NotNull V2Routes.Route<?> route,
@@ -291,16 +215,13 @@ final class V2InstanceRegistry {
             @NotNull UUID instanceId,
             @Nullable UUID conflictingStartupId,
             long heartbeatAgeMs,
-            long sessionsClosed,
             @NotNull String warningMessage) {
 
         static @NotNull StartupClaim enabled(
                 @NotNull UUID startupId,
                 @NotNull UUID instanceId,
-                long sessionsClosed,
                 @NotNull String message) {
-            return new StartupClaim(true, false, startupId, instanceId, null,
-                    -1L, sessionsClosed, message);
+            return new StartupClaim(true, false, startupId, instanceId, null, -1L, message);
         }
 
         static @NotNull StartupClaim duplicate(
@@ -310,7 +231,7 @@ final class V2InstanceRegistry {
                 long heartbeatAgeMs,
                 @NotNull String message) {
             return new StartupClaim(false, true, startupId, instanceId, conflictingStartupId,
-                    heartbeatAgeMs, 0L, message);
+                    heartbeatAgeMs, message);
         }
     }
 
