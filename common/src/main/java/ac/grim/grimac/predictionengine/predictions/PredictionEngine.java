@@ -194,6 +194,10 @@ public class PredictionEngine {
             player.skippedTickInActualMovement = true;
         }
 
+        if (player.supportsEndTick() && player.predictedVelocity.isJumpFromGround()) {
+            player.jumpDelay = 10;
+        }
+
         return beforeCollisionMovement;
     }
 

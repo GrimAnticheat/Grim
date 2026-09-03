@@ -284,6 +284,7 @@ public class GrimPlayer implements GrimUser {
     public boolean wasLastPredictionCompleteChecked;
     public boolean isJumping;
     public boolean lastJumping;
+    public int jumpDelay;
     public final @NotNull EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(FluidTag.WATER, FluidTag.LAVA);
     public boolean canFloatWhileRidden;
 

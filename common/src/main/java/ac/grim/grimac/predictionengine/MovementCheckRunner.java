@@ -475,6 +475,12 @@ public class MovementCheckRunner extends GrimProcessor {
 
         boolean wasChecked = false;
 
+        if (!player.supportsEndTick() || !player.packetStateData.knownInput.jump() || player.isFlying) {
+            player.jumpDelay = 0;
+        } else if (player.jumpDelay > 0) {
+            player.jumpDelay--;
+        }
+
         // Exempt if the player is dead or is riding a dead entity
         if (player.compensatedEntities.self.isDead || (riding != null && riding.isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
