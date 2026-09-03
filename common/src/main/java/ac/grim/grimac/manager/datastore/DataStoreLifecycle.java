@@ -1099,6 +1099,9 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
             logger.warning("[grim-datastore] skipping startup/session shutdown writes because DB ownership is no longer held");
             return;
         }
+        // Session events still queued in the ring must land before the set-based close, or they reopen the row.
+        int queued = dataStore.drain(config.writePath().shutdownDrainTimeoutMs());
+        if (queued > 0) logger.warning("[grim-datastore] " + queued + " queued write(s) did not land before the session close");
         long now = dbNowBestEffort();
         try {
             long closed = instanceRegistry.closeCurrentStartup(startupId, now);
