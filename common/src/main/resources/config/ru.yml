@@ -215,6 +215,13 @@ max-ping-out-of-flying: 1000
 # Это предотвращает возможность для игроков с большим пингом бесконечно использовать один фейерверк‑буст с элитрой.
 max-ping-firework-boost: 1000
 
+# Settings for transaction ID spoofing.
+spoof-transaction-id:
+    # Starting transaction ID.
+    start-transaction-id: 0
+    # Increment between transaction IDs. Set to 0 to use random increment.
+    increment: 1
+
 # Маркеры схемы — менять только если понимаете, что делаете.
 #   config-flavor:  V2 = сборка Grim 2.x, V3 = Grim 3.x. Плагин отказывается
 #                   загружать конфиг, чей flavor не совпадает с его собственной
