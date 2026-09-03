@@ -10,10 +10,7 @@ import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.breaking.*;
-import ac.grim.grimac.checks.impl.chat.ChatA;
-import ac.grim.grimac.checks.impl.chat.ChatB;
-import ac.grim.grimac.checks.impl.chat.ChatC;
-import ac.grim.grimac.checks.impl.chat.ChatD;
+import ac.grim.grimac.checks.impl.chat.*;
 import ac.grim.grimac.checks.impl.combat.*;
 import ac.grim.grimac.checks.impl.crash.*;
 import ac.grim.grimac.checks.impl.elytra.*;
@@ -52,10 +49,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.utils.anticheat.update.*;
-import ac.grim.grimac.utils.latency.CompensatedCameraEntity;
-import ac.grim.grimac.utils.latency.CompensatedCooldown;
-import ac.grim.grimac.utils.latency.CompensatedFireworks;
-import ac.grim.grimac.utils.latency.CompensatedInventory;
+import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.team.TeamHandler;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -95,6 +89,7 @@ public class CheckManager implements BasicReloadable {
                 .put(ChatB.class, new ChatB(player))
                 .put(ChatC.class, new ChatC(player))
                 .put(ChatD.class, new ChatD(player))
+                .put(ChatE.class, new ChatE(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
                 .put(BadPacketsF.class, new BadPacketsF(player))
@@ -139,6 +134,7 @@ public class CheckManager implements BasicReloadable {
                 .put(InvalidInteractCursor.class, new InvalidInteractCursor(player))
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
+                .put(BadPacketsW.class, new BadPacketsW(player))
                 .put(MultiActionsC.class, new MultiActionsC(player))
                 .put(MultiActionsD.class, new MultiActionsD(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
@@ -152,6 +148,18 @@ public class CheckManager implements BasicReloadable {
                 .put(CrashF.class, new CrashF(player))
                 .put(CrashH.class, new CrashH(player))
                 .put(CrashI.class, new CrashI(player))
+                .put(MultiActionsH.class, new MultiActionsH(player))
+                .put(MultiActionsI.class, new MultiActionsI(player))
+                .put(MultiActionsJ.class, new MultiActionsJ(player))
+                .put(MultiActionsK.class, new MultiActionsK(player))
+                .put(MultiActionsL.class, new MultiActionsL(player))
+                .put(MultiActionsM.class, new MultiActionsM(player))
+                .put(MultiActionsN.class, new MultiActionsN(player))
+                .put(MultiActionsO.class, new MultiActionsO(player))
+                .put(MultiActionsP.class, new MultiActionsP(player))
+                .put(MultiActionsQ.class, new MultiActionsQ(player))
+                .put(MultiActionsR.class, new MultiActionsR(player))
+                .put(CompensatedOpenWindow.class, player.openWindow)
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
 
                 .put(PredictionRunner.class, new PredictionRunner(player))
@@ -190,6 +198,7 @@ public class CheckManager implements BasicReloadable {
                 .put(SprintE.class, new SprintE(player))
                 .put(SprintF.class, new SprintF(player))
                 .put(SprintG.class, new SprintG(player))
+                .put(SprintH.class, new SprintH(player))
                 .put(MultiInteractA.class, new MultiInteractA(player))
                 .put(MultiInteractB.class, new MultiInteractB(player))
                 .put(ElytraA.class, new ElytraA(player))
@@ -201,6 +210,7 @@ public class CheckManager implements BasicReloadable {
                 .put(ElytraG.class, new ElytraG(player))
                 .put(ElytraH.class, new ElytraH(player))
                 .put(ElytraI.class, new ElytraI(player))
+                .put(ElytraJ.class, new ElytraJ(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .put(CompensatedFireworks.class, player.fireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))

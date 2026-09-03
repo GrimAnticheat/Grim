@@ -22,6 +22,8 @@ public interface PlatformPlayer extends GrimEntity, OfflinePlatformPlayer {
 
     void updateInventory();
 
+    void closeInventory();
+
     Vector3d getPosition();
 
     PlatformInventory getInventory();

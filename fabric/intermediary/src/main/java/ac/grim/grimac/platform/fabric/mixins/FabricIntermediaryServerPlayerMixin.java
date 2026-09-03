@@ -45,6 +45,10 @@ abstract class FabricIntermediaryServerPlayerMixin extends Player {
         this.containerMenu.broadcastChanges();
     }
 
+    public void grim$closeContainer() {
+        ((ServerPlayer) (Object) this).closeContainer();
+    }
+
     public void grim$stopUsingItem() {
         this.stopUsingItem();
     }
