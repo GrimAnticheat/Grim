@@ -427,6 +427,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 if (!isPacketInventoryActive) return;
+                if (slotID < 0 || slotID >= inventory.getSlots().size()) return;
                 inventory.getSlot(slotID).set(item);
             });
         }
