@@ -7,7 +7,7 @@
 alerts:
     # Pe lângă transmiterea alertelor către jucători, ar trebui să fie trimise și în consolă?
     print-to-console: true
-    # Aceasta controlează dacă/și cum sunt partajate alertele între serverele conectate la proxy.
+    # Aceasta opțiune controlează dacă/și cum sunt partajate alertele între serverele conectate la proxy.
     # Trebuie să ai 'bungee-plugin-message-channel' activat în configurația Velocity dacă Velocity este folosit.
     proxy:
         # Ar trebui ca alertele să fie trimise către alte servere conectate la proxy?
@@ -21,7 +21,7 @@ verbose:
 check-for-updates: true
 
 client-brand:
-    # Aceasta înseamnă că nu va transmite operatorilor brandul clientului dacă brandul se potrivește cu regex-urile de mai jos
+    # Acest lucru înseamnă că nu va transmite operatorilor brandul clientului dacă brandul se potrivește cu regex-urile de mai jos
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
@@ -75,7 +75,7 @@ Simulation:
     # Cât de mare trebuie să fie încălcarea într-un tick pentru a da setback imediat?
     # -1 pentru a dezactiva
     immediate-setback-threshold: 0.1
-    # Cât de mare avantaj acumulat înainte să începem setback?
+    # Cât de mare este avantajul acumulat înainte de a aplica setback-ul?
     # -1 pentru a dezactiva
     max-advantage: 1
     # După 50 de secunde cu setările implicite, jucătorul va trece de la 4 blocuri -> 1 bloc avantaj
@@ -107,8 +107,8 @@ RotationPlace:
     cancelvl: 5
 
 # Verificare NoSlow bazată pe predicție
-# Grim ține cont de netcode-ul buguit aici... greu de fals chiar și când spamezi click dreapta și butonul offhand
-# Mult mai stabil decât alte anticheaturi, dar raportează orice falsuri... am reparat multe probleme de netcode aici.
+# Grim ține cont de netcode-ul buguit aici... greu de falsificat chiar și când spamezi click și butonul offhand
+# Mult mai stabil decât alte anticheaturi, dar raportează orice fals-pozitiv... am reparat multe probleme de netcode aici.
 NoSlow:
     # Cât de mare abatere e considerată „cheating”
     # Implicit este mai mică decât alte offs
@@ -128,7 +128,7 @@ Knockback:
     # Cât de mare trebuie să fie încălcarea într-un tick pentru setback imediat?
     # -1 pentru a dezactiva
     immediate-setback-threshold: 0.1
-    # Cât de mare avantaj acumulat înainte să începem setback?
+    # Cât de mare este avantajul acumulat înainte de a aplica setback-ul?
     # -1 pentru a dezactiva
     max-advantage: 1
     # Previne acumularea prea multor încălcări imposibil de resetat
@@ -140,11 +140,11 @@ Explosion:
 
 TimerA:
     setbackvl: 10
-    # Milisecunde pe care jucătorul le poate acumula pentru folosire ulterioară când rămâne în urmă
+    # Milisecunde pe care jucătorul le poate acumula pentru o utilizare ulterioară când rămâne în urmă
     # Poate permite bypass-uri fast use/fast heal/fast bow pe 1.8 dacă e setat prea mare, 120 ms e un echilibru bun
     drift: 120
 
-# Acest check limitează abuzul TimerA prevenind mișcarea jucătorului să rămână prea mult în urmă față de timpul real
+# Acest check limitează abuzul TimerA prevenind rămânerea în urmă a mișcării față de timpul real
 TimerLimit:
     # Ping la care check-ul începe să limiteze balanța timer, pentru a preveni abuzul.
     # Poate cauza setback pentru jucători legitimi doar dacă sunt peste acest prag de ping.
@@ -178,12 +178,12 @@ Reach:
     # Activarea va crește traficul pentru toți jucătorii
     # Nu va scădea performanța serverului
     # Activarea va prinde mai mulți cheateri.
-    # Lăsarea dezactivată va prinde totuși cheateri și nu va cauza false positive
+    # Lăsarea dezactivată va prinde totuși cheateri și nu va cauza fals-pozitiv
     # Dacă nu ești server PvP 1.8, acest pachet suplimentar nu este recomandat
     enable-post-packet: false
 
 exploit:
-    # Poți obține viteze mari sărind sprint cu elytra, aceasta previne exploitul dacă e setat pe false
+    # Poți obține viteze mari sărind în timp ce prinzi sprint cu elytra, aceasta previne exploitul dacă este setată pe false
     # Mojang a stricat netcode-ul făcând startul elytra client-side și finalul server-side
     # Elytra are fricțiune orizontală 0.99, așa că adăugând constant 0.2 viteză rezultă în viteze foarte mari.
     allow-sprint-jumping-when-using-elytra: true
@@ -209,13 +209,13 @@ packet-spam-threshold: 100
 # Activează pentru a afișa stacktrace când un jucător e deconectat din cauza packet-spam-threshold
 debug-packet-cancel: false
 
-# Grim poate aplica ca un jucător scos din starea de zbor să nu aibă mai mult de X ms ping
+# Grim poate impune ca un jucător scos din starea de zbor să nu aibă mai mult de X ms ping
 # Deoarece Grim nu verifică în prezent jucătorii care zboară
 # Pentru dezactivare, folosește -1
 max-ping-out-of-flying: 1000
 
 # Ping maxim când boost-ul cu artificii este eliminat de la jucător.
-# Previne jucătorii cu latență mare să folosească un boost cu artificii la infinit cu elytra.
+# Împiedică jucătorii cu latență mare să folosească un boost cu artificii la infinit cu elytra.
 max-ping-firework-boost: 1000
 
 # Markeri de schemă — modifică-i doar dacă știi ce faci.
