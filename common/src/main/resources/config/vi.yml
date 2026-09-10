@@ -1,0 +1,346 @@
+# GrimAC main configuration
+# Source code: https://github.com/MWHunter/Grim
+# Copyright 2025 DefineOutside and contributors, Licensed under GPLv3.
+# Modified binaries, or plugins with copied grim code, must be private,
+# or with full source code available to buyers at no additional cost.
+
+# Cấu hình chính của GrimAC
+# Mã nguồn: https://github.com/MWHunter/Grim
+# Bản quyền 2025 DefineOutside và contributors, được cấp phép theo GPLv3.
+# Các binary đã chỉnh sửa hoặc plugin có sao chép code của Grim phải được để private,
+# hoặc phải công khai toàn bộ source code cho người mua mà không tính thêm phí.
+
+alerts:
+    # Ngoài việc broadcast alerts cho người chơi, có gửi vào console không?
+    print-to-console: true
+
+    # Thiết lập việc chia sẻ alerts giữa các server dùng chung proxy.
+    # Bạn phải bật 'bungee-plugin-message-channel' trong cấu hình Velocity nếu đang dùng Velocity.
+    proxy:
+        # Có gửi alerts sang các server khác trong proxy không?
+        send: false
+
+        # Có hiển thị alerts nhận từ server khác tại server này không?
+        receive: false
+
+verbose:
+    print-to-console: false
+
+# Kiểm tra phiên bản mới của Grim khi khởi động.
+check-for-updates: true
+
+client-brand:
+    # Không broadcast brand của client tới operator nếu khớp với các regex dưới đây
+    ignored-clients:
+        - "^vanilla$"
+        - "^fabric$"
+        - "^quilt$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
+        - "^Feather Fabric$"
+        - "^labymod$"
+
+    # Grim sẽ blacklist các phiên bản Forge có tích hợp Reach hack (Forge 1.18.2 -> 1.19.3).
+    # Tắt option này sẽ cho phép các client đó kết nối vào server.
+    # Hãy tắt nếu bạn hiểu rõ rủi ro.
+    disconnect-blacklisted-forge-versions: true
+
+spectators:
+    # Ẩn toàn bộ spectator có permission grim.spectator
+    # bất kể họ có đang spectate thật hay không
+    hide-regardless: false
+
+    # Chỉ ẩn spectator trong các world này
+    # Để trống để áp dụng cho tất cả world
+    allowed-worlds:
+        - ""
+
+# Thời gian tối đa trước khi kick người chơi vì timeout
+# Mặc định = 60 giây
+max-transaction-time: 60
+
+# Bật để Grim không cancel pong packet từ player.
+# Có thể cải thiện khả năng tương thích với anticheat khác.
+# Có thể gây vấn đề với packet limiter.
+# Không nên bật nếu bạn không hiểu rõ chức năng này.
+disable-pong-cancelling: false
+
+# Có tắt block resynchronization handler mặc định không?
+# Mặc định Grim sẽ đọc block từ server world và gửi lại cho client để sửa desync.
+# Nếu bạn dùng plugin tạo fake block bằng packet (không tồn tại thật trong world),
+# hãy bật option này để Grim không ghi đè chúng bằng air/block thật.
+# Điều này sẽ ép sử dụng "NoOp" handler nếu không có custom handler qua API.
+disable-default-resync-handler: false
+
+# Có cancel duplicate movement packet không?
+# Mojang đã sửa lỗi này trong 1.21.
+# Đây từng là cách Mojang xử lý "bucket desync": https://bugs.mojang.com/browse/MC-12363
+# Chỉ áp dụng cho client 1.17-1.20.5 trên server 1.8
+cancel-duplicate-packet: true
+
+# Có bỏ qua rotation trong duplicate packet không?
+ignore-duplicate-packet-rotation: false
+
+Simulation:
+    # Nhân tổng advantage với bao nhiêu khi player legit
+    # Biểu đồ config mặc định:
+    # https://www.desmos.com/calculator/d4ufgxrxer
+    setback-decay-multiplier: 0.999
+
+    # Độ lệch bao nhiêu thì bị tính là vi phạm
+    # Đơn vị tính bằng block
+    #
+    # Grim có hỗ trợ Optifine bằng cách đổi bảng trig,
+    # nhưng giảm xuống 0.001 có thể detect FastMath
+    # nếu việc bù sai số không hoạt động...
+    threshold: 0.001
+
+    # Vi phạm bao nhiêu trong 1 tick thì setback ngay lập tức
+    # -1 để tắt
+    immediate-setback-threshold: 0.1
+
+    # Tổng advantage tối đa trước khi bắt đầu setback
+    # -1 để tắt
+    max-advantage: 1
+
+    # Sau 50 giây với config mặc định,
+    # player sẽ giảm từ 4 block -> 1 block advantage
+    #
+    # Điều này giúp tránh việc tích quá nhiều violation
+    # khiến player không thể giảm hết violation.
+    #
+    # Biểu đồ ceiling mặc định:
+    # https://www.desmos.com/calculator/4lovswdarj
+    max-ceiling: 4
+
+    # Mức violation cần đạt để setback
+    # 1 = hành vi cũ
+    setback-violation-threshold: 1
+
+# Check phát hiện người chơi chui vào block khi di chuyển
+Phase:
+    setbackvl: 1 # Glitch vào block có thể dùng để leo tường, check này khá ổn định
+    decay: 0.005
+
+AirLiquidPlace:
+    cancelvl: 0
+
+FabricatedPlace:
+    cancelvl: 5
+
+FarPlace:
+    cancelvl: 5
+
+PositionPlace:
+    cancelvl: 5
+
+RotationPlace:
+    cancelvl: 5
+
+# Check NoSlow dựa trên prediction
+#
+# Grim xử lý cả netcode lỗi tại đây...
+# rất khó false kể cả khi spam chuột phải và offhand.
+#
+# Ổn định hơn nhiều anticheat khác,
+# nhưng hãy report nếu gặp false positive.
+NoSlow:
+    # Độ lệch bao nhiêu thì bị coi là cheat
+    #
+    # Mặc định thấp hơn nhiều offset khác
+    # NoSlow thường flag ổn định từ 0.03-0.2
+    threshold: 0.001
+
+    # Setback nhanh ngay từ item đầu tiên
+    # để loại bỏ lợi thế của NoSlow
+    setbackvl: 5
+
+    # Giảm violation khi người chơi dùng item
+    # và thực sự bị slow bởi item đó
+    decay: 0.05
+
+Knockback:
+    # Nhân tổng advantage với bao nhiêu khi player legit
+    setback-decay-multiplier: 0.999
+
+    # Độ lệch bao nhiêu so với velocity thì bị tính là vi phạm
+    # Đơn vị tính bằng block
+    threshold: 0.001
+
+    # Vi phạm bao nhiêu trong 1 tick thì setback ngay lập tức
+    # -1 để tắt
+    immediate-setback-threshold: 0.1
+
+    # Tổng advantage tối đa trước khi setback
+    # -1 để tắt
+    max-advantage: 1
+
+    # Giới hạn advantage tối đa để tránh tích violation quá nhiều
+    max-ceiling: 4
+
+Explosion:
+    threshold: 0.001
+    setbackvl: 3
+
+TimerA:
+    setbackvl: 10
+
+    # Số milliseconds player có thể tích trữ để dùng sau
+    # khi bị tụt phía sau realtime
+    #
+    # Có thể tạo bypass cho:
+    # fast use / fast heal / fast bow của 1.8
+    # nếu đặt quá cao.
+    #
+    # 120ms là mức cân bằng tốt.
+    drift: 120
+
+# Check này giới hạn việc abuse TimerA balance
+# bằng cách ngăn player bị tụt quá xa khỏi realtime
+TimerLimit:
+    # Ping mà check bắt đầu giới hạn timer balance
+    # để tránh abuse.
+    #
+    # Có thể gây setback cho player legit
+    # nhưng chỉ khi vượt quá mức ping này.
+    #
+    # -1 để tắt
+    ping-abuse-limit-threshold: 1000
+
+NegativeTimer:
+    # Số milliseconds bị mất khi di chuyển
+    # trước khi bắt đầu flag
+    drift: 1200
+
+# Cùng phương pháp check như TimerA nhưng dành cho vehicle
+VehicleTimer:
+    # Target timer 1.005
+    setbackvl: 10
+
+PacketOrderI:
+    # Bật nếu player bị flag bởi mod animation 1.7
+    exempt-placing-while-digging: false
+
+Reach:
+    # Mở rộng hitbox thêm bao nhiêu
+    # 0.0005 sẽ detect reach từ 3.0005+
+    #
+    # Có 0.03 forced expansion với:
+    # - client 1.9 -> 1.18.1
+    # - hoặc một số tổ hợp client/server
+    # do thay đổi protocol.
+    #
+    # Check này mạnh nhất với:
+    # client 1.7/1.8 trên server 1.8
+    threshold: 0.0005
+
+    # Có chặn các hit chắc chắn không thể xảy ra không?
+    #
+    # Hit từ 3.00-3.03 vẫn có thể xảy ra
+    # nhưng vẫn bị flag do giới hạn packet order.
+    block-impossible-hits: true
+
+    # Gửi thêm packet vào cuối mỗi tick
+    # để tăng khả năng detect cheat
+    #
+    # Điều này inject vào connection list của server
+    # để gửi packet cuối cùng trước khi server flush.
+    #
+    # Bật sẽ tăng bandwidth sử dụng cho mọi player.
+    # Không ảnh hưởng đáng kể tới hiệu năng server.
+    #
+    # Bật sẽ detect được nhiều cheater hơn.
+    #
+    # Tắt vẫn detect được cheater
+    # và không gây false positive.
+    #
+    # Trừ khi bạn là server PvP 1.8,
+    # option này không thực sự cần thiết.
+    enable-post-packet: false
+
+exploit:
+    # Có thể đạt tốc độ rất cao khi sprint jump với elytra.
+    # Đặt false để ngăn exploit này.
+    #
+    # Mojang làm netcode lỗi khi:
+    # - bật elytra ở client side
+    # - tắt elytra ở server side
+    #
+    # Elytra có friction ngang 0.99,
+    # nên liên tục cộng 0.2 horizontal speed
+    # sẽ tạo tốc độ cực cao.
+    allow-sprint-jumping-when-using-elytra: true
+
+    # Mitigate việc build trên ghostblock
+    # bằng cách resync player khi xảy ra
+    allow-building-on-ghostblocks: true
+
+    # Khoảng cách kiểm tra ghostblock
+    # Giá trị hợp lệ từ 2 -> 4
+    distance-to-check-if-ghostblocks: 2
+
+# Bật log plugin inject vào netty khi player join
+# Dùng để debug vấn đề tương thích
+debug-pipeline-on-join: false
+
+# Bật experimental checks
+experimental-checks: false
+
+reset-item-usage-on-item-update: true
+reset-item-usage-on-attack: true
+reset-item-usage-on-slot-change: true
+reset-item-usage-on-item-use: true
+
+# Grim đôi khi cancel packet không hợp lệ như timer.
+# Sau bao nhiêu packet bị cancel trong 1 giây thì kick player?
+#
+# Điều này cần thiết vì một số packet limiter
+# không tính packet bị Grim cancel.
+packet-spam-threshold: 100
+
+# Bật để in stacktrace khi player bị kick
+# bởi packet-spam-threshold
+debug-packet-cancel: false
+
+# Grim có thể enforce rằng player bị đưa khỏi trạng thái flying
+# sẽ không được có ping vượt quá X milliseconds.
+#
+# Điều này do Grim hiện chưa check đầy đủ flying player.
+#
+# -1 để tắt
+max-ping-out-of-flying: 1000
+
+# Ping tối đa khi firework boost bị gỡ khỏi player.
+#
+# Điều này ngăn player ping cao
+# dùng 1 firework boost với elytra mãi mãi.
+max-ping-firework-boost: 1000
+
+# Grim luôn refresh permission cache khi player join
+# và khi Grim reload, bất kể có dùng LuckPerms hay không.
+#
+# Hook event của LuckPerms cũng sẽ refresh permission ngay lập tức
+# trong các setup thông thường.
+#
+# Polling định kỳ này chỉ là fallback cho:
+# - context custom của LuckPerms không gọi signalContextUpdate
+# - thiếu context trên Fabric
+# - permission provider khác LuckPerms hỗ trợ thay đổi realtime
+#
+# Đặt -1 để tắt polling.
+# Đặt số dương để refresh mỗi X ticks.
+update-permission-ticks: -1
+
+# Marker schema config — chỉ chỉnh nếu bạn hiểu rõ chức năng
+#
+# config-flavor:
+#   V2 = Grim build 2.x
+#   V3 = Grim build 3.x
+#
+# Plugin sẽ từ chối load config sai flavor
+# để tránh merge nhầm key giữa các version.
+#
+# config-version:
+#   Tăng mỗi khi có breaking change về cấu trúc config.
+#   Config cũ sẽ tự động migrate ở lần khởi động tiếp theo.
+config-flavor: V2
+config-version: 11
