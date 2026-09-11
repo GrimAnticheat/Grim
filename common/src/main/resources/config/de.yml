@@ -63,6 +63,10 @@ cancel-duplicate-packet: true
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
 
+# queue potential duplicate packets until the next packet to check if it actually was a duplicate
+# and require the same player position and head rotation for duplicates sent in the same tick
+strict-duplicate-handling: false
+
 Simulation:
     # Mit wie viel soll der Gesamtvorteil multipliziert werden, wenn der Spieler legitim ist.
     # So sieht die Standardkonfiguration aus (x-Achse = Sekunden, y-Achse = 1/1000 Block): https://www.desmos.com/calculator/d4ufgxrxer

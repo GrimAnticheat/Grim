@@ -149,6 +149,7 @@ public class GrimPlayer implements GrimUser {
     public double gravity;
     public float friction;
     public double speed;
+    public com.github.retrooper.packetevents.protocol.world.Location lastDuplicateLocationThisTick;
     public final @NotNull Vector3dm filterMojangStupidityOnMojangStupidity = new Vector3dm();
     public double x;
     public double y;
@@ -262,6 +263,7 @@ public class GrimPlayer implements GrimUser {
     private int spamThreshold = 100;
     private int maxTransactionTime = 60;
     @Getter private boolean ignoreDuplicatePacketRotation;
+    @Getter private boolean strictDuplicateHandling = false;
     @Getter @Setter private boolean experimentalChecks;
     @Getter private boolean cancelDuplicatePacket = true;
     @Getter @Setter private boolean exemptElytra;
@@ -978,6 +980,7 @@ public class GrimPlayer implements GrimUser {
         spamThreshold = config.getIntElse("packet-spam-threshold", 100);
         maxTransactionTime = GrimMath.clamp(config.getIntElse("max-transaction-time", 60), 1, 180);
         ignoreDuplicatePacketRotation = config.getBooleanElse("ignore-duplicate-packet-rotation", false);
+        strictDuplicateHandling = config.getBooleanElse("strict-duplicate-handling", false);
         cancelDuplicatePacket = config.getBooleanElse("cancel-duplicate-packet", true);
 
         boolean shouldDisableResync = config.getBooleanElse("disable-default-resync-handler", false);
