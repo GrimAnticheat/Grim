@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "NoSlow", stableKey = "grim.movement.noslow", description = "Was not slowed while using an item", setback = 5)
@@ -14,7 +14,8 @@ public class NoSlow extends Check implements PostPredictionListener {
     // The player sends that they switched items the next tick if they switch from an item that can be used
     // to another item that can be used.  What the fuck Mojang.  Affects 1.8 (and most likely 1.7) clients.
     public boolean didSlotChangeLastTick = false;
-    public boolean flaggedLastTick = false;
+    public int flaggedMainHandSlotLastTick = -1;
+    private boolean needFlag;
     private double offsetToFlag;
     private double bestOffset = 1;
 
@@ -24,27 +25,36 @@ public class NoSlow extends Check implements PostPredictionListener {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        if (!predictionComplete.isChecked()) return;
+        if (needFlag && flaggedMainHandSlotLastTick == player.packetStateData.lastSlotSelected
+                && player.packetStateData.isSlowedByUsingItem() && !didSlotChangeLastTick) {
+            flagWithSetback();
+        }
 
+        needFlag = false;
+
+        int flaggedMainHandSlotThisTick = -1;
         // If the player was using an item for certain, and their predicted velocity had a flipped item
-        if (player.packetStateData.isSlowedByUsingItem()) {
-            // 1.8 users are not slowed the first tick they use an item, strangely
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && didSlotChangeLastTick) {
-                didSlotChangeLastTick = false;
-                flaggedLastTick = false;
-            }
-
+        if (predictionComplete.isChecked() && player.packetStateData.isSlowedByUsingItem()) {
             if (bestOffset > offsetToFlag) {
-                if (flaggedLastTick) {
+                int slot = player.packetStateData.lastSlotSelected;
+                if (player.packetStateData.itemInUseHand == InteractionHand.OFF_HAND) {
                     flagWithSetback();
+                } else if (player.packetStateData.getSlowedByUsingItemSlot() == player.packetStateData.lastSlotSelected) {
+                    flaggedMainHandSlotThisTick = slot;
+                    if (flaggedMainHandSlotLastTick == flaggedMainHandSlotThisTick) {
+                        flagWithSetback();
+                    } else {
+                        needFlag = true;
+                    }
                 }
-                flaggedLastTick = true;
             } else {
                 reward();
-                flaggedLastTick = false;
             }
         }
+
+        flaggedMainHandSlotLastTick = flaggedMainHandSlotThisTick;
         bestOffset = 1;
+        didSlotChangeLastTick = false;
     }
 
     public void handlePredictionAnalysis(double offset) {
