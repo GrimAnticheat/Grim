@@ -1,5 +1,6 @@
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
 import versioning.BuildConfig
+import java.util.zip.ZipFile
 
 plugins {
     `maven-publish`
@@ -46,6 +47,70 @@ repositories {
     }
 
     mavenCentral()
+}
+
+val configuredLiteSharedProviderJar = providers.gradleProperty("grim.liteSharedProviderJar")
+    .orElse(providers.gradleProperty("liteSharedProviderJar"))
+
+// PE's published Spigot artifact is thin. Its runtime jar bundles these modules,
+// with text serializers relocated into PE's own namespace.
+val liteSharedLibraries by configurations.creating {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+val liteCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+if (!BuildConfig.shadePE) {
+    val adventureVersion = liteCatalog.findVersion("adventure").get().requiredVersion
+    val examinationVersion = liteCatalog.findVersion("examination").get().requiredVersion
+    for (module in listOf("adventure-api", "adventure-key", "adventure-nbt")) {
+        dependencies.add(liteSharedLibraries.name, "net.kyori:$module:$adventureVersion")
+    }
+    for (module in listOf("examination-api", "examination-string")) {
+        dependencies.add(liteSharedLibraries.name, "net.kyori:$module:$examinationVersion")
+    }
+}
+
+val liteSharedPrefixes = listOf(
+    "net/kyori/adventure/",
+    "net/kyori/examination/",
+    "net/kyori/option/",
+)
+
+var cachedLiteSharedProviderClassEntries: Set<String>? = null
+var cachedLiteSharedProviderFiles: List<File>? = null
+
+fun liteSharedProviderFiles(): List<File> {
+    cachedLiteSharedProviderFiles?.let { return it }
+
+    val configured = configuredLiteSharedProviderJar.orNull
+        ?.split(File.pathSeparator)
+        ?.filter { it.isNotBlank() }
+        ?.map { file(it) }
+        ?.takeIf { it.isNotEmpty() }
+
+    val files = configured ?: liteSharedLibraries.resolve().toList()
+
+    cachedLiteSharedProviderFiles = files
+    return files
+}
+
+fun liteSharedProviderClassEntries(): Set<String> {
+    cachedLiteSharedProviderClassEntries?.let { return it }
+
+    val entries = liteSharedProviderFiles().flatMap { jar ->
+        ZipFile(jar).use { zip ->
+            zip.entries().asSequence()
+                .map { it.name }
+                .filter { name ->
+                    name.endsWith(".class") && liteSharedPrefixes.any(name::startsWith) &&
+                        !name.startsWith("net/kyori/adventure/text/serializer/")
+                }
+                .toList()
+        }
+    }.toSet()
+
+    cachedLiteSharedProviderClassEntries = entries
+    return entries
 }
 
 
@@ -210,6 +275,21 @@ tasks {
 
     shadowJar {
         exclude("META-INF/services/javax.annotation.processing.Processor")
+
+        if (!BuildConfig.shadePE) {
+            inputs.files(provider { liteSharedProviderFiles() }).withPropertyName("liteSharedProviders")
+            exclude {
+                val path = it.path
+                path.endsWith(".class") && path in liteSharedProviderClassEntries()
+            }
+
+            doFirst {
+                logger.lifecycle(
+                    "Excluding ${liteSharedProviderClassEntries().size} shared class entries supplied by PacketEvents: " +
+                        liteSharedProviderFiles().joinToString { it.name }
+                )
+            }
+        }
 
         manifest {
             attributes["paperweight-mappings-namespace"] = "mojang"
