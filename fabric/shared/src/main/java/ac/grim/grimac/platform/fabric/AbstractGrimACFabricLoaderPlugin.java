@@ -3,7 +3,6 @@ package ac.grim.grimac.platform.fabric;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.GrimAPIProvider;
 import ac.grim.grimac.api.plugin.GrimPlugin;
-import ac.grim.grimac.command.CloudCommandService;
 import ac.grim.grimac.internal.plugin.resolver.GrimExtensionManager;
 import ac.grim.grimac.platform.api.PlatformLoader;
 import ac.grim.grimac.platform.api.PlatformServer;
@@ -15,8 +14,8 @@ import ac.grim.grimac.platform.api.manager.PermissionRegistrationManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
-import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
+import ac.grim.grimac.platform.fabric.command.FabricCommandServiceFactory;
 import ac.grim.grimac.platform.fabric.manager.FabricMessagePlaceHolderManager;
 import ac.grim.grimac.platform.fabric.manager.FabricPlatformPluginManager;
 import ac.grim.grimac.platform.fabric.resolver.FabricResolverRegistrar;
@@ -28,11 +27,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import lombok.Getter;
-import org.incendo.cloud.CommandManager;
-import org.incendo.cloud.SenderMapper;
-import org.incendo.cloud.execution.ExecutionCoordinator;
-import org.incendo.cloud.fabric.FabricServerCommandManager;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractGrimACFabricLoaderPlugin<
         P extends PlatformPlayerFactory,
@@ -156,12 +150,7 @@ public abstract class AbstractGrimACFabricLoaderPlugin<
     }
 
     protected CommandService createPlatformCommandService() {
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        CommandManager<@NotNull Sender> manager = new FabricServerCommandManager(
-                ExecutionCoordinator.simpleCoordinator(),
-                SenderMapper.identity()
-        );
-        return new CloudCommandService(() -> manager, commandArguments.get());
+        return FabricCommandServiceFactory.create(commandArguments.get());
     }
 
     public abstract ServerVersion getNativeVersion();
