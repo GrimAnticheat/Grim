@@ -61,7 +61,7 @@ database:
     startup-wait-ms: 20000
     safety-margin-ms: 5000
     stale-startup-ttl-ms: 30000
-    recovery-sweep-interval-ms: 10000
+    recovery-sweep-interval-ms: 60000
     cleanup-other-servers: true
 
   write-path:

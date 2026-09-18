@@ -20,6 +20,7 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -93,6 +94,8 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     public void sendMessage(Component message) {
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
             user.sendMessage(message);
+        } else if (Audience.class.isInstance(bukkitPlayer)) {
+            Audience.class.cast(bukkitPlayer).sendMessage(message);
         } else {
             audiences.player(bukkitPlayer).sendMessage(message);
         }
