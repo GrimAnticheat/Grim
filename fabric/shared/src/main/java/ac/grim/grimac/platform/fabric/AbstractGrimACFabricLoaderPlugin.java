@@ -142,7 +142,11 @@ public abstract class AbstractGrimACFabricLoaderPlugin<
         } catch (Throwable t) {
             LogUtil.warn("IMPORTANT: Command Framework failed to load (Missing Cloud Library?). \n" +
                     "Grim will run without commands enabled!");
-            if (!(t instanceof NoClassDefFoundError)) {
+            if (t instanceof NoClassDefFoundError) {
+                LogUtil.warn("This usually means the bundled cloud-fabric is incompatible with your " +
+                        "Minecraft version. Install a build of cloud-fabric that supports this server " +
+                        "version to re-enable Grim commands.");
+            } else {
                 LogUtil.error(t);
             }
             return () -> {};
