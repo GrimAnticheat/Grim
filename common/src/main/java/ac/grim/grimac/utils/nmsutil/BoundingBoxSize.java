@@ -242,7 +242,7 @@ public final class BoundingBoxSize {
             return (getHeight(player, packetEntity) * 0.75) - 0.25;
 
         final EntityType type = packetEntity.getType();
-        if (packetEntity.getType() == EntityTypes.CUSHION) {
+        if (type == EntityTypes.CUSHION) {
             return 0;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
             return 0;
