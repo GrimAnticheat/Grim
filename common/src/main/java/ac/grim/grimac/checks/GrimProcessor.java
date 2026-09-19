@@ -10,7 +10,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -94,6 +96,11 @@ public class GrimProcessor implements AbstractProcessor, ConfigReloadable, Confi
     public final boolean canCancel(DiggingAction action) {
         return action != DiggingAction.RELEASE_USE_ITEM
                 // we check client version here because 1.8- doesn't predict dropping items, so we can cancel them. (see CompensatedInventory)
-                && (action != DiggingAction.DROP_ITEM && action != DiggingAction.DROP_ITEM_STACK || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8));
+                && (!isDrop(action) || player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8));
+    }
+
+    @Contract(pure = true)
+    public static boolean isDrop(@Nullable DiggingAction action) {
+        return action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK;
     }
 }
