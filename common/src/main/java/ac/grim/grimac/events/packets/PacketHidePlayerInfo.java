@@ -22,10 +22,10 @@ public class PacketHidePlayerInfo extends PacketListenerAbstract {
         super(PacketListenerPriority.HIGHEST);
     }
 
-    @Override
-    public boolean isPreVia() {
-        return true;
-    }
+//    @Override
+//    public boolean isPreVia() {
+//        return true;
+//    }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {

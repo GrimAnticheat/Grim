@@ -18,10 +18,10 @@ public class PacketServerPlayerRotation extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
-    @Override
-    public boolean isPreVia() {
-        return true;
-    }
+//    @Override
+//    public boolean isPreVia() {
+//        return true;
+//    }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {

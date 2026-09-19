@@ -97,6 +97,7 @@ public class PlayerDataManager {
             GrimPlayer player = new GrimPlayer(user);
             playerDataMap.put(user, player);
             Channels.JOIN.fire(player);
+            player.checkManager.getDebugHandler().toggleListener(player);
         }
     }
 

@@ -16,10 +16,10 @@ public class BedStateTracker extends PacketListenerAbstract {
         super(PacketListenerPriority.HIGH);
     }
 
-    @Override
-    public boolean isPreVia() {
-        return true;
-    }
+//    @Override
+//    public boolean isPreVia() {
+//        return true;
+//    }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {

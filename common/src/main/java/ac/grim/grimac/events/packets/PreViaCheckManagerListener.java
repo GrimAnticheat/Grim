@@ -17,10 +17,10 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
-    @Override
-    public boolean isPreVia() {
-        return true;
-    }
+//    @Override
+//    public boolean isPreVia() {
+//        return true;
+//    }
 
     @Override
     public void onPacketReceive(final @NotNull PacketReceiveEvent event) {

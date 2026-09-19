@@ -27,7 +27,7 @@ public class AttackCooldownHandler extends GrimProcessor implements PacketReceiv
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+        if (isAnimation(event.getPacketType())) {
             // FIXME: should only run when the click misses
             reset();
         }

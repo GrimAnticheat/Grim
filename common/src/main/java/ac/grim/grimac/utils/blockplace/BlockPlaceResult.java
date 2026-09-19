@@ -134,6 +134,17 @@ public enum BlockPlaceResult {
         }
     }, ItemTypes.LADDER),
 
+    SHELF_MUSHROOM((player, place) -> {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            if (BlockFaceHelper.isFaceHorizontal(face) && place.isFullFace(face)) {
+                WrappedBlockState mushroom = place.material.createBlockState(CompensatedWorld.blockVersion);
+                mushroom.setFacing(face.getOppositeFace());
+                place.set(mushroom);
+                return;
+            }
+        }
+    }, ItemTypes.SHELF_MUSHROOM),
+
     FARM_BLOCK((player, place) -> {
         // What we also need to check:
         WrappedBlockState above = place.getAboveState();

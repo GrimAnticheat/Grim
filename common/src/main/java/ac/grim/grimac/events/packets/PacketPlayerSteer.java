@@ -24,10 +24,10 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
-    @Override
-    public boolean isPreVia() {
-        return true;
-    }
+//    @Override
+//    public boolean isPreVia() {
+//        return true;
+//    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -153,6 +153,11 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
             }
             player.lastSprinting = player.isSprinting;
+
+            // 1.21.5+ sprint desync
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
+                player.compensatedEntities.hasSprintingAttributeEnabled = false;
+            }
         }
 
         player.packetStateData.receivedSteerVehicle = true;

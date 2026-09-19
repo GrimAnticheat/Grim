@@ -306,6 +306,10 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
      * @return - Whether the player has completed a teleport by being at this position
      */
     public TeleportAcceptData checkTeleportQueue(double x, double y, double z, float yaw, float pitch) {
+        return checkTeleportQueue(x, y, z, yaw, pitch, null);
+    }
+
+    public TeleportAcceptData checkTeleportQueue(double x, double y, double z, float yaw, float pitch, @Nullable Integer teleportId) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         TeleportAcceptData teleportData = new TeleportAcceptData();
@@ -324,7 +328,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             boolean correctRotations = (yaw == teleportPos.getYaw() || teleportPos.isRelativeYaw())
                     && (pitch == teleportPos.getPitch() || teleportPos.isRelativePitch());
 
-            if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
+            if ((teleportId == null || teleportId.equals(teleportPos.getTeleportId())) && player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
                 pendingTeleports.poll();
                 hasAcceptedSpawnTeleport = true;
                 blockOffsets = false;

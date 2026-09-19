@@ -98,7 +98,7 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
         if (PLAYER_ABILITIES.equals(packetType)
                 || (HELD_ITEM_CHANGE.equals(packetType) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
                 || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
-                || ATTACK.equals(packetType) || SPECTATE_ENTITY.equals(packetType)
+                || ATTACK.equals(packetType) || SPECTATE_ENTITY.equals(packetType) || PUNCH.equals(packetType)
                 || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
             post.add(event.getPacketType());
         } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {

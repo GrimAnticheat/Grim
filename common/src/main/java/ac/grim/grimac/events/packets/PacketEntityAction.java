@@ -22,10 +22,10 @@ public class PacketEntityAction extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
-    @Override
-    public boolean isPreVia() {
-        return true;
-    }
+//    @Override
+//    public boolean isPreVia() {
+//        return true;
+//    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

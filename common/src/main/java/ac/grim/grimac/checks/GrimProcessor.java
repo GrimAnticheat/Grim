@@ -67,6 +67,10 @@ public class GrimProcessor implements AbstractProcessor, ConfigReloadable, Confi
                 || isTransaction(packetType);
     }
 
+    public static boolean isAnimation(PacketTypeCommon packetType) {
+        return packetType == PacketType.Play.Client.ANIMATION || packetType == PacketType.Play.Client.PUNCH;
+    }
+
     public final boolean isTickPacket(PacketTypeCommon packetType) {
         if (isTickPacketIncludingNonMovement(packetType)) {
             if (isFlying(packetType)) {
