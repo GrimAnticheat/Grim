@@ -159,6 +159,7 @@ public class CheckManager implements BasicReloadable {
                 .put(MultiActionsP.class, new MultiActionsP(player))
                 .put(MultiActionsQ.class, new MultiActionsQ(player))
                 .put(MultiActionsR.class, new MultiActionsR(player))
+                .put(MultiActionsS.class, new MultiActionsS(player))
                 .put(CompensatedOpenWindow.class, player.openWindow)
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
 
