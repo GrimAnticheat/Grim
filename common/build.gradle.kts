@@ -98,7 +98,6 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    jvmArgs("-DGrimPlatformOverride=BUKKIT")
 }
 
 publishing.publications.create<MavenPublication>("maven") {

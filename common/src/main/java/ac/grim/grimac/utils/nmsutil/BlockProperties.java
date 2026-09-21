@@ -321,7 +321,7 @@ public class BlockProperties {
             return 1.0F;
         }
 
-        if (BlockTags.BEDS.contains(type) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+        if ((BlockTags.BEDS.contains(type) || (type == StateTypes.STRAW_BED && player.getClientVersion().isOlderThan(ClientVersion.V_26_3))) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) ? 0.75F : 0.66F;
         }
 

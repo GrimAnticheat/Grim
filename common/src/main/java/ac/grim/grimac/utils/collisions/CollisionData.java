@@ -669,6 +669,11 @@ public enum CollisionData implements CollisionFactory {
     }, BlockTags.BEDS.getStates().toArray(new StateType[0])),
 
     STRAW_BED((player, version, data, x, y, z) -> {
+        // viabackwards replacement block - bed
+        if (version.isOlderThan(ClientVersion.V_26_3)) {
+            return BED.fetch(player, version, data, x, y, z);
+        }
+
         SimpleCollisionBox base = new HexCollisionBox(0, 0, 0, 16, 4, 16);
         if (data.getPart() == Part.FOOT) {
             return base;
@@ -694,6 +699,7 @@ public enum CollisionData implements CollisionFactory {
     }, StateTypes.STRAW_BED),
 
     SHELF_MUSHROOM((player, version, data, x, y, z) -> {
+        // viabackwards replacement block - cocoa
         if (version.isOlderThan(ClientVersion.V_26_3)) {
             return getCocoa(version, data.getAge(), data.getFacing().getOppositeFace());
         }
