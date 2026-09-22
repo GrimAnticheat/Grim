@@ -7,11 +7,10 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public final class EntityInterpolations {
-
-    private EntityInterpolations() {
-    }
 
     public static EntityInterpolation create(GrimPlayer player, PacketEntity entity, SimpleCollisionBox position) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) && usesStepped(entity.getType())) {

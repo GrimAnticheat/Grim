@@ -4,7 +4,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.protocol.vector.positionpath.PositionPath;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public final class EntityMovementTransaction implements Runnable {
 
     private final GrimPlayer player;
@@ -18,23 +20,6 @@ public final class EntityMovementTransaction implements Runnable {
     private final boolean positionSync;
     private final int transaction;
     private boolean started;
-
-    public EntityMovementTransaction(GrimPlayer player, int entityId, PositionPath path, boolean relative, boolean hasPos,
-                                     double x, double y, double z, Float yaw, Float pitch,
-                                     boolean positionSync, int transaction) {
-        this.player = player;
-        this.entityId = entityId;
-        this.path = path;
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.relative = relative;
-        this.hasPos = hasPos;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.positionSync = positionSync;
-        this.transaction = transaction;
-    }
 
     @Override
     public void run() {

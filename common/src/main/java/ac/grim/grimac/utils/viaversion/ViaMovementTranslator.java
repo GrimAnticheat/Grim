@@ -9,9 +9,11 @@ import com.github.retrooper.packetevents.protocol.vector.vecdelta.LinearVecDelta
 import com.github.retrooper.packetevents.protocol.vector.vecdelta.SteppedVecDelta;
 import com.github.retrooper.packetevents.protocol.vector.vecdelta.VecDelta;
 import com.github.retrooper.packetevents.util.Vector3d;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+@UtilityClass
 public final class ViaMovementTranslator {
 
     private static final int INTERPOLATION_STEP_TICKS = 3;

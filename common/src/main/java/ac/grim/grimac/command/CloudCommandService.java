@@ -29,7 +29,7 @@ public class CloudCommandService implements CommandService {
     public static final RequirementApplicableFactory<Sender, SenderRequirement> REQUIREMENT_FACTORY
             = RequirementApplicable.factory(REQUIREMENT_KEY);
 
-    private boolean commandsRegistered = true; // for testing
+    private boolean commandsRegistered = false;
 
     private final Supplier<CommandManager<Sender>> commandManagerSupplier;
     private final CloudPlatformCommandArguments commandArguments;
