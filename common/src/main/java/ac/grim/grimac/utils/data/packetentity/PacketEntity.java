@@ -224,9 +224,8 @@ public class PacketEntity extends TypedPacketEntity {
         // This disables interpolation
         if (interpolation == null) {
             interpolation = EntityInterpolations.create(player, this, box);
-        } else {
-            interpolation.reset(box);
         }
+        interpolation.reset(box);
     }
 
     public SimpleCollisionBox getPossibleLocationBoxes() {

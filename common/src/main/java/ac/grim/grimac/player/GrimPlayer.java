@@ -584,10 +584,6 @@ public class GrimPlayer implements GrimUser {
 
         if (this.platformPlayer == null) {
             this.platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromUUID(uuid);
-            if (this.platformPlayer != null) {
-                AlertManagerImpl am = GrimAPI.INSTANCE.getAlertManager();
-                am.setVerboseEnabled(this, true, false);
-            }
             updatePermissions();
         }
 
