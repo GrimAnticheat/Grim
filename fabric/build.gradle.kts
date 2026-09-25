@@ -20,8 +20,6 @@ repositories {
     // needs this resolvable even when mavenLocalOverride is off (CI / fresh checkouts).
     exclusive("https://repo.grim.ac/snapshots") {
         includeGroup("ac.grim.grimac")
-    }
-    exclusive("https://repo.codemc.io/repository/maven-snapshots/") {
         includeGroup("com.github.retrooper")
     }
     mavenCentral()

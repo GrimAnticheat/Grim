@@ -38,11 +38,8 @@ repositories {
         forRepositories(*listOfNotNull(localOverride, grimPublicReleases, grimPublicSnapshots, grimLegacySnapshots).toTypedArray())
         filter {
             includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
         }
-    }
-
-    exclusive("https://repo.codemc.io/repository/maven-snapshots/") {
-        includeGroup("com.github.retrooper")
     }
 
     exclusive("https://nexus.scarsz.me/content/repositories/releases", { mavenContent { releasesOnly() } }) {

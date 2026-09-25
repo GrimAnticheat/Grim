@@ -20,11 +20,8 @@ repositories {
         forRepositories(*listOfNotNull(localOverride, grimPublicReleases, grimPublicSnapshots, grimLegacySnapshots).toTypedArray())
         filter {
             includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
         }
-    }
-
-    exclusive("https://repo.codemc.io/repository/maven-snapshots/") {
-        includeGroup("com.github.retrooper")
     }
 
     // ViaVersion
@@ -89,10 +86,6 @@ dependencies {
     compileOnly(libs.luckperms)
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
-    testImplementation(libs.packetevents.api)
-    testImplementation("org.mockito:mockito-core:5.23.0")
-    testRuntimeOnly(libs.netty)
-    testRuntimeOnly("com.google.guava:guava:33.3.1-jre")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
