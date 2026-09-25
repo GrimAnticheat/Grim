@@ -15,9 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.utils.data.packetentity;
 
+import com.github.retrooper.packetevents.protocol.vector.positionpath.PositionPath;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ReachInterpolationData;
+import ac.grim.grimac.utils.data.interpolation.EntityInterpolation;
+import ac.grim.grimac.utils.data.interpolation.EntityInterpolations;
 import ac.grim.grimac.utils.data.TrackedPosition;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.enums.Pose;
@@ -57,15 +59,8 @@ public class PacketEntity extends TypedPacketEntity {
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;
-    private ReachInterpolationData oldPacketLocation;
-    private ReachInterpolationData newPacketLocation;
-    /**
-     * Rotation the current interpolation is heading towards, mirroring vanilla
-     * {@code InterpolationHandler}'s target yRot/xRot. Only used to decide whether an
-     * incoming packet restates the running interpolation; the hitbox itself is
-     * position-only. Grim convention: xRot is yaw, yRot is pitch.
-     */
-    private float interpolationTargetXRot, interpolationTargetYRot;
+    private final GrimPlayer player;
+    private EntityInterpolation interpolation;
     private Object2IntMap<PotionType> potionsMap = null;
     public boolean trackEntityEquipment = false;
     private EnumMap<EquipmentSlot, ItemStack> equipment = null;
@@ -74,6 +69,7 @@ public class PacketEntity extends TypedPacketEntity {
 
     public PacketEntity(GrimPlayer player, EntityType type) {
         super(type);
+        this.player = player;
         this.uuid = null;
         initAttributes(player);
         this.trackedServerPosition = new TrackedPosition();
@@ -81,6 +77,7 @@ public class PacketEntity extends TypedPacketEntity {
 
     public PacketEntity(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z) {
         super(type);
+        this.player = player;
         this.uuid = uuid;
         initAttributes(player);
         this.trackedServerPosition = new TrackedPosition();
@@ -89,7 +86,7 @@ public class PacketEntity extends TypedPacketEntity {
             trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
         }
         final Vector3d pos = trackedServerPosition.getPos();
-        this.newPacketLocation = new ReachInterpolationData(player, new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false), trackedServerPosition, this);
+        this.interpolation = EntityInterpolations.create(player, this, new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false));
     }
 
     protected void trackAttribute(ValuedAttribute valuedAttribute) {
@@ -156,8 +153,10 @@ public class PacketEntity extends TypedPacketEntity {
     // Set the old packet location to the new one
     // Set the new packet location to the updated packet location
     public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ,
-                                   @Nullable Float packetXRot, @Nullable Float packetYRot, GrimPlayer player) {
-        if (hasPos) {
+                                   @Nullable Float packetXRot, @Nullable Float packetYRot, GrimPlayer player, @Nullable PositionPath path, boolean positionSync, int transaction) {
+        if (path != null) {
+            trackedServerPosition.setPos(path.getEndPosition());
+        } else if (hasPos) {
             if (relative) {
                 // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
                 final double scale = trackedServerPosition.getScale();
@@ -179,90 +178,24 @@ public class PacketEntity extends TypedPacketEntity {
             }
         }
 
-        // Vanilla's InterpolationHandler (1.21.5+) in 1.21.9+ only restarts the lerp when the
-        // incoming target differs from the one it is already heading towards, so a
-        // packet that merely restates the current target is a no-op client side.
-        // Restarting it here instead leaves our interpolation permanently trailing
-        // the client whenever a server re-sends the same position, which reads as
-        // the entity hitbox sitting slightly off and false flags Hitboxes/Reach.
-        //
-        // Strictly 1.21.9+. InterpolationHandler exists from 1.21.5 but without this
-        // equality guard, so 1.21.5 -> 1.21.8 really does restart on every packet
-        // (the same absence that reintroduced MC-255263 for those builds), as does
-        // the pre-1.21.5 Entity#lerpTo path. Restarting unconditionally is correct
-        // there, which is why the freeze modelling below stays untouched: its
-        // version range ends at 1.21.9, exactly where this begins.
-        //
-        // This covers rotation-only packets too. Vanilla routes them through
-        // Entity#moveOrInterpolateTo(yRot, xRot), whose absent position defaults to
-        // InterpolationHandler#position() - the current interpolation target while
-        // steps > 0 - so the position term compares equal and an unchanged rotation
-        // makes the whole packet a no-op.
-        //
-        // Skipping is safe for transaction splitting. We leave oldPacketLocation
-        // untouched, so an in-flight uncertainty window from an earlier packet is
-        // preserved rather than collapsed, and the redundant packet's own
-        // onSecondTransaction only clears a window that its transaction already
-        // proves the client has passed.
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_9)
-                && newPacketLocation.restatesTarget(trackedServerPosition.getPos(),
-                        packetXRot, packetYRot, interpolationTargetXRot, interpolationTargetYRot)) {
-            return;
-        }
+        interpolation.begin(path, relative, hasPos, relX, relY, relZ, packetXRot, packetYRot, positionSync, transaction);
+    }
 
-        if (packetXRot != null && packetYRot != null) {
-            this.interpolationTargetXRot = packetXRot;
-            this.interpolationTargetYRot = packetYRot;
-        }
-
-        this.oldPacketLocation = newPacketLocation;
-        // BUG FIX LOGIC for https://bugs.mojang.com/browse/MC-255263
-        // 1. We MUST check !hasPos. If hasPos is true, we must let standard interpolation (4-arg) run.
-        // 2. The 3-arg constructor is for versions where the client FREEZES (targets current pos) when rot only packets come in
-        if (!hasPos &&
-                // Logic for versions that FREEZE (Target = Current)
-                // 1.21.5 -> 1.21.8 (regression)
-                ((player.getClientVersion().isOlderThan(ClientVersion.V_1_21_9) && player.getClientVersion().isNewerThan(ClientVersion.V_1_21_4)) ||
-                        // 1.15 -> 1.20.1 (Old bug)
-                        (player.getClientVersion().isOlderThan(ClientVersion.V_1_20_2) && player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4)))
-        ) {
-            // Apply Freeze Fix (Start = Box, Target = Box)
-            this.newPacketLocation = new ReachInterpolationData(
-                    player,
-                    oldPacketLocation.getPossibleLocationCombined(),
-                    this
-            );
-        } else {
-            // Standard Interpolation (Start = Box, Target = ServerPos)
-            // This naturally fixes the "Slowdown"/Interpolation Reset in 1.20.2-1.21.4 and 1.21.9+ resetting the lerp timer
-            this.newPacketLocation = new ReachInterpolationData(player, oldPacketLocation.getPossibleLocationCombined(), trackedServerPosition, this);
-        }
-
-        // In versions < 1.16.2 when the client receives non-relative teleport for an entity
-        // And they move less by the thresholds given, the entity does not move client side
-        if (hasPos && !relative && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
-            SimpleCollisionBox clientArea = newPacketLocation.getPossibleLocationCombined();
-            if (clientArea.distanceX(relX) < 0.03125D
-                    && clientArea.distanceY(relY) < 0.015625D
-                    && clientArea.distanceZ(relZ) < 0.03125D) {
-                newPacketLocation.expandNonRelative();
-            }
+    public void onSecondTransaction(int transaction) {
+        if (interpolation != null) {
+            interpolation.confirm(transaction);
         }
     }
 
-    // Remove the possibility of the old packet location
-    public void onSecondTransaction() {
-        this.oldPacketLocation = null;
+    public void initializeInterpolationRotation(float yaw, float pitch) {
+        if (interpolation != null) {
+            interpolation.initializeRotation(yaw, pitch);
+        }
     }
 
-    // If the old and new packet location are split, we need to combine bounding boxes
     public void onMovement(boolean tickingReliably) {
-        newPacketLocation.tickMovement(oldPacketLocation == null, tickingReliably);
-
-        // Handle uncertainty of second transaction spanning over multiple ticks
-        if (oldPacketLocation != null) {
-            oldPacketLocation.tickMovement(true, tickingReliably);
-            newPacketLocation.updatePossibleStartingLocation(oldPacketLocation.getPossibleLocationCombined());
+        if (interpolation != null) {
+            interpolation.tick(tickingReliably);
         }
     }
 
@@ -289,23 +222,18 @@ public class PacketEntity extends TypedPacketEntity {
         // But let's follow this flawed client-sided logic!
         this.trackedServerPosition.setPos(new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ));
         // This disables interpolation
-        this.newPacketLocation = new ReachInterpolationData(player, box, this);
+        if (interpolation == null) {
+            interpolation = EntityInterpolations.create(player, this, box);
+        }
+        interpolation.reset(box);
     }
 
     public SimpleCollisionBox getPossibleLocationBoxes() {
-        if (oldPacketLocation == null) {
-            return newPacketLocation.getPossibleLocationCombined();
-        }
-
-        return ReachInterpolationData.combineCollisionBox(oldPacketLocation.getPossibleLocationCombined(), newPacketLocation.getPossibleLocationCombined());
+        return interpolation.position();
     }
 
     public SimpleCollisionBox getPossibleCollisionBoxes() {
-        if (oldPacketLocation == null) {
-            return newPacketLocation.getPossibleHitboxCombined();
-        }
-
-        return ReachInterpolationData.combineCollisionBox(oldPacketLocation.getPossibleHitboxCombined(), newPacketLocation.getPossibleHitboxCombined());
+        return interpolation.hitbox(player, this);
     }
 
     public OptionalInt getPotionEffectLevel(PotionType effect) {
