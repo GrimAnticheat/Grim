@@ -4,9 +4,13 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.sender.Sender;
+import ac.grim.grimac.platform.bukkit.utils.anticheat.FoliaRegionTPSUtil;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 public class BukkitPlatformServer implements PlatformServer {
 
@@ -33,10 +37,24 @@ public class BukkitPlatformServer implements PlatformServer {
 
     @Override
     public double getTPS() {
-        // Folia throws UnsupportedOperationException on calling getTPS(), there is no API for getting TPS on Folia
         if (GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) {
             return Double.NaN;
         }
         return SpigotReflectionUtil.getTPS();
+    }
+
+    @Override
+    public double getTPS(UUID playerId) {
+        if (GrimAPI.INSTANCE.getPlatform() != Platform.FOLIA) {
+            return getTPS();
+        }
+
+        Player player = Bukkit.getPlayer(playerId);
+        if (player == null) {
+            return Double.NaN;
+        }
+
+        double[] result = FoliaRegionTPSUtil.getPlayerRegionTPSAndMSPT(player);
+        return result != null ? result[0] : Double.NaN;
     }
 }
