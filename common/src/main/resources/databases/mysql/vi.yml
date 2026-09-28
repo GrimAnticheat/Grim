@@ -1,0 +1,47 @@
+# ===========================================================================
+#  Cài đặt backend MySQL.
+#
+#  MySQL hỗ trợ triển khai nhiều server (nhiều Grim cùng ghi
+#  vào một DB trung tâm). Cần MySQL Connector/J khi chạy;
+#  nếu thiếu driver, backend tự tắt khi khởi động và
+#  ghi lỗi rõ ràng; routing đến backend này sẽ chuyển
+#  sang backend khác được cấu hình.
+# ===========================================================================
+
+# Mọi khóa nằm dưới `mysql:` để namespace không trùng
+# với các file backend khác (sqlite:, postgres:, mongo:, redis:)
+# khi Configuralize gộp tất cả vào một namespace chung.
+mysql:
+  # Địa chỉ kết nối.
+  host: "localhost"
+  port: 3306
+  database: "grim"
+  user: "root"
+  password: ""
+
+  # Tham số URL bổ sung nối sau bộ mặc định
+  # (useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true).
+  # Để trống trừ khi bạn biết mình cần tham số cụ thể; mặc định
+  # phù hợp với cài đặt phát triển local.
+  extra-jdbc-params: ""
+
+  # Giới hạn batch flush cho mỗi handler. Mỗi ring handler gom event vào
+  # batch PreparedStatement và commit khi endOfBatch HOẶC khi batch đạt
+  # giới hạn này, tùy điều kiện nào đến trước. Giá trị cao đổi độ trễ lấy
+  # throughput trong burst kéo dài.
+  batch-flush-cap: 256
+
+  # Ghi đè tên bảng. Đổi tên sáu kho logic để nhiều Grim có thể dùng
+  # chung một database MySQL, hoặc khớp với quy ước đặt tên
+  # của tổ chức. Tên mặc định ở bên dưới.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1

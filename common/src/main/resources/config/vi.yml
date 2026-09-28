@@ -11,16 +11,16 @@
 # hoặc phải công khai toàn bộ source code cho người mua mà không tính thêm phí.
 
 alerts:
-    # Ngoài việc broadcast alerts cho người chơi, có gửi vào console không?
+    # Ngoài việc gửi cảnh báo cho người chơi, có gửi chúng vào console không?
     print-to-console: true
 
-    # Thiết lập việc chia sẻ alerts giữa các server dùng chung proxy.
+    # Thiết lập việc chia sẻ cảnh báo giữa các server dùng chung proxy.
     # Bạn phải bật 'bungee-plugin-message-channel' trong cấu hình Velocity nếu đang dùng Velocity.
     proxy:
-        # Có gửi alerts sang các server khác trong proxy không?
+        # Có gửi cảnh báo sang các server khác trong proxy không?
         send: false
 
-        # Có hiển thị alerts nhận từ server khác tại server này không?
+        # Có hiển thị cảnh báo nhận từ server khác tại server này không?
         receive: false
 
 verbose:
@@ -30,7 +30,7 @@ verbose:
 check-for-updates: true
 
 client-brand:
-    # Không broadcast brand của client tới operator nếu khớp với các regex dưới đây
+    # Không gửi brand của client tới operator nếu khớp với các regex dưới đây
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
@@ -39,39 +39,39 @@ client-brand:
         - "^Feather Fabric$"
         - "^labymod$"
 
-    # Grim sẽ blacklist các phiên bản Forge có tích hợp Reach hack (Forge 1.18.2 -> 1.19.3).
-    # Tắt option này sẽ cho phép các client đó kết nối vào server.
+    # Grim sẽ chặn các phiên bản Forge có tích hợp Reach hack (Forge 1.18.2 -> 1.19.3).
+    # Tắt tùy chọn này sẽ cho phép các client đó kết nối vào server.
     # Hãy tắt nếu bạn hiểu rõ rủi ro.
     disconnect-blacklisted-forge-versions: true
 
 spectators:
-    # Ẩn toàn bộ spectator có permission grim.spectator
-    # bất kể họ có đang spectate thật hay không
+    # Ẩn toàn bộ spectator có permission grim.spectator,
+    # bất kể họ có thực sự đang spectate hay không
     hide-regardless: false
 
     # Chỉ ẩn spectator trong các world này
-    # Để trống để áp dụng cho tất cả world
+    # Để trống để áp dụng cho mọi world
     allowed-worlds:
         - ""
 
-# Thời gian tối đa trước khi kick người chơi vì timeout
+# Thời gian tối đa trước khi kick người chơi do timeout
 # Mặc định = 60 giây
 max-transaction-time: 60
 
-# Bật để Grim không cancel pong packet từ player.
+# Bật để Grim không hủy pong packet từ player.
 # Có thể cải thiện khả năng tương thích với anticheat khác.
 # Có thể gây vấn đề với packet limiter.
 # Không nên bật nếu bạn không hiểu rõ chức năng này.
 disable-pong-cancelling: false
 
-# Có tắt block resynchronization handler mặc định không?
-# Mặc định Grim sẽ đọc block từ server world và gửi lại cho client để sửa desync.
-# Nếu bạn dùng plugin tạo fake block bằng packet (không tồn tại thật trong world),
-# hãy bật option này để Grim không ghi đè chúng bằng air/block thật.
-# Điều này sẽ ép sử dụng "NoOp" handler nếu không có custom handler qua API.
+# Có tắt handler đồng bộ block mặc định không?
+# Mặc định Grim sẽ đọc block từ world của server và gửi lại cho client để sửa desync.
+# Nếu bạn dùng plugin tạo block giả bằng packet (không tồn tại thật trong world),
+# hãy bật tùy chọn này để Grim không ghi đè chúng bằng air/block thật.
+# Khi đó Grim sẽ dùng handler "NoOp" nếu API không cung cấp handler tùy chỉnh.
 disable-default-resync-handler: false
 
-# Có cancel duplicate movement packet không?
+# Có hủy duplicate movement packet không?
 # Mojang đã sửa lỗi này trong 1.21.
 # Đây từng là cách Mojang xử lý "bucket desync": https://bugs.mojang.com/browse/MC-12363
 # Chỉ áp dụng cho client 1.17-1.20.5 trên server 1.8
@@ -81,7 +81,7 @@ cancel-duplicate-packet: true
 ignore-duplicate-packet-rotation: false
 
 Simulation:
-    # Nhân tổng advantage với bao nhiêu khi player legit
+    # Nhân tổng advantage bao nhiêu lần khi player hợp lệ
     # Biểu đồ config mặc định:
     # https://www.desmos.com/calculator/d4ufgxrxer
     setback-decay-multiplier: 0.999
@@ -89,12 +89,12 @@ Simulation:
     # Độ lệch bao nhiêu thì bị tính là vi phạm
     # Đơn vị tính bằng block
     #
-    # Grim có hỗ trợ Optifine bằng cách đổi bảng trig,
-    # nhưng giảm xuống 0.001 có thể detect FastMath
+    # Grim hỗ trợ OptiFine bằng cách đổi bảng lượng giác,
+    # nhưng giảm xuống 0.001 có thể phát hiện FastMath
     # nếu việc bù sai số không hoạt động...
     threshold: 0.001
 
-    # Vi phạm bao nhiêu trong 1 tick thì setback ngay lập tức
+    # Vi phạm bao nhiêu trong một tick thì setback ngay lập tức
     # -1 để tắt
     immediate-setback-threshold: 0.1
 
@@ -102,10 +102,10 @@ Simulation:
     # -1 để tắt
     max-advantage: 1
 
-    # Sau 50 giây với config mặc định,
-    # player sẽ giảm từ 4 block -> 1 block advantage
+    # Sau 50 giây với cấu hình mặc định,
+    # advantage của player sẽ giảm từ 4 block xuống 1 block
     #
-    # Điều này giúp tránh việc tích quá nhiều violation
+    # Điều này giúp tránh tích quá nhiều violation,
     # khiến player không thể giảm hết violation.
     #
     # Biểu đồ ceiling mặc định:
@@ -138,11 +138,11 @@ RotationPlace:
 
 # Check NoSlow dựa trên prediction
 #
-# Grim xử lý cả netcode lỗi tại đây...
-# rất khó false kể cả khi spam chuột phải và offhand.
+# Grim xử lý cả netcode bị lỗi tại đây...
+# rất khó tạo false positive kể cả khi spam chuột phải và nút tay phụ.
 #
 # Ổn định hơn nhiều anticheat khác,
-# nhưng hãy report nếu gặp false positive.
+# nhưng hãy báo cáo nếu gặp false positive.
 NoSlow:
     # Độ lệch bao nhiêu thì bị coi là cheat
     #
