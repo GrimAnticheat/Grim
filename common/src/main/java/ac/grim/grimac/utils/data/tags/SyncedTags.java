@@ -4,6 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.generation.fluids.Fluid;
+import com.github.retrooper.packetevents.protocol.world.generation.fluids.Fluids;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -12,6 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTa
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.IntFunction;
 
 /**
@@ -28,8 +31,12 @@ public final class SyncedTags {
     public static final ResourceLocation NEEDS_IRON_TOOL = ResourceLocation.minecraft("needs_iron_tool");
     public static final ResourceLocation NEEDS_STONE_TOOL = ResourceLocation.minecraft("needs_stone_tool");
     public static final ResourceLocation SWORD_EFFICIENT = ResourceLocation.minecraft("sword_efficient");
+    public static final ResourceLocation ENTITY_FLOATABLE = ResourceLocation.minecraft("entity_floatable");
+    public static final ResourceLocation WATER = ResourceLocation.minecraft("water");
+    public static final ResourceLocation LAVA = ResourceLocation.minecraft("lava");
     private static final ServerVersion VERSION = PacketEvents.getAPI().getServerManager().getVersion();
-    private static final ResourceLocation BLOCK = VERSION.isNewerThanOrEquals(ServerVersion.V_1_21) ? ResourceLocation.minecraft("block") : ResourceLocation.minecraft("blocks");
+    private static final ResourceLocation BLOCK = ResourceLocation.minecraft("block");
+    private static final ResourceLocation FLUID = ResourceLocation.minecraft("fluid");
     private final GrimPlayer player;
     private final Map<ResourceLocation, Map<ResourceLocation, SyncedTag<?>>> synced = new HashMap<>();
 
@@ -46,6 +53,14 @@ public final class SyncedTags {
                 SyncedTag.<StateType>builder(NEEDS_IRON_TOOL).defaults(BlockTags.NEEDS_IRON_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
                 SyncedTag.<StateType>builder(NEEDS_STONE_TOOL).defaults(BlockTags.NEEDS_STONE_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
                 SyncedTag.<StateType>builder(SWORD_EFFICIENT).defaults(BlockTags.SWORD_EFFICIENT.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_20))
+        );
+        trackTags(FLUID, id -> Fluids.getRegistry().getById(VERSION.toClientVersion(), id),
+                SyncedTag.<Fluid>builder(WATER).defaults(Set.of(Fluids.WATER, Fluids.FLOWING_WATER))
+                        .supported(version.isNewerThanOrEquals(ClientVersion.V_26_3)),
+                SyncedTag.<Fluid>builder(LAVA).defaults(Set.of(Fluids.LAVA, Fluids.FLOWING_LAVA))
+                        .supported(version.isNewerThanOrEquals(ClientVersion.V_26_3)),
+                SyncedTag.<Fluid>builder(ENTITY_FLOATABLE).defaults(Set.of(Fluids.WATER, Fluids.FLOWING_WATER))
+                        .supported(version.isNewerThanOrEquals(ClientVersion.V_26_3))
         );
     }
 
@@ -74,5 +89,10 @@ public final class SyncedTags {
                 syncedTags.get(tag.getKey()).readTagValues(tag);
             });
         });
+    }
+
+    public SyncedTag<Fluid> fluid(ResourceLocation tag) {
+        Map<ResourceLocation, SyncedTag<?>> fluidTags = synced.get(FLUID);
+        return (SyncedTag<Fluid>) fluidTags.get(tag);
     }
 }
