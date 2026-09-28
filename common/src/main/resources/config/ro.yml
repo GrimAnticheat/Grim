@@ -7,7 +7,7 @@
 alerts:
     # Pe lângă transmiterea alertelor către jucători, ar trebui să fie trimise și în consolă?
     print-to-console: true
-    # Aceasta opțiune controlează dacă/și cum sunt partajate alertele între serverele conectate la proxy.
+    # Această opțiune controlează dacă/și cum sunt partajate alertele între serverele conectate la proxy.
     # Trebuie să ai 'bungee-plugin-message-channel' activat în configurația Velocity dacă Velocity este folosit.
     proxy:
         # Ar trebui ca alertele să fie trimise către alte servere conectate la proxy?
@@ -107,7 +107,7 @@ RotationPlace:
     cancelvl: 5
 
 # Verificare NoSlow bazată pe predicție
-# Grim ține cont de netcode-ul buguit aici... greu de falsificat chiar și când spamezi click și butonul offhand
+# Grim ține cont de netcode-ul buguit aici... greu de generat fals pozitive, chiar și când apeși repetat click dreapta și butonul pentru mâna secundară
 # Mult mai stabil decât alte anticheaturi, dar raportează orice fals-pozitiv... am reparat multe probleme de netcode aici.
 NoSlow:
     # Cât de mare abatere e considerată „cheating”
@@ -178,7 +178,7 @@ Reach:
     # Activarea va crește traficul pentru toți jucătorii
     # Nu va scădea performanța serverului
     # Activarea va prinde mai mulți cheateri.
-    # Lăsarea dezactivată va prinde totuși cheateri și nu va cauza fals-pozitiv
+    # Lăsarea dezactivată va prinde totuși cheateri și nu va produce rezultate fals pozitive
     # Dacă nu ești server PvP 1.8, acest pachet suplimentar nu este recomandat
     enable-post-packet: false
 
