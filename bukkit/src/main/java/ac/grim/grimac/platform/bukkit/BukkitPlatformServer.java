@@ -4,11 +4,10 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.sender.Sender;
-import ac.grim.grimac.platform.bukkit.utils.anticheat.FoliaRegionTPSUtil;
+import ac.grim.grimac.platform.bukkit.initables.FoliaRegionTPSTracker;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
@@ -45,16 +44,9 @@ public class BukkitPlatformServer implements PlatformServer {
 
     @Override
     public double getTPS(UUID playerId) {
-        if (GrimAPI.INSTANCE.getPlatform() != Platform.FOLIA) {
-            return getTPS();
+        if (GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) {
+            return FoliaRegionTPSTracker.getTPS(playerId);
         }
-
-        Player player = Bukkit.getPlayer(playerId);
-        if (player == null) {
-            return Double.NaN;
-        }
-
-        double[] result = FoliaRegionTPSUtil.getPlayerRegionTPSAndMSPT(player);
-        return result != null ? result[0] : Double.NaN;
+        return getTPS();
     }
 }
