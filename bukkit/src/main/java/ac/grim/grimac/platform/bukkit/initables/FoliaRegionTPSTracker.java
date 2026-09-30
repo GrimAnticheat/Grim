@@ -66,7 +66,10 @@ public class FoliaRegionTPSTracker implements StartableInitable, Listener {
         TaskHandle handle = GrimAPI.INSTANCE.getScheduler().getEntityScheduler().runAtFixedRate(
                 platformPlayer,
                 GrimAPI.INSTANCE.getGrimPlugin(),
-                () -> entry.tps = FoliaRegionTPS.currentRegionTPS(),
+                () -> {
+                    double tps = FoliaRegionTPS.currentRegionTPS();
+                    if (Double.isFinite(tps)) entry.tps = tps;
+                },
                 () -> ENTRIES.remove(uuid, entry),
                 1L,
                 UPDATE_PERIOD_TICKS
