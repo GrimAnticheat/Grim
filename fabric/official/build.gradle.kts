@@ -7,8 +7,6 @@ val fabric_version: String by project
 
 plugins {
     `maven-publish`
-    // No version: loom is already on the classpath from the parent :fabric project,
-    // so a version request here would fail compatibility checking.
     id("net.fabricmc.fabric-loom")
     grim.`base-conventions`
     grim.`jij-conventions`
@@ -42,6 +40,9 @@ dependencies {
     compileOnly(libs.packetevents.api)
     compileOnly("org.slf4j:slf4j-api:2.0.17")
     compileOnly("org.apache.logging.log4j:log4j-api:2.24.3")
+
+    compileOnly("net.kyori:adventure-api:5.2.0")
+    compileOnly("net.kyori:adventure-text-serializer-gson:5.2.0")
 }
 
 allprojects {
