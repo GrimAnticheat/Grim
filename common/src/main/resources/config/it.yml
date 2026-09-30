@@ -63,6 +63,11 @@ cancel-duplicate-packet: true
 # Whether or not to ignore the rotation in duplicate packets
 ignore-duplicate-packet-rotation: false
 
+# How many inventory clicks should we allow per server tick?
+# Any clicks after this threshold is reached will be cancelled.
+# Set to -1 to disable.
+max-clicks-per-tick: 3
+
 Simulation:
     # Riduce gradualmente l'avanzamento totale del giocatore quando è legittimo
     setback-decay-multiplier: 0.999
@@ -218,4 +223,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 11
+config-version: 12

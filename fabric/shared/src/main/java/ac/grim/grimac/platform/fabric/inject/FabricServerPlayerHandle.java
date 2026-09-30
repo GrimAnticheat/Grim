@@ -16,6 +16,8 @@ public interface FabricServerPlayerHandle {
 
     void broadcastInventoryChanges();
 
+    void closeContainer();
+
     // isUsingItem()/stopUsingItem() deliberately reuse vanilla's own method names, which forces the
     // two runtimes to behave differently:
     //   - Official (Mojang-mapped) builds: ServerPlayer already declares these names, so vanilla's
