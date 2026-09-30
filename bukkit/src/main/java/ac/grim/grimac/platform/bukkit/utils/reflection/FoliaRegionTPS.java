@@ -4,17 +4,15 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class FoliaRegionTPS {
 
     private static final Class<?> TICK_REGION_SCHEDULER = ReflectionUtils.getClass("io.papermc.paper.threadedregions.TickRegionScheduler");
-    private static final Method GET_CURRENT_REGION = TICK_REGION_SCHEDULER == null ? null : ReflectionUtils.getMethod(TICK_REGION_SCHEDULER, "getCurrentRegion");
-    private static final Map<MethodKey, Method> METHODS = new ConcurrentHashMap<>();
+    private static final Method GET_CURRENT_REGION = findCurrentRegionMethod();
     private static final AtomicBoolean WARNED = new AtomicBoolean();
+    private static volatile Chain chain;
     private static volatile boolean broken;
 
     private FoliaRegionTPS() {
@@ -30,16 +28,10 @@ public final class FoliaRegionTPS {
             Object region = GET_CURRENT_REGION.invoke(null);
             if (region == null) return Double.NaN;
 
-            Object data = invoke(region, "getData");
-            Object handle = invoke(data, "getRegionSchedulingHandle");
-            Object report = resolve(handle.getClass(), "getTickReport5s", long.class).invoke(handle, System.nanoTime());
-            if (report == null) return Double.NaN;
-
-            Object tpsData = invoke(report, "tpsData");
-            Object segment = invoke(tpsData, "segmentAll");
-            double tps = ((Number) invoke(segment, "average")).doubleValue();
+            Chain resolved = chain;
+            double tps = resolved != null ? resolved.read(region) : resolveAndRead(region);
             return Double.isFinite(tps) ? tps : Double.NaN;
-        } catch (NoSuchMethodException | IllegalAccessException | ClassCastException e) {
+        } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | ClassCastException e) {
             broken = true;
             warn(e);
         } catch (Exception e) {
@@ -48,18 +40,45 @@ public final class FoliaRegionTPS {
         return Double.NaN;
     }
 
-    private static Object invoke(Object target, String name) throws ReflectiveOperationException {
-        return resolve(target.getClass(), name).invoke(target);
+    private static Method findCurrentRegionMethod() {
+        if (TICK_REGION_SCHEDULER == null) return null;
+        Method method = ReflectionUtils.getMethod(TICK_REGION_SCHEDULER, "getCurrentRegion");
+        return method != null && Modifier.isStatic(method.getModifiers()) ? method : null;
     }
 
-    private static Method resolve(Class<?> type, String name, Class<?>... parameterTypes) throws NoSuchMethodException {
-        MethodKey key = new MethodKey(type, name, List.of(parameterTypes));
-        Method cached = METHODS.get(key);
-        if (cached != null) return cached;
+    private static double resolveAndRead(Object region) throws ReflectiveOperationException {
+        Method getData = require(region.getClass(), "getData");
+        Object data = getData.invoke(region);
+        if (data == null) return Double.NaN;
 
+        Method getHandle = require(data.getClass(), "getRegionSchedulingHandle");
+        Object handle = getHandle.invoke(data);
+        if (handle == null) return Double.NaN;
+
+        Method getReport = ReflectionUtils.getMethod(handle.getClass(), "getTickReport5s", long.class);
+        if (getReport == null) getReport = require(handle.getClass(), "getTickReport15s", long.class);
+
+        Object report = getReport.invoke(handle, System.nanoTime());
+        if (report == null) return Double.NaN;
+
+        Method tpsData = require(report.getClass(), "tpsData");
+        Object tps = tpsData.invoke(report);
+        if (tps == null) return Double.NaN;
+
+        Method segmentAll = require(tps.getClass(), "segmentAll");
+        Object segment = segmentAll.invoke(tps);
+        if (segment == null) return Double.NaN;
+
+        Method average = require(segment.getClass(), "average");
+        double value = ((Number) average.invoke(segment)).doubleValue();
+
+        chain = new Chain(getData, getHandle, getReport, tpsData, segmentAll, average);
+        return value;
+    }
+
+    private static Method require(Class<?> type, String name, Class<?>... parameterTypes) throws NoSuchMethodException {
         Method method = ReflectionUtils.getMethod(type, name, parameterTypes);
         if (method == null) throw new NoSuchMethodException(type.getName() + "#" + name);
-        METHODS.put(key, method);
         return method;
     }
 
@@ -69,6 +88,25 @@ public final class FoliaRegionTPS {
         }
     }
 
-    private record MethodKey(Class<?> type, String name, List<Class<?>> parameterTypes) {
+    private record Chain(Method getData, Method getHandle, Method getReport, Method tpsData, Method segmentAll, Method average) {
+
+        private double read(Object region) throws ReflectiveOperationException {
+            Object data = getData.invoke(region);
+            if (data == null) return Double.NaN;
+
+            Object handle = getHandle.invoke(data);
+            if (handle == null) return Double.NaN;
+
+            Object report = getReport.invoke(handle, System.nanoTime());
+            if (report == null) return Double.NaN;
+
+            Object tps = tpsData.invoke(report);
+            if (tps == null) return Double.NaN;
+
+            Object segment = segmentAll.invoke(tps);
+            if (segment == null) return Double.NaN;
+
+            return ((Number) average.invoke(segment)).doubleValue();
+        }
     }
 }
