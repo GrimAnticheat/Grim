@@ -42,7 +42,8 @@
     "java": ">=25",
     "fabricloader": ">=0.19",
     "fabric-lifecycle-events-v1": "*",
-    "packetevents": "*"
+    "packetevents": "*",
+    "adventure-platform-fabric": ">=7.1.0"
   },
   "recommends": {
     "luckperms": "*"
