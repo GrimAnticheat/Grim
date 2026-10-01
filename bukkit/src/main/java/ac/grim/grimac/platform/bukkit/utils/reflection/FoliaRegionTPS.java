@@ -2,6 +2,8 @@ package ac.grim.grimac.platform.bukkit.utils.reflection;
 
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.reflection.ReflectionUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -9,21 +11,38 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class FoliaRegionTPS {
 
-    private static final Class<?> TICK_REGION_SCHEDULER = ReflectionUtils.getClass("io.papermc.paper.threadedregions.TickRegionScheduler");
-    private static final Method GET_CURRENT_REGION = findCurrentRegionMethod();
+    private static final String[] REPORT_METHODS = {"getTickReport5s", "getTickReport15s", "getTickReport1m"};
+
+    private static final Method GET_REGION_TPS = findRegionTpsMethod();
+    private static final Method GET_CURRENT_REGION = GET_REGION_TPS == null ? findCurrentRegionMethod() : null;
     private static final AtomicBoolean WARNED = new AtomicBoolean();
     private static volatile Chain chain;
-    private static volatile boolean broken;
+    private static volatile boolean legacyUnavailable;
 
     private FoliaRegionTPS() {
     }
 
     public static boolean isSupported() {
-        return GET_CURRENT_REGION != null;
+        return GET_REGION_TPS != null || GET_CURRENT_REGION != null;
     }
 
-    public static double currentRegionTPS() {
-        if (broken || GET_CURRENT_REGION == null) return Double.NaN;
+    public static double regionTPS(Location location) {
+        return GET_REGION_TPS != null ? officialTPS(location) : legacyTPS();
+    }
+
+    private static double officialTPS(Location location) {
+        if (location == null) return Double.NaN;
+        try {
+            double[] tps = (double[]) GET_REGION_TPS.invoke(null, location);
+            return tps != null && tps.length > 0 && Double.isFinite(tps[0]) ? tps[0] : Double.NaN;
+        } catch (Exception e) {
+            warn(e);
+            return Double.NaN;
+        }
+    }
+
+    private static double legacyTPS() {
+        if (legacyUnavailable || GET_CURRENT_REGION == null) return Double.NaN;
         try {
             Object region = GET_CURRENT_REGION.invoke(null);
             if (region == null) return Double.NaN;
@@ -32,18 +51,25 @@ public final class FoliaRegionTPS {
             double tps = resolved != null ? resolved.read(region) : resolveAndRead(region);
             return Double.isFinite(tps) ? tps : Double.NaN;
         } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | ClassCastException e) {
-            broken = true;
-            warn(e);
+            legacyUnavailable = true;
         } catch (Exception e) {
             warn(e);
         }
         return Double.NaN;
     }
 
+    private static Method findRegionTpsMethod() {
+        Method method = ReflectionUtils.getMethod(Bukkit.class, "getRegionTPS", Location.class);
+        return method != null && Modifier.isStatic(method.getModifiers()) && method.getReturnType() == double[].class ? method : null;
+    }
+
     private static Method findCurrentRegionMethod() {
-        if (TICK_REGION_SCHEDULER == null) return null;
-        Method method = ReflectionUtils.getMethod(TICK_REGION_SCHEDULER, "getCurrentRegion");
-        return method != null && Modifier.isStatic(method.getModifiers()) ? method : null;
+        Class<?> scheduler = ReflectionUtils.getClass("io.papermc.paper.threadedregions.TickRegionScheduler");
+        if (scheduler == null) return null;
+        Method method = ReflectionUtils.getMethod(scheduler, "getCurrentRegion");
+        if (method == null || !Modifier.isStatic(method.getModifiers())) return null;
+        method.trySetAccessible();
+        return method;
     }
 
     private static double resolveAndRead(Object region) throws ReflectiveOperationException {
@@ -55,8 +81,12 @@ public final class FoliaRegionTPS {
         Object handle = getHandle.invoke(data);
         if (handle == null) return Double.NaN;
 
-        Method getReport = ReflectionUtils.getMethod(handle.getClass(), "getTickReport5s", long.class);
-        if (getReport == null) getReport = require(handle.getClass(), "getTickReport15s", long.class);
+        Method getReport = null;
+        for (String name : REPORT_METHODS) {
+            getReport = find(handle.getClass(), name, long.class);
+            if (getReport != null) break;
+        }
+        if (getReport == null) throw new NoSuchMethodException(handle.getClass().getName() + "#getTickReport");
 
         Object report = getReport.invoke(handle, System.nanoTime());
         if (report == null) return Double.NaN;
@@ -76,8 +106,14 @@ public final class FoliaRegionTPS {
         return value;
     }
 
-    private static Method require(Class<?> type, String name, Class<?>... parameterTypes) throws NoSuchMethodException {
+    private static Method find(Class<?> type, String name, Class<?>... parameterTypes) {
         Method method = ReflectionUtils.getMethod(type, name, parameterTypes);
+        if (method != null) method.trySetAccessible();
+        return method;
+    }
+
+    private static Method require(Class<?> type, String name, Class<?>... parameterTypes) throws NoSuchMethodException {
+        Method method = find(type, name, parameterTypes);
         if (method == null) throw new NoSuchMethodException(type.getName() + "#" + name);
         return method;
     }
