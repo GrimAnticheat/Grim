@@ -146,30 +146,18 @@ public class MovementTicker {
         }
 
         double deltaX = player.clientVelocity.getX(), deltaY = player.clientVelocity.getY(), deltaZ = player.clientVelocity.getZ();
+        final boolean xAxis;
+        final boolean zAxis;
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)) {
-            boolean xAxis = !GrimMath.equal(inputVel.getX(), collide.getX());
-            boolean zAxis = !GrimMath.equal(inputVel.getZ(), collide.getZ());
-
-            if (xAxis) {
-                player.clientVelocity.setX(BlockProperties.getVelocityAfterHorizontalCollision(player, player.clientVelocity.getX()));
-            }
-
-            if (zAxis) {
-                player.clientVelocity.setZ(BlockProperties.getVelocityAfterHorizontalCollision(player, player.clientVelocity.getZ()));
-            }
+            xAxis = !GrimMath.equal(inputVel.getX(), collide.getX());
+            zAxis = !GrimMath.equal(inputVel.getZ(), collide.getZ());
 
             player.horizontalCollision = xAxis || zAxis;
             player.softHorizontalCollision = player.horizontalCollision && isHorizontalCollisionSoft(collide);
         } else {
-            if (inputVel.getX() != collide.getX()) {
-                player.clientVelocity.setX(BlockProperties.getVelocityAfterHorizontalCollision(player, player.clientVelocity.getX()));
-            }
-
-            if (inputVel.getZ() != collide.getZ()) {
-                player.clientVelocity.setZ(BlockProperties.getVelocityAfterHorizontalCollision(player, player.clientVelocity.getZ()));
-            }
-
-            player.horizontalCollision = inputVel.getX() != collide.getX() || inputVel.getZ() != collide.getZ();
+            xAxis = inputVel.getX() != collide.getX();
+            zAxis = inputVel.getZ() != collide.getZ();
+            player.horizontalCollision = xAxis || zAxis;
         }
 
         player.verticalCollision = inputVel.getY() != collide.getY();
@@ -221,6 +209,9 @@ public class MovementTicker {
             player.fallDistance -= collide.getY();
             player.vehicleData.lastYd = collide.getY();
         }
+
+        if (xAxis) player.clientVelocity.setX(BlockProperties.getVelocityAfterHorizontalCollision(player, player.clientVelocity.getX()));
+        if (zAxis) player.clientVelocity.setZ(BlockProperties.getVelocityAfterHorizontalCollision(player, player.clientVelocity.getZ()));
 
         // Striders call the method for inside blocks AGAIN!
         if (riding instanceof PacketEntityStrider) {
