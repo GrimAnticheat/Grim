@@ -34,7 +34,7 @@ public class FoliaRegionTPSTracker implements StartableInitable, StoppableInitab
 
     @Override
     public void start() {
-        if (GrimAPI.INSTANCE.getPlatform() != Platform.FOLIA || !FoliaRegionTPS.isSupported()) return;
+        if (GrimAPI.INSTANCE.getPlatform() != Platform.FOLIA || !FoliaRegionTPS.isLegacySupported()) return;
 
         Bukkit.getPluginManager().registerEvents(this, GrimACBukkitLoaderPlugin.LOADER);
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -68,27 +68,32 @@ public class FoliaRegionTPSTracker implements StartableInitable, StoppableInitab
         Entry previous = ENTRIES.put(uuid, entry);
         if (previous != null) previous.cancel();
 
-        PlatformPlayer platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player);
-        TaskHandle handle = GrimAPI.INSTANCE.getScheduler().getEntityScheduler().runAtFixedRate(
-                platformPlayer,
-                GrimAPI.INSTANCE.getGrimPlugin(),
-                () -> {
-                    double tps = FoliaRegionTPS.regionTPS(player.getLocation());
-                    if (Double.isFinite(tps)) entry.tps = tps;
-                },
-                () -> ENTRIES.remove(uuid, entry),
-                1L,
-                UPDATE_PERIOD_TICKS
-        );
+        try {
+            PlatformPlayer platformPlayer = GrimAPI.INSTANCE.getPlatformPlayerFactory().getFromNativePlayerType(player);
+            TaskHandle handle = GrimAPI.INSTANCE.getScheduler().getEntityScheduler().runAtFixedRate(
+                    platformPlayer,
+                    GrimAPI.INSTANCE.getGrimPlugin(),
+                    () -> {
+                        double tps = FoliaRegionTPS.currentRegionTPS();
+                        if (Double.isFinite(tps)) entry.tps = tps;
+                    },
+                    () -> ENTRIES.remove(uuid, entry),
+                    1L,
+                    UPDATE_PERIOD_TICKS
+            );
 
-        if (handle == null) {
+            if (handle == null) {
+                ENTRIES.remove(uuid, entry);
+                return;
+            }
+
+            entry.handle = handle;
+            if (ENTRIES.get(uuid) != entry) {
+                handle.cancel();
+            }
+        } catch (Exception e) {
             ENTRIES.remove(uuid, entry);
-            return;
-        }
-
-        entry.handle = handle;
-        if (ENTRIES.get(uuid) != entry) {
-            handle.cancel();
+            FoliaRegionTPS.warn(e);
         }
     }
 
