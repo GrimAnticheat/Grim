@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.data.packetentity;
 
+import com.github.retrooper.packetevents.protocol.vector.positionpath.PositionPath;
 import ac.grim.grimac.checks.impl.sprint.SprintD;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -169,12 +170,12 @@ public class PacketEntitySelf extends PacketEntity {
 
     @Override
     public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ,
-                                   @Nullable Float packetXRot, @Nullable Float packetYRot, GrimPlayer player) {
+                                   @Nullable Float packetXRot, @Nullable Float packetYRot, GrimPlayer player, @Nullable PositionPath path, boolean positionSync, int transaction) {
         // Player ignores this
     }
 
     @Override
-    public void onSecondTransaction() {
+    public void onSecondTransaction(int transaction) {
         // Player ignores this
     }
 
