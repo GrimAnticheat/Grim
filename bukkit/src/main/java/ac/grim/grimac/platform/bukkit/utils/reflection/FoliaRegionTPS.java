@@ -22,16 +22,16 @@ public final class FoliaRegionTPS {
     private FoliaRegionTPS() {
     }
 
-    public static boolean isSupported() {
-        return GET_REGION_TPS != null || GET_CURRENT_REGION != null;
+    public static boolean hasRegionTpsApi() {
+        return GET_REGION_TPS != null;
+    }
+
+    public static boolean isLegacySupported() {
+        return GET_CURRENT_REGION != null;
     }
 
     public static double regionTPS(Location location) {
-        return GET_REGION_TPS != null ? officialTPS(location) : legacyTPS();
-    }
-
-    private static double officialTPS(Location location) {
-        if (location == null) return Double.NaN;
+        if (GET_REGION_TPS == null || location == null) return Double.NaN;
         try {
             double[] tps = (double[]) GET_REGION_TPS.invoke(null, location);
             return tps != null && tps.length > 0 && Double.isFinite(tps[0]) ? tps[0] : Double.NaN;
@@ -41,7 +41,7 @@ public final class FoliaRegionTPS {
         }
     }
 
-    private static double legacyTPS() {
+    public static double currentRegionTPS() {
         if (legacyUnavailable || GET_CURRENT_REGION == null) return Double.NaN;
         try {
             Object region = GET_CURRENT_REGION.invoke(null);
@@ -59,17 +59,25 @@ public final class FoliaRegionTPS {
     }
 
     private static Method findRegionTpsMethod() {
-        Method method = ReflectionUtils.getMethod(Bukkit.class, "getRegionTPS", Location.class);
-        return method != null && Modifier.isStatic(method.getModifiers()) && method.getReturnType() == double[].class ? method : null;
+        try {
+            Method method = ReflectionUtils.getMethod(Bukkit.class, "getRegionTPS", Location.class);
+            return method != null && Modifier.isStatic(method.getModifiers()) && method.getReturnType() == double[].class ? method : null;
+        } catch (Exception | LinkageError e) {
+            return null;
+        }
     }
 
     private static Method findCurrentRegionMethod() {
-        Class<?> scheduler = ReflectionUtils.getClass("io.papermc.paper.threadedregions.TickRegionScheduler");
-        if (scheduler == null) return null;
-        Method method = ReflectionUtils.getMethod(scheduler, "getCurrentRegion");
-        if (method == null || !Modifier.isStatic(method.getModifiers())) return null;
-        method.trySetAccessible();
-        return method;
+        try {
+            Class<?> scheduler = ReflectionUtils.getClass("io.papermc.paper.threadedregions.TickRegionScheduler");
+            if (scheduler == null) return null;
+            Method method = ReflectionUtils.getMethod(scheduler, "getCurrentRegion");
+            if (method == null || !Modifier.isStatic(method.getModifiers())) return null;
+            method.trySetAccessible();
+            return method;
+        } catch (Exception | LinkageError e) {
+            return null;
+        }
     }
 
     private static double resolveAndRead(Object region) throws ReflectiveOperationException {
@@ -118,7 +126,7 @@ public final class FoliaRegionTPS {
         return method;
     }
 
-    private static void warn(Exception e) {
+    public static void warn(Exception e) {
         if (WARNED.compareAndSet(false, true)) {
             LogUtil.warn("Failed to read the Folia region TPS, %tps% will report NaN", e);
         }
