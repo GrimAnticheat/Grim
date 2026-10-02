@@ -1,0 +1,43 @@
+# ===========================================================================
+#  Cài đặt backend SQLite.
+#
+#  SQLite chỉ dành cho một server. Hệ thống nhiều server nên đổi routing
+#  trong database.yml sang backend kết nối được database dùng chung.
+# ===========================================================================
+
+# Mọi khóa nằm dưới `sqlite:` để namespace không
+# trùng với các file backend khác (mysql:, postgres:, mongo:,
+# redis:) khi Configuralize gộp tất cả vào một namespace chung.
+sqlite:
+  # Đường dẫn đến file database SQLite. Được tính tương đối với thư mục dữ liệu plugin
+  # nếu không phải đường dẫn tuyệt đối. File cũ tại
+  # `data/violations.sqlite` được giữ nguyên để dự phòng; đây là
+  # file mới, không bao giờ ALTER file cũ.
+  path: "data/history.v1.db"
+
+  # Chế độ WAL cho phép reader chạy đồng thời với writer, rất cần thiết
+  # cho plugin server đọc /grim history trong khi ghi violation.
+  journal-mode: WAL
+
+  # NORMAL cân bằng hợp lý giữa độ bền ghi và throughput
+  # dưới WAL. FULL tăng độ bền nhưng giảm throughput. OFF nguy hiểm.
+  synchronous-mode: NORMAL
+
+  # SQLite chờ lock bao lâu trước khi bỏ cuộc. Handler ghi log
+  # và bỏ event khi có BackendException; tăng giá trị này giảm việc bỏ nhầm
+  # khi ổ đĩa bị tranh chấp.
+  busy-timeout-ms: 5000
+
+  # Kích thước page cache (tính theo page). Page mặc định của SQLite là 4096 byte, nên
+  # 10000 page ≈ 40 MB. Tăng nếu lịch sử được truy cập nhiều.
+  cache-pages: 10000
+
+  # Giới hạn batch flush cho mỗi handler. Mỗi ring handler gom event
+  # vào batch PreparedStatement và commit khi endOfBatch HOẶC khi
+  # batch đạt giới hạn này, tùy điều kiện nào đến trước. Giá trị cao đổi
+  # độ trễ lấy throughput trong burst kéo dài.
+  batch-flush-cap: 256
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1
