@@ -101,7 +101,9 @@ public class PlayerDataManager {
     }
 
     public GrimPlayer remove(final @NotNull User user) {
-        return playerDataMap.remove(user);
+        GrimPlayer removed = playerDataMap.remove(user);
+        if (removed != null) removed.compensatedWorld.releaseSharedSections();
+        return removed;
     }
 
     public void onDisconnect(User user) {
