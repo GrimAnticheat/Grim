@@ -201,6 +201,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedEntities.entityMap.clear();
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
+                    player.compensatedWorld.releaseSharedSections();
                     player.compensatedWorld.chunks.clear();
                     player.compensatedWorld.clearPredictions();
                     player.compensatedGeysers.clear();

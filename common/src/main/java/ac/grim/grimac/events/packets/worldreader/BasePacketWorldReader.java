@@ -129,20 +129,11 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             event.getTasksAfterSend().add(player::sendTransaction); // Player is in this unloaded chunk
         }
         if (isGroundUp) {
-            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get());
+            Column column = new Column(chunkX, chunkZ, chunks, new long[chunks.length], player.lastTransactionSent.get());
             player.compensatedWorld.addToCache(column, chunkX, chunkZ, tileEntities);
         } else {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                Column existingColumn = player.compensatedWorld.getChunk(chunkX, chunkZ);
-                if (existingColumn == null) {
-                    // Corrupting the player's empty chunk is actually quite meaningless
-                    // You are able to set blocks inside it, and they do apply, it just always returns air despite what its data says
-                    // So go ahead, corrupt the player's empty chunk and make it no longer all air, it doesn't matter
-                    //
-                    // LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.user.getProfile().getName() + "! This corrupts the player's empty chunk!");
-                    return;
-                }
-                existingColumn.mergeChunks(chunks);
+                player.compensatedWorld.mergeIncomingSections(chunkX, chunkZ, chunks);
             });
         }
     }
