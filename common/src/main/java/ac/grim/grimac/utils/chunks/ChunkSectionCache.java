@@ -4,11 +4,10 @@ import ac.grim.grimac.GrimAPI;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
-import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.PaletteType;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 public final class ChunkSectionCache {
 
@@ -29,12 +28,7 @@ public final class ChunkSectionCache {
 
     public record SharedRef(BaseChunk section, long key) { }
 
-    public record Stats(long entries, long totalRefs, long hits, long misses, long collisions) { }
-
     private final ConcurrentHashMap<Long, Entry> entries = new ConcurrentHashMap<>();
-    private final AtomicLong hits = new AtomicLong();
-    private final AtomicLong misses = new AtomicLong();
-    private final AtomicLong collisions = new AtomicLong();
 
     ChunkSectionCache() {
     }
@@ -91,7 +85,7 @@ public final class ChunkSectionCache {
 
     private static BaseChunk emptySectionLike(BaseChunk source) {
         if (source instanceof Chunk_v1_18) return new Chunk_v1_18();
-        if (source instanceof Chunk_v1_9) return new Chunk_v1_9(0, DataPalette.createForChunk());
+        if (source instanceof Chunk_v1_9) return new Chunk_v1_9(0, PaletteType.CHUNK.create());
         throw new IllegalArgumentException("Unsupported section type: " + source.getClass());
     }
 
@@ -103,19 +97,16 @@ public final class ChunkSectionCache {
         entries.compute(hashSection(fresh), (hash, existing) -> {
             if (existing != null && sectionsEqual(existing.section, fresh)) {
                 existing.refs.incrementAndGet();
-                hits.incrementAndGet();
                 result[0] = new SharedRef(existing.section, hash);
                 return existing;
             }
 
             if (existing == null) {
-                misses.incrementAndGet();
                 result[0] = new SharedRef(fresh, hash);
                 return new Entry(fresh);
             }
 
             // Genuine hash collision: keep the stored entry, newcomer stays private
-            collisions.incrementAndGet();
             result[0] = new SharedRef(fresh, 0L);
             return existing;
         });
@@ -131,15 +122,5 @@ public final class ChunkSectionCache {
             if (existing.section != section) return existing; // not ours, leave it
             return existing.refs.decrementAndGet() <= 0 ? null : existing;
         });
-    }
-
-    public Stats stats() {
-        long totalRefs = 0;
-
-        for (Entry entry : entries.values()) {
-            totalRefs += entry.refs.get();
-        }
-
-        return new Stats(entries.size(), totalRefs, hits.get(), misses.get(), collisions.get());
     }
 }
