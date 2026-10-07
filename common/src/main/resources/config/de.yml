@@ -200,7 +200,6 @@ debug-pipeline-on-join: false
 experimental-checks: false
 
 # Teilt identische Chunk-Sektionen zwischen Spielern, um Speicher zu sparen (Copy-on-Write bei Änderung).
-# Experimentell: nur nach Prüfung mit /grim chunkmemory aktivieren.
 experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true

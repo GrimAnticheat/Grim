@@ -196,7 +196,6 @@ debug-pipeline-on-join: false
 experimental-checks: false
 
 # Совместное использование одинаковых секций чанков между игроками для экономии памяти (копирование при записи).
-# Экспериментально: включать только после проверки командой /grim chunkmemory.
 experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true

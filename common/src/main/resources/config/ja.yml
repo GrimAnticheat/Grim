@@ -209,7 +209,6 @@ debug-pipeline-on-join: false
 experimental-checks: false
 
 # メモリ節約のため、同一チャンクセクションをプレイヤー間で共有します（書き込み時コピー）。
-# 実験的機能：/grim chunkmemory で検証した後にのみ有効化してください。
 experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true
