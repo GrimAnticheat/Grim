@@ -838,12 +838,11 @@ public class GrimPlayer implements GrimUser {
         if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
                 || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) return false;
 
-        // PacketEvents mappings are wrong
-        return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
-                || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
-                || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
-                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND)
-                || isGlider(inventory.getOffHand(), EquipmentSlot.HELMET);
+        return isGlider(inventory.getHelmet(), EquipmentSlot.HELMET)
+                || isGlider(inventory.getChestplate(), EquipmentSlot.CHEST_PLATE)
+                || isGlider(inventory.getLeggings(), EquipmentSlot.LEGGINGS)
+                || isGlider(inventory.getBoots(), EquipmentSlot.BOOTS)
+                || isGlider(inventory.getOffHand(), EquipmentSlot.OFF_HAND);
     }
 
     private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {
