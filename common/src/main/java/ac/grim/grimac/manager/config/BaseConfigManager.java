@@ -44,6 +44,10 @@ public class BaseConfigManager {
     private boolean disablePongCancelling;
     @Getter
     private int updatePermissionTicks = -1;
+    @Getter
+    private int transactionStartId = 0;
+    @Getter
+    private int transactionIncrement = 1;
 
     // initialize the config
     public void load(ConfigManager config) {
@@ -82,6 +86,11 @@ public class BaseConfigManager {
         disablePongCancelling = config.getBooleanElse("disable-pong-cancelling", false);
         int configuredUpdatePermissionTicks = config.getIntElse("update-permission-ticks", -1);
         updatePermissionTicks = configuredUpdatePermissionTicks <= 0 ? -1 : configuredUpdatePermissionTicks;
+
+        transactionStartId = config.getIntElse("spoof-transaction-id.start-transaction-id", 0);
+        transactionStartId = transactionStartId < 0 || transactionStartId > 32767 ? 0 : transactionStartId;
+        transactionIncrement = config.getIntElse("spoof-transaction-id.increment", 1);
+        transactionIncrement = transactionIncrement < -32767 || transactionIncrement > 32767 ? 1 : transactionIncrement;
     }
 
     // ran on start, can be used to handle things that can't be done while loading
