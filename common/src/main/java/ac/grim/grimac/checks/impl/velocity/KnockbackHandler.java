@@ -211,7 +211,7 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
             if (player.likelyKB.offset > offsetToFlag) {
                 threshold = Math.min(threshold + player.likelyKB.offset, ceiling);
                 if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
-                    if (!isNoSetbackPermission()) {
+                    if (SetbackResend.shouldResend(player.likelyKB.offset, immediate) && !isNoSetbackPermission()) {
                         player.getSetbackTeleportUtil().executeViolationSetback();
                     }
                 } else {
