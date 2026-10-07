@@ -200,7 +200,6 @@ debug-pipeline-on-join: false
 experimental-checks: false
 
 # Deelt identieke chunksecties tussen spelers om geheugen te besparen (kopie bij schrijven).
-# Experimenteel: alleen inschakelen na validatie met /grim chunkmemory.
 experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true

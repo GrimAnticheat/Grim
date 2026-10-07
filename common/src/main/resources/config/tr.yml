@@ -200,7 +200,6 @@ debug-pipeline-on-join: false
 experimental-checks: false
 
 # Bellek tasarrufu için aynı chunk bölümlerini oyuncular arasında paylaşır (yazma sırasında kopyalama).
-# Deneysel: yalnızca /grim chunkmemory ile doğruladıktan sonra etkinleştirin.
 experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true

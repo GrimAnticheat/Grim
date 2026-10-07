@@ -200,7 +200,6 @@ debug-pipeline-on-join: false
 experimental-checks: false
 
 # Partajează secțiunile identice de chunk între jucători pentru a economisi memorie (copiere la scriere).
-# Experimental: activați numai după validarea cu /grim chunkmemory.
 experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true
