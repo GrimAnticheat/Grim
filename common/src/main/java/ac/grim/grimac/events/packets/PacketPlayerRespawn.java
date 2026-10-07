@@ -150,7 +150,10 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.compensatedEntities.serverPositionsMap.clear();
             }
 
-            player.addRealTimeTaskNow(player.cameraEntity::reset);
+            player.addRealTimeTaskNow(() -> {
+                player.cameraEntity.reset();
+                player.openWindow.maybeClose();
+            });
 
             player.addRealTimeTaskNext(() -> {
                 // From 1.16 to 1.19, this doesn't get set to false for whatever reason
@@ -215,6 +218,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
 
                 player.cameraEntity.reset();
+                player.openWindow.closeFromRespawn();
 
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;

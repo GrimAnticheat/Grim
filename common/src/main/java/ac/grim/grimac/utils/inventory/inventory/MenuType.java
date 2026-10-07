@@ -3,9 +3,11 @@ package ac.grim.grimac.utils.inventory.inventory;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Contract;
 
 @RequiredArgsConstructor
 @Getter
@@ -35,49 +37,102 @@ public enum MenuType {
     SMOKER(22),
     CARTOGRAPHY_TABLE(23),
     STONECUTTER(24),
+    HORSE(-1),
     UNKNOWN(-1);
 
     private static final MenuType[] MENU_BY_ID_ARRAY;
 
     static {
-        ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
         MenuType[] menuTypes = MenuType.values();
 
-        int menuIdLimit;
+        // Don't iterate the UNKNOWN or HORSE menu type
+        MENU_BY_ID_ARRAY = new MenuType[menuTypes.length - 2];
 
-        if (version.isOlderThan(ServerVersion.V_1_20_3)) {
-            // versions under 1.20.3
-            menuIdLimit = 23;
-        } else {
-            // 1.20.3 & greater
-            menuIdLimit = menuTypes.length - 1; // Don't iterate the UNKNOWN menu type
-        }
-
-        MENU_BY_ID_ARRAY = new MenuType[menuIdLimit];
-
-        System.arraycopy(menuTypes, 0, MENU_BY_ID_ARRAY, 0, menuIdLimit);
+        System.arraycopy(menuTypes, 0, MENU_BY_ID_ARRAY, 0, MENU_BY_ID_ARRAY.length);
     }
 
     private final int id;
 
     public static MenuType getMenuType(int id) {
+        return getMenuType(id, 27, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+    }
+
+    public static MenuType getMenuType(int id, int legacySlots, ClientVersion version) {
+        if (version.isOlderThan(ClientVersion.V_1_8)) {
+            return switch (id) {
+                case 0 -> getGenericContainerType(legacySlots);
+                case 1 -> CRAFTING;
+                case 2 -> FURNACE;
+                case 3, 10 -> GENERIC_3x3;
+                case 4 -> ENCHANTMENT;
+                case 5 -> BREWING_STAND;
+                case 6 -> MERCHANT;
+                case 7 -> BEACON;
+                case 8 -> ANVIL;
+                case 9 -> HOPPER;
+                case 11 -> HORSE;
+                default -> UNKNOWN;
+            };
+        }
+
         if (id < 0) {
             return UNKNOWN;
         }
 
-        ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
-        // versions under 1.20.3
-        if (version.isOlderThan(ServerVersion.V_1_20_3)) { // TODO: Can this be moved to the static block?
-            if (id >= 7) {
-                id++;
-            }
+        int menuIdLimit;
+        if (version.isOlderThan(ClientVersion.V_1_20_3)) {
+            menuIdLimit = 23;
+            if (id >= 7) id++;
+        } else {
+            menuIdLimit = MENU_BY_ID_ARRAY.length;
         }
 
-        if (id >= MENU_BY_ID_ARRAY.length) {
+        if (id >= menuIdLimit) {
             return UNKNOWN;
         }
 
         return MENU_BY_ID_ARRAY[id];
+    }
+
+    @Contract(pure = true)
+    public static MenuType getMenuType(WrapperPlayServerOpenWindow packet, ClientVersion version) {
+        if (version.isNewerThanOrEquals(ClientVersion.V_1_8)
+                && version.isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
+            String legacyType = packet.getLegacyType();
+
+            // yes, these are different
+            return packet.getLegacySlots() > 0 ? switch (legacyType) {
+                case "minecraft:container", "minecraft:chest" -> getGenericContainerType(packet.getLegacySlots());
+                case "minecraft:beacon" -> BEACON;
+                case "minecraft:villager" -> MERCHANT;
+                case "EntityHorse" -> HORSE;
+                case "minecraft:hopper" -> HOPPER;
+                case "minecraft:furnace" -> FURNACE;
+                case "minecraft:brewing_stand" -> BREWING_STAND;
+                case "minecraft:dispenser", "minecraft:dropper" -> GENERIC_3x3;
+                case "minecraft:shulker_box" -> version.isNewerThanOrEquals(ClientVersion.V_1_11) ? SHULKER_BOX : UNKNOWN;
+                default -> UNKNOWN;
+            } : switch (legacyType) {
+                case "minecraft:crafting_table" -> CRAFTING;
+                case "minecraft:enchanting_table" -> ENCHANTMENT;
+                case "minecraft:anvil" -> ANVIL;
+                default -> UNKNOWN;
+            };
+        } else {
+            return getMenuType(packet.getType(), packet.getLegacySlots(), version);
+        }
+    }
+
+    public static MenuType getGenericContainerType(int legacySlots) {
+        return switch (legacySlots) {
+            case 9 -> GENERIC_9x1;
+            case 18 -> GENERIC_9x2;
+            case 27 -> GENERIC_9x3;
+            case 36 -> GENERIC_9x4;
+            case 45 -> GENERIC_9x5;
+            case 54 -> GENERIC_9x6;
+            default -> UNKNOWN;
+        };
     }
 
     public static AbstractContainerMenu getMenuFromID(GrimPlayer player, Inventory playerInventory, MenuType type) {

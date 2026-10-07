@@ -66,6 +66,11 @@ cancel-duplicate-packet: true
 # 是否忽视重复的数据包中的玩家转头
 ignore-duplicate-packet-rotation: false
 
+# How many inventory clicks should we allow per server tick?
+# Any clicks after this threshold is reached will be cancelled.
+# Set to -1 to disable.
+max-clicks-per-tick: 3
+
 Simulation:
     # 这个检查通过仿真玩家的移动，并与玩家的实际移动进行比较
     # 仿真出的位置（玩家理应到达的位置）和玩家实际位置的偏差（距离）即为移动优势。
@@ -256,4 +261,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 11
+config-version: 12

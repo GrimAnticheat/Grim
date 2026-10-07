@@ -49,13 +49,13 @@ public final class PredictionEngineRideableUtils {
         InputTransformer<?> inputTransformer = InputTransformer.getTransformer(player);
         for (VectorData possibleLastTickOutput : possibleVectors) {
             VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(inputTransformer.getMovementResultFromInput(player, movementVector, speed, player.yaw)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-            result.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
+            result.input = new Vector3dm(player.vehicleData.nextVehicleForward, 0, player.vehicleData.nextVehicleHorizontal);
             addStuckSpeedResults(player, returnVectors, result);
 
             // This is the laziest way to reduce false positives such as horse rearing
             // No bypasses can ever be derived from this, so why not?
             result = new VectorData(possibleLastTickOutput.vector.clone(), possibleLastTickOutput, VectorData.VectorType.InputResult);
-            result.input = new Vector3dm(player.vehicleData.vehicleForward, 0, player.vehicleData.vehicleHorizontal);
+            result.input = new Vector3dm(player.vehicleData.nextVehicleForward, 0, player.vehicleData.nextVehicleHorizontal);
             addStuckSpeedResults(player, returnVectors, result);
         }
 
