@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.elytra.ElytraC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkSectionCache;
 import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.TrackerData;
@@ -201,7 +202,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     player.compensatedEntities.entityMap.clear();
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
-                    player.compensatedWorld.releaseSharedSections();
+                    ChunkSectionCache.releaseSharedSections(player.compensatedWorld);
                     player.compensatedWorld.chunks.clear();
                     player.compensatedWorld.clearPredictions();
                     player.compensatedGeysers.clear();

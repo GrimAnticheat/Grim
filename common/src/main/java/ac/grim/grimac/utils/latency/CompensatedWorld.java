@@ -321,7 +321,7 @@ public class CompensatedWorld implements PacketWorld {
             // Redundant updates change nothing: skip the write entirely so a
             // shared section is never pointlessly detached (copy-on-write)
             if (previousState.getGlobalId() != combinedID) {
-                chunk = detachSectionForWrite(column, sectionIndex, chunk);
+                chunk = ChunkSectionCache.detachSectionForWrite(column, sectionIndex, chunk);
                 chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
             }
 
@@ -668,118 +668,10 @@ public class CompensatedWorld implements PacketWorld {
     public void addToCache(Column chunk, int chunkX, int chunkZ, TileEntity[] tileEntities) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            Column previous = chunks.put(chunkPosition, shareColumnSections(chunk));
-            if (previous != null) releaseColumnSections(previous);
+            Column previous = chunks.put(chunkPosition, ChunkSectionCache.shareColumnSections(chunk));
+            if (previous != null) ChunkSectionCache.releaseColumnSections(previous);
             player.compensatedGeysers.addChunkToCache(chunk, tileEntities, minHeight);
         });
-    }
-
-    // Merges a partial (non ground-up) section update into an existing column.
-    // Incoming sections are interned when chunk sharing is enabled, and any
-    // shared section they replace is released.
-    public void mergeIncomingSections(int chunkX, int chunkZ, BaseChunk[] incoming) {
-        Column existing = getChunk(chunkX, chunkZ);
-
-        if (existing == null) {
-            // Corrupting the player's empty chunk is actually quite meaningless
-            // You are able to set blocks inside it, and they do apply, it just always returns air despite what its data says
-            // So go ahead, corrupt the player's empty chunk and make it no longer all air, it doesn't matter
-            //
-            // LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.user.getProfile().getName() + "! This corrupts the player's empty chunk!");
-            return;
-        }
-
-        boolean share = ChunkSectionCache.isSharingEnabled();
-        ChunkSectionCache cache = ChunkSectionCache.getInstance();
-
-        BaseChunk[] current = existing.chunks();
-        BaseChunk[] interned = new BaseChunk[incoming.length];
-
-        long[] keys = existing.sectionKeys();
-        long[] internedKeys = new long[incoming.length];
-
-        for (int i = 0; i < incoming.length; i++) {
-            if (incoming[i] == null) continue;
-            if (share) {
-                ChunkSectionCache.SharedRef ref = cache.internRef(incoming[i]);
-                interned[i] = ref.section();
-                internedKeys[i] = ref.key();
-            } else {
-                interned[i] = incoming[i];
-            }
-        }
-
-        for (int i = 0; i < current.length && i < incoming.length; i++) {
-            if (interned[i] == null) continue;
-            if (keys[i] != 0L) cache.release(keys[i], current[i]);
-            current[i] = interned[i];
-            keys[i] = internedKeys[i];
-        }
-    }
-
-    private static Column shareColumnSections(Column column) {
-        if (!ChunkSectionCache.isSharingEnabled()) return column;
-
-        ChunkSectionCache cache = ChunkSectionCache.getInstance();
-        BaseChunk[] sections = column.chunks();
-
-        long[] keys = column.sectionKeys();
-
-        for (int i = 0; i < sections.length; i++) {
-            if (sections[i] == null) continue;
-
-            ChunkSectionCache.SharedRef ref = cache.internRef(sections[i]);
-            sections[i] = ref.section();
-            keys[i] = ref.key();
-        }
-
-        return column;
-    }
-
-    /**
-     * Releases all the shared sections held by this column.
-     */
-    private static void releaseColumnSections(Column column) {
-        BaseChunk[] sections = column.chunks();
-        long[] keys = column.sectionKeys();
-
-        if (sections == null || keys == null) return;
-
-        ChunkSectionCache cache = ChunkSectionCache.getInstance();
-
-        for (int i = 0; i < sections.length && i < keys.length; i++) {
-            if (keys[i] != 0L) {
-                cache.release(keys[i], sections[i]);
-                keys[i] = 0L;
-            }
-        }
-    }
-
-    /**
-     * Releases every shared section held by this player.
-     */
-    public void releaseSharedSections() {
-        for (Column column : chunks.values()) {
-            if (column != null) releaseColumnSections(column);
-        }
-    }
-
-    /**
-     * Returns a writable section, copying-on-write when the current one is
-     * shared with other columns. Private sections are returned as-is.
-     */
-    private static BaseChunk detachSectionForWrite(Column column, int sectionIndex, BaseChunk section) {
-        long[] sectionKeys = column.sectionKeys();
-
-        if (sectionKeys[sectionIndex] == 0L) return section;
-
-        BaseChunk copy = ChunkSectionCache.copySection(section);
-        ChunkSectionCache.getInstance().release(sectionKeys[sectionIndex], section);
-
-        column.chunks()[sectionIndex] = copy;
-        sectionKeys[sectionIndex] = 0L;
-
-        return copy;
     }
 
     public StateType getBlockType(double x, double y, double z) {
@@ -860,7 +752,7 @@ public class CompensatedWorld implements PacketWorld {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             Column column = chunks.remove(chunkPosition);
             if (column != null) {
-                releaseColumnSections(column);
+                ChunkSectionCache.releaseColumnSections(column);
                 player.compensatedGeysers.removeChunk(chunkX, chunkZ, column.chunks().length);
             }
         });
