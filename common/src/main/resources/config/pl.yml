@@ -47,6 +47,8 @@ max-transaction-time: 60
 # Może to poprawić kompatybilność z innymi programami antycheatowymi. Może to powodować problemy z limiterami pakietów.
 # Nie włączaj tej opcji, jeśli nie masz pewności, co robisz.
 disable-pong-cancelling: false
+# Exempt players with Geyser/Floodgate UUID format (starting with 00000000-0000-0000-0009)
+exempt-geyser-by-uuid: true
 
 # Czy domyślna procedura obsługi resynchronizacji bloków powinna zostać wyłączona?
 # Domyślnie Grim odczytuje bloki ze świata serwera i wysyła je do klienta w celu naprawy desynchronizacji.
