@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkSectionCache;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.TeleportData;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -133,7 +134,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             player.compensatedWorld.addToCache(column, chunkX, chunkZ, tileEntities);
         } else {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                player.compensatedWorld.mergeIncomingSections(chunkX, chunkZ, chunks);
+                ChunkSectionCache.mergeIncomingSections(player.compensatedWorld, chunkX, chunkZ, chunks);
             });
         }
     }
