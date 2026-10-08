@@ -103,7 +103,10 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         ItemStack heldItem = player.inventory.getHeldItem();
         PacketEntity entity = player.compensatedEntities.getEntity(entityId);
 
-        if (entity != null && (!entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER || entity.getType() == EntityTypes.PAINTING
+        // Hanging entities (item frames, paintings, leash knots) handle the hit themselves
+        // and the client returns from the attack before it gets to the slowdown
+        if (entity != null && !EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.ABSTRACT_HANGING)
+                && (!entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER
                 || entity.getType() == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
             int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
                     ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK)
