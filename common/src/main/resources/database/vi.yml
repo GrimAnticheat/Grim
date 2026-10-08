@@ -1,0 +1,99 @@
+# ===========================================================================
+#  Kho dữ liệu của Grim
+#
+#  Định tuyến các nhóm DataStore (violation / session / player-identity /
+#  setting / blob) đến từng backend. Mỗi backend trong
+#  `routing:` có file cài đặt riêng trong `databases/<backend-id>.yml`.
+#
+#  Khi khởi động lần đầu, nếu có kho cũ (violations.sqlite), kho đó sẽ
+#  được tự động chuyển sang kho mới. Đặt migration.skip thành
+#  true nếu bạn muốn tự chuyển sau.
+# ===========================================================================
+
+# Mọi khóa datastore nằm trong wrapper cấp cao nhất này để namespace
+# được tách riêng. Configuralize gộp mọi yml vào một namespace chung,
+# nên bố cục phẳng ở đây sẽ trùng với các khóa cấp cao nhất giống nhau
+# trong config.yml / discord.yml (`enabled`, `history`, v.v.).
+database:
+
+  # Công tắc chính. Đặt false để tắt lịch sử vi phạm và /grim history
+  # hoàn toàn. Các check AC vẫn chạy; flag sẽ không được lưu.
+  enabled: true
+
+  # Nhóm dữ liệu → id backend. Mỗi id khác nhau ở đây phải có file
+  # `databases/<id>.yml` tương ứng (tự tạo từ mặc định khi khởi động lần đầu)
+  # và BackendProvider được đăng ký lúc chạy. `none` tắt
+  # lưu dữ liệu cho nhóm đó. Có thể dùng nhiều backend, ví dụ
+  # violation trong SQL qua mạng và blob trong object store.
+  routing:
+    violation: sqlite
+    session: sqlite
+    player-identity: sqlite
+    setting: sqlite
+    blob: none
+
+  session:
+    # Chỉ dùng khi migration. Trình đọc V0 cũ không có tín hiệu join/quit,
+    # nên SessionReconstructor gom các vi phạm thành session khi
+    # các flag liên tiếp nằm trong khoảng cách này. Session đang hoạt động
+    # được giới hạn bởi kết nối, không phải giá trị này.
+    gap-ms: 600000
+    scope-per-server: true
+    # Tần suất heartbeat của người chơi đang kết nối upsert dòng session để
+    # last_activity_epoch_ms luôn mới. Giới hạn thời lượng hiển thị của session
+    # nếu server crash (ngắt kết nối bình thường luôn đặt
+    # closed_at). Chi phí: khoảng một UPSERT mỗi người chơi online mỗi khoảng.
+    # 0 để tắt.
+    heartbeat-interval-ms: 30000
+
+  write-path:
+    # queue-capacity phải là lũy thừa dương của 2 (yêu cầu của ring buffer).
+    # Giá trị thường dùng: 4096, 8192, 16384, 32768, 65536.
+    queue-capacity: 16384
+    batch-size: 256
+    flush-interval-ms: 1000
+    warn-rate-ms: 10000
+    shutdown-drain-timeout-ms: 5000
+    # Chiến lược chờ của ring buffer. BLOCKING là mặc định an toàn: chờ
+    # bằng condition variable giúp giảm CPU nhưng thêm một chút độ trễ khi
+    # burst cực lớn. Chỉ chọn YIELDING hoặc BUSY_SPIN khi có CPU dư
+    # và đã đo được lợi ích so với BLOCKING.
+    # Tùy chọn: BLOCKING, TIMEOUT_BLOCKING, SLEEPING, YIELDING, BUSY_SPIN.
+    wait-strategy: BLOCKING
+
+  retention:
+    session:
+      enabled: true
+      max-age-days: 90
+    violation:
+      enabled: true
+      max-age-days: 365
+    player-identity:
+      enabled: false
+    setting:
+      enabled: false
+    blob:
+      enabled: true
+      max-age-days: 30
+
+  migration:
+    skip: false
+    max-duration-ms: 0        # 0 = no timeout
+
+  name-resolution:
+    # Thứ tự quan trọng, kết quả không rỗng đầu tiên sẽ được dùng.
+    # local-cache đọc nhóm PlayerIdentity.
+    # offline-mode-uuid tạo UUID.nameUUIDFromBytes (chỉ cho server offline).
+    chain: [local-cache, offline-mode-uuid]
+
+  history:
+    entries-per-page: 15
+    group-interval-ms: 30000
+
+  # Nhãn chỉ để hiển thị, được ghi vào session mới. Hiện trong tiêu đề session
+  # của `/grim history`. Có thể đổi khi server đang chạy.
+  server-name: "ChangeMe"
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1

@@ -1,0 +1,51 @@
+# ===========================================================================
+#  Cài đặt backend Redis.
+#
+#  Redis chủ yếu là kho trong bộ nhớ, hãy bật lưu bền AOF
+#  trên server nếu dùng Redis cho lịch sử, nếu không lịch sử sẽ
+#  mất sau khi khởi động lại. Cần Jedis khi chạy; nếu thiếu Jedis
+#  backend tự tắt và routing sẽ chuyển sang backend khác.
+#
+#  Không khuyến nghị dùng làm nơi lưu lịch sử chính. Dành cho quản trị viên
+#  chỉ có Redis và cần một giải pháp tạm thời.
+# ===========================================================================
+
+# Mọi khóa nằm dưới `redis:` để namespace không trùng
+# với các file backend khác khi Configuralize gộp tất cả vào
+# một namespace chung.
+redis:
+  host: "localhost"
+  port: 6379
+
+  # Chỉ số database logic (mặc định 0-15).
+  database: 0
+
+  # Thông tin ACL tùy chọn. Để trống nếu Redis không cần xác thực.
+  user: ""
+  password: ""
+
+  # Tiền tố thêm vào mọi khóa backend ghi. Hữu ích khi dùng chung Redis
+  # với ứng dụng khác. Để trống nếu không cần tiền tố.
+  key-prefix: ""
+
+  timeout-ms: 2000
+  batch-flush-cap: 256
+
+  # Khi true, ghi cảnh báo lúc khởi động nếu backend này đang định tuyến
+  # lịch sử violation/session. Đặt false sau khi đã xác nhận
+  # việc lưu dữ liệu đã được cấu hình.
+  warn-on-history: true
+
+  # Ghi đè namespace khóa. Được hiểu là các phần của key-prefix (Redis
+  # không có bảng native). Tên mặc định ở bên dưới.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1
