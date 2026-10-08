@@ -5,10 +5,15 @@ import ac.grim.grimac.utils.latency.CompensatedWorld;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.Palette;
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.PaletteType;
+import com.github.retrooper.packetevents.protocol.world.chunk.storage.BaseStorage;
 
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class ChunkSectionCache {
 
@@ -22,7 +27,13 @@ public final class ChunkSectionCache {
 
     public record SharedRef(BaseChunk section, long key) { }
 
-    private final ConcurrentHashMap<Long, Entry> entries = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, Entry> entries = new ConcurrentHashMap<>();
+
+    // Optimization n.1: most chunk sections are all-air, so we can hash once and reuse.
+    private static final long AIR_HASH = airHash();
+    // Two types of chunks exist, so cache both types.
+    private static final AtomicReference<Entry> AIR_V1_18 = new AtomicReference<>();
+    private static final AtomicReference<Entry> AIR_V1_9 = new AtomicReference<>();
 
     ChunkSectionCache() {
     }
@@ -37,8 +48,21 @@ public final class ChunkSectionCache {
         }
     }
 
-    public static long hashSection(BaseChunk section) {
+    private static long airHash() {
         long hash = 0xcbf29ce484222325L;
+
+        for (int i = 0; i < 4096; i++) {
+            hash *= 0x100000001b3L;
+        }
+
+        return hash;
+    }
+
+    public static long hashSection(BaseChunk section) {
+        if (section.isEmpty()) return AIR_HASH;
+
+        long hash = 0xcbf29ce484222325L;
+
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
@@ -47,11 +71,24 @@ public final class ChunkSectionCache {
                 }
             }
         }
+
         return hash;
     }
 
     public static boolean sectionsEqual(BaseChunk a, BaseChunk b) {
         if (a == b) return true;
+
+        if (a.isEmpty() || b.isEmpty()) {
+            return a.isEmpty() && b.isEmpty();
+        }
+
+        // Optimization n.2: Same encoding => identical raw storage + palette mapping proves equal
+        // content without decoding 4096 cells. Different encodings fall through to the content scan.
+        if (a instanceof Chunk_v1_18 aChunk && b instanceof Chunk_v1_18 bChunk
+                && rawPalettesEqual(aChunk.getChunkData(), bChunk.getChunkData())) {
+            return true;
+        }
+
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
@@ -59,10 +96,47 @@ public final class ChunkSectionCache {
                 }
             }
         }
+
+        return true;
+    }
+
+    private static boolean rawPalettesEqual(DataPalette da, DataPalette db) {
+        if (da == db) return true;
+
+        // Same sections must have same palette size
+        if (da.palette.size() != db.palette.size()) return false;
+
+        if (!storagesEqual(da.storage, db.storage)) return false;
+
+        // Fallback in case that the two sections have the same storage but different palettes
+        return paletteMappingsEqual(da.palette, db.palette);
+    }
+
+    private static boolean storagesEqual(BaseStorage sa, BaseStorage sb) {
+        if (sa == sb) return true;
+
+        // Same sections must have same bits per entry
+        if (sa.getBitsPerEntry() != sb.getBitsPerEntry()) return false;
+
+        return Arrays.equals(sa.getData(), sb.getData());
+    }
+
+    private static boolean paletteMappingsEqual(Palette pa, Palette pb) {
+        if (pa == pb) return true;
+
+        int size = pa.size();
+
+        if (size != pb.size()) return false;
+
+        for (int i = 0; i < size; i++) {
+            if (pa.idToState(i) != pb.idToState(i)) return false;
+        }
+
         return true;
     }
 
     public static BaseChunk copySection(BaseChunk source) {
+        if (source.isEmpty()) return emptySectionLike(source);
         return copySection(source, emptySectionLike(source));
     }
 
@@ -99,7 +173,6 @@ public final class ChunkSectionCache {
         }
 
         boolean share = ChunkSectionCache.isSharingEnabled();
-        ChunkSectionCache cache = ChunkSectionCache.getInstance();
 
         BaseChunk[] current = existing.chunks();
         BaseChunk[] interned = new BaseChunk[incoming.length];
@@ -110,7 +183,7 @@ public final class ChunkSectionCache {
         for (int i = 0; i < incoming.length; i++) {
             if (incoming[i] == null) continue;
             if (share) {
-                ChunkSectionCache.SharedRef ref = cache.internRef(incoming[i]);
+                ChunkSectionCache.SharedRef ref = internRef(incoming[i]);
                 interned[i] = ref.section();
                 internedKeys[i] = ref.key();
             } else {
@@ -120,7 +193,7 @@ public final class ChunkSectionCache {
 
         for (int i = 0; i < current.length && i < incoming.length; i++) {
             if (interned[i] == null) continue;
-            if (keys[i] != 0L) cache.release(keys[i], current[i]);
+            if (keys[i] != 0L) release(keys[i], current[i]);
             current[i] = interned[i];
             keys[i] = internedKeys[i];
         }
@@ -129,16 +202,14 @@ public final class ChunkSectionCache {
     public static Column shareColumnSections(Column column) {
         if (!ChunkSectionCache.isSharingEnabled()) return column;
 
-        ChunkSectionCache cache = ChunkSectionCache.getInstance();
         BaseChunk[] sections = column.chunks();
-
         long[] keys = column.sectionKeys();
 
         for (int i = 0; i < sections.length; i++) {
             if (sections[i] == null) continue;
 
-            // Checks if there is already a shared refenrece
-            ChunkSectionCache.SharedRef ref = cache.internRef(sections[i]);
+            // Checks if there is already a shared reference
+            ChunkSectionCache.SharedRef ref = internRef(sections[i]);
             sections[i] = ref.section();
             keys[i] = ref.key();
         }
@@ -152,11 +223,9 @@ public final class ChunkSectionCache {
 
         if (sections == null || keys == null) return;
 
-        ChunkSectionCache cache = ChunkSectionCache.getInstance();
-
         for (int i = 0; i < sections.length && i < keys.length; i++) {
             if (keys[i] != 0L) {
-                cache.release(keys[i], sections[i]);
+                release(keys[i], sections[i]);
                 keys[i] = 0L;
             }
         }
@@ -174,7 +243,7 @@ public final class ChunkSectionCache {
         if (sectionKeys[sectionIndex] == 0L) return section;
 
         BaseChunk copy = ChunkSectionCache.copySection(section);
-        ChunkSectionCache.getInstance().release(sectionKeys[sectionIndex], section);
+        release(sectionKeys[sectionIndex], section);
 
         column.chunks()[sectionIndex] = copy;
         sectionKeys[sectionIndex] = 0L;
@@ -182,7 +251,12 @@ public final class ChunkSectionCache {
         return copy;
     }
 
-    public SharedRef internRef(BaseChunk fresh) {
+    public static SharedRef internRef(BaseChunk fresh) {
+        if (fresh.isEmpty()) {
+            // Fast-path for all-air chunks
+            return internAir(fresh);
+        }
+
         final SharedRef[] result = new SharedRef[1];
         entries.compute(hashSection(fresh), (hash, existing) -> {
             if (existing != null && sectionsEqual(existing.section, fresh)) {
@@ -203,8 +277,45 @@ public final class ChunkSectionCache {
         return result[0];
     }
 
-    public void release(long key, BaseChunk section) {
+    private static SharedRef internAir(BaseChunk fresh) {
+        AtomicReference<Entry> slot = null;
+
+        if (fresh instanceof Chunk_v1_18) slot = AIR_V1_18;
+        if (fresh instanceof Chunk_v1_9) slot = AIR_V1_9;
+
+        if (slot == null) {
+            throw new IllegalArgumentException("Unsupported section type: " + fresh.getClass());
+        }
+
+        Entry canonical = slot.get();
+
+        if (canonical == null) {
+            slot.compareAndSet(null, new Entry(fresh, new AtomicInteger(0)));
+            canonical = slot.get();
+        }
+
+        canonical.refs.incrementAndGet();
+        return new SharedRef(canonical.section, AIR_HASH);
+    }
+
+    private static AtomicReference<Entry> airSlotFor(BaseChunk section) {
+        if (section instanceof Chunk_v1_18) return AIR_V1_18;
+        if (section instanceof Chunk_v1_9) return AIR_V1_9;
+        throw new IllegalArgumentException("Unsupported section type: " + section.getClass());
+    }
+
+    public static void release(long key, BaseChunk section) {
         if (key == 0L) return; // private section, never entered the cache
+
+        if (section instanceof Chunk_v1_18 || section instanceof Chunk_v1_9) {
+            Entry air = airSlotFor(section).get();
+
+            if (air != null && air.section == section) {
+                air.refs.decrementAndGet(); // canonical air is never evicted
+                return;
+            }
+        }
+
         entries.computeIfPresent(key, (hash, existing) -> {
             if (existing.section != section) return existing; // not ours, leave it
             return existing.refs.decrementAndGet() <= 0 ? null : existing;
