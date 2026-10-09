@@ -107,7 +107,7 @@ public final class ChunkSectionCache {
             return hash;
         }
 
-        return hashSection(section);
+        return optimizedHashSection(section);
     }
 
     public static boolean sectionsEqual(BaseChunk a, BaseChunk b) {
@@ -293,7 +293,7 @@ public final class ChunkSectionCache {
         }
 
         final SharedRef[] result = new SharedRef[1];
-        entries.compute(hashSection(fresh), (hash, existing) -> {
+        entries.compute(optimizedHashSection(fresh), (hash, existing) -> {
             if (existing != null && sectionsEqual(existing.section, fresh)) {
                 existing.refs.incrementAndGet();
                 result[0] = new SharedRef(existing.section, hash);
