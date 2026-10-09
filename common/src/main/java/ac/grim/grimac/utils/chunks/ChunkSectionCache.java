@@ -17,12 +17,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public final class ChunkSectionCache {
 
-    private static final ChunkSectionCache INSTANCE = new ChunkSectionCache();
-
-    public static ChunkSectionCache getInstance() {
-        return INSTANCE;
-    }
-
     private record Entry(BaseChunk section, AtomicInteger refs) { }
 
     public record SharedRef(BaseChunk section, long key) { }
