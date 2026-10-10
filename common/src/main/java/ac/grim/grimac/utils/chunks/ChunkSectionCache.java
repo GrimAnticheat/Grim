@@ -98,10 +98,12 @@ public final class ChunkSectionCache {
                 hash ^= word;
                 hash *= 0x100000001b3L;
             }
-            return hash;
+
+            return hash == 0 ? 1 : hash;
         }
 
-        return hashSection(section);
+        long hash = hashSection(section);
+        return hash == 0 ? 1 : hash;
     }
 
     public static boolean sectionsEqual(BaseChunk a, BaseChunk b) {
