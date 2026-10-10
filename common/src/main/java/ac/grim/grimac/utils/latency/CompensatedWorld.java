@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.PacketWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
+import ac.grim.grimac.utils.chunks.ChunkSectionCache;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -297,11 +298,13 @@ public class CompensatedWorld implements PacketWorld {
         if (column != null) {
             if (column.chunks().length <= (offsetY >> 4) || (offsetY >> 4) < 0) return;
 
-            BaseChunk chunk = column.chunks()[offsetY >> 4];
+            int sectionIndex = offsetY >> 4;
+            BaseChunk chunk = column.chunks()[sectionIndex];
 
             if (chunk == null) {
                 chunk = create();
-                column.chunks()[offsetY >> 4] = chunk;
+                column.chunks()[sectionIndex] = chunk;
+                column.sectionKeys()[sectionIndex] = 0L;
 
                 // Sets entire chunk to air
                 // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
@@ -315,7 +318,13 @@ public class CompensatedWorld implements PacketWorld {
             // The method also gets called for the previous state before replacement
             player.pointThreeEstimator.handleChangeBlock(x, y, z, previousState);
 
-            chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+            // Redundant updates change nothing: skip the write entirely so a
+            // shared section is never pointlessly detached (copy-on-write)
+            if (previousState.getGlobalId() != combinedID) {
+                chunk = ChunkSectionCache.detachSectionForWrite(column, sectionIndex, chunk);
+                chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+            }
+
             player.compensatedGeysers.updateBlock(x, y, z, previousState, newState, minHeight);
 
             // Handle stupidity such as fluids changing in idle ticks.
@@ -659,7 +668,8 @@ public class CompensatedWorld implements PacketWorld {
     public void addToCache(Column chunk, int chunkX, int chunkZ, TileEntity[] tileEntities) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            chunks.put(chunkPosition, chunk);
+            Column previous = chunks.put(chunkPosition, ChunkSectionCache.shareColumnSections(chunk));
+            if (previous != null) ChunkSectionCache.releaseColumnSections(previous);
             player.compensatedGeysers.addChunkToCache(chunk, tileEntities, minHeight);
         });
     }
@@ -742,6 +752,7 @@ public class CompensatedWorld implements PacketWorld {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             Column column = chunks.remove(chunkPosition);
             if (column != null) {
+                ChunkSectionCache.releaseColumnSections(column);
                 player.compensatedGeysers.removeChunk(chunkX, chunkZ, column.chunks().length);
             }
         });

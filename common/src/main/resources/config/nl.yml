@@ -199,6 +199,9 @@ debug-pipeline-on-join: false
 # Experimentele controles inschakelen
 experimental-checks: false
 
+# Deelt identieke chunksecties tussen spelers om geheugen te besparen (kopie bij schrijven).
+experimental-chunk-sharing: false
+
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
