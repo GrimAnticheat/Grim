@@ -101,7 +101,7 @@ public final class ChunkSectionCache {
             return hash;
         }
 
-        return optimizedHashSection(section);
+        return hashSection(section);
     }
 
     public static boolean sectionsEqual(BaseChunk a, BaseChunk b) {
