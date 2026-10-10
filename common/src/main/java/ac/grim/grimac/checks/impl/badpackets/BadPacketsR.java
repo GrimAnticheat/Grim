@@ -5,7 +5,9 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 
 @CheckData(name = "BadPacketsR", stableKey = "grim.badpackets.position_starvation", description = "Stopped sending position updates while still responding to transactions", decay = 0.25, experimental = true)
@@ -46,6 +48,11 @@ public class BadPacketsR extends Check implements PacketReceiveListener {
             positions++;
         } else if ((event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE)
                 && player.inVehicle()) {
+            positions++;
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && player.inVehicle()
+                && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
+            // 1.21.2 replaced steer vehicle with player input, which is only sent when the input changes
+            // The rotation is the only packet a passenger still sends every tick
             positions++;
         }
     }
