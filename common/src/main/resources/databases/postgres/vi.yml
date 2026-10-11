@@ -1,0 +1,37 @@
+# ===========================================================================
+#  Cài đặt backend Postgres.
+#
+#  Postgres hỗ trợ triển khai nhiều server (nhiều Grim
+#  cùng ghi vào một DB trung tâm). Cần Postgres JDBC driver
+#  khi chạy; nếu thiếu driver, backend tự tắt lúc
+#  khởi động và routing sẽ chuyển sang backend khác.
+# ===========================================================================
+
+# Mọi khóa nằm dưới `postgres:` để namespace không trùng
+# với các file backend khác khi Configuralize gộp tất cả vào
+# một namespace chung.
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "grim"
+  user: "postgres"
+  password: ""
+
+  # Tham số URL bổ sung nối sau `?`. Để trống trừ khi bạn biết
+  # mình cần tham số cụ thể.
+  extra-jdbc-params: ""
+
+  batch-flush-cap: 256
+
+  # Ghi đè tên bảng. Tên mặc định ở bên dưới.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1
