@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
+import ac.grim.grimac.utils.nmsutil.ClimbingVelocity;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -93,7 +94,8 @@ public class PredictionEngineNormal extends PredictionEngine {
         if (player.lastWasClimbing == 0 && (player.pointThreeEstimator.isNearClimbable() || player.isClimbing) && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)
                 || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
-            Vector3dm ladderVelocity = player.clientVelocity.clone().setY(0.2);
+            Vector3dm ladderVelocity = player.clientVelocity.clone().setY(
+                    ClimbingVelocity.ascentSpeed(player, player.x, player.y, player.z));
             staticVectorEndOfTick(player, ladderVelocity);
             player.lastWasClimbing = ladderVelocity.getY();
         }
@@ -111,7 +113,8 @@ public class PredictionEngineNormal extends PredictionEngine {
 
             vector.setX(GrimMath.clamp(vector.getX(), -0.15F, 0.15F));
             vector.setZ(GrimMath.clamp(vector.getZ(), -0.15F, 0.15F));
-            vector.setY(Math.max(vector.getY(), -0.15F));
+            vector.setY(Math.max(vector.getY(),
+                    ClimbingVelocity.descentMinimum(player, player.lastX, player.lastY, player.lastZ)));
 
             // Yes, this uses shifting not crouching
             if (vector.getY() < 0.0 && !(player.compensatedWorld.getBlockType(player.lastX, player.lastY, player.lastZ) == StateTypes.SCAFFOLDING) && player.isSneaking && !player.isFlying) {

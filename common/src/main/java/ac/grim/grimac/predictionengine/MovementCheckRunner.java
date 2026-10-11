@@ -38,6 +38,7 @@ import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Riptide;
+import ac.grim.grimac.utils.nmsutil.ClimbingVelocity;
 import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -244,7 +245,8 @@ public class MovementCheckRunner extends GrimProcessor {
                 handleTeleport(update);
 
                 if (player.isClimbing) {
-                    Vector3dm ladder = player.clientVelocity.clone().setY(0.2);
+                    Vector3dm ladder = player.clientVelocity.clone().setY(
+                            ClimbingVelocity.ascentSpeed(player, player.x, player.y, player.z));
                     PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
                     player.lastWasClimbing = ladder.getY();
                 }
