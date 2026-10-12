@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 import ac.grim.grimac.utils.inventory.inventory.MenuType;
 import ac.grim.grimac.utils.inventory.inventory.NotImplementedMenu;
 import ac.grim.grimac.utils.lists.CorrectingPlayerInventoryStorage;
+import ac.grim.grimac.utils.nmsutil.MovementPhysics;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -125,7 +126,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     public ItemStack getOffHand() {
-        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
+        if (!MovementPhysics.offHandEnabled(player)
+                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
             return ItemStack.EMPTY;
         ItemStack item = isPacketInventoryActive || player.platformPlayer == null ? inventory.getOffhand() :
                 player.platformPlayer.getInventory().getItemInOffHand();

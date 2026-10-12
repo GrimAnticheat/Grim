@@ -311,7 +311,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
                 if (hookEntity.attached == player.entityID) {
                     player.sendTransaction();
                     // We don't transaction sandwich this, it's too rare to be a real problem.
-                    player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.uncertaintyHandler.fishingRodPulls.add(hookEntity.owner));
+                    player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.uncertaintyHandler.queueFishingRodPull(hookEntity.owner, hookEntity));
                 }
             }
 

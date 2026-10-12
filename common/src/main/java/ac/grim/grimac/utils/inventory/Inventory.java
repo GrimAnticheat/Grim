@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.inventory.slot.EquipmentSlot;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import ac.grim.grimac.utils.lists.CorrectingPlayerInventoryStorage;
+import ac.grim.grimac.utils.nmsutil.MovementPhysics;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -46,7 +47,12 @@ public class Inventory extends AbstractContainerMenu {
             addSlot(new Slot(inventoryStorage, i + 9));
         }
         // Offhand
-        addSlot(new Slot(inventoryStorage, 45));
+        addSlot(new Slot(inventoryStorage, SLOT_OFFHAND) {
+            @Override
+            public boolean mayPlace(ItemStack item) {
+                return MovementPhysics.offHandEnabled(player) && super.mayPlace(item);
+            }
+        });
     }
 
     public ItemStack getHelmet() {
@@ -98,7 +104,7 @@ public class Inventory extends AbstractContainerMenu {
 
     public int getFreeSlot() {
         for (int i = 0; i < inventoryStorage.getSize(); ++i) {
-            if (inventoryStorage.getItem(i).isEmpty()) {
+            if ((i != SLOT_OFFHAND || MovementPhysics.offHandEnabled(player)) && inventoryStorage.getItem(i).isEmpty()) {
                 return i;
             }
         }
@@ -109,11 +115,11 @@ public class Inventory extends AbstractContainerMenu {
     public int getSlotWithRemainingSpace(ItemStack toAdd) {
         if (this.hasRemainingSpaceForItem(getHeldItem(), toAdd)) {
             return this.selected;
-        } else if (this.hasRemainingSpaceForItem(getOffhand(), toAdd)) {
+        } else if (MovementPhysics.offHandEnabled(player) && this.hasRemainingSpaceForItem(getOffhand(), toAdd)) {
             return 40;
         } else {
             for (int i = ITEMS_START; i <= ITEMS_END; ++i) {
-                if (this.hasRemainingSpaceForItem(inventoryStorage.getItem(i), toAdd)) {
+                if ((i != SLOT_OFFHAND || MovementPhysics.offHandEnabled(player)) && this.hasRemainingSpaceForItem(inventoryStorage.getItem(i), toAdd)) {
                     return i;
                 }
             }
@@ -207,6 +213,9 @@ public class Inventory extends AbstractContainerMenu {
             ItemStack toMove = slot.getItem();
             original = toMove.copy();
             EquipmentType equipmentslot = EquipmentType.getEquipmentSlotForItem(original);
+            if (equipmentslot == EquipmentType.OFFHAND && !MovementPhysics.offHandEnabled(player)) {
+                equipmentslot = EquipmentType.MAINHAND;
+            }
             if (slotID == 0) {
                 if (!this.moveItemStackTo(toMove, 9, 45, true)) {
                     return ItemStack.EMPTY;
