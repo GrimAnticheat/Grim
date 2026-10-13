@@ -40,9 +40,9 @@ on:
             MODRINTH_TOKEN:
                 required: false
             BUILD_UPDATE_TOKEN:
-                required: true
+                required: false
             BUILD_UPDATE_URL:
-                required: true
+                required: false
 
 jobs:
     build:
@@ -133,14 +133,14 @@ jobs:
                   fi
 
             - name: Upload Bukkit Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v4
               with:
                   name: grimac-bukkit
                   path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
             - name: Upload Fabric Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v4
               with:
                   name: grimac-fabric
                   path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
