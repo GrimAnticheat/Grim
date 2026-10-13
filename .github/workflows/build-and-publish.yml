@@ -49,7 +49,6 @@ jobs:
         runs-on: ${{ inputs.runner }}
         permissions:
             contents: read
-            packages: write
 
         env:
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}

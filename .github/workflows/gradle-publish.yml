@@ -37,6 +37,9 @@ on:
             - '**.kt'
             - '**.kts'
             - '**.toml'
+permissions:
+    contents: read
+
 jobs:
     call-build-workflow:
         uses: ./.github/workflows/build-and-publish.yml
