@@ -315,7 +315,7 @@ public class CompensatedWorld implements PacketWorld {
             // A resync that rewrites the same block is not a change.
             // Treating it as one would hand out the wall-hit exemption, a point-three
             // recalculation and a geyser update for free, so only process real changes.
-            if (!previousState.equals(newState)) {
+            if (previousState.getGlobalId() != combinedID) {
                 // The method also gets called for the previous state before replacement
                 player.pointThreeEstimator.handleChangeBlock(x, y, z, previousState);
 
