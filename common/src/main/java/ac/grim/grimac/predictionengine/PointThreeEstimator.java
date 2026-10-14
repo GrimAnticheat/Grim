@@ -359,6 +359,10 @@ public class PointThreeEstimator {
             return false;
         }
 
+        if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && player.isPointThree()) {
+            return true;
+        }
+
         if (isNearClimbable() || isPushing || player.fireworks.getMaxFireworksAppliedPossible() > 0) {
             return true;
         }
