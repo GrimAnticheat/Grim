@@ -28,7 +28,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+            if (player == null || player.getSetbackTeleportUtil().isSendingSetback) return;
 
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
