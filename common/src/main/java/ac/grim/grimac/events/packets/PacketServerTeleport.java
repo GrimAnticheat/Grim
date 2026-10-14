@@ -52,6 +52,13 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.pollData();
             }
 
+            // 1.21.2+ client ignore teleports if player is inside vehicle, ABSOLUTE CINEMA MOJANG
+            // cancel them as they are not doing anything and only can cause issues
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.compensatedEntities.serverPlayerVehicle != null) {
+                event.setCancelled(true);
+                return;
+            }
+
             // Convert relative teleports to normal teleports
             // We have to do this because 1.8 players on 1.9+ get teleports changed by ViaVersion
             // Additionally, velocity is kept after relative teleports making predictions difficult
@@ -108,11 +115,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                     teleport.setDeltaMovement(Vector3d.zero());
                     event.markForReEncode(true);
                 }
-            }
-
-            // 1.21.2+ client ignore teleports if player is inside vehicle, ABSOLUTE CINEMA MOJANG
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.compensatedEntities.serverPlayerVehicle != null) {
-                pos = player.getSetbackTeleportUtil().lastKnownGoodPosition.getPos();
             }
 
             player.sendTransaction();
