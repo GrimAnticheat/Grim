@@ -63,6 +63,11 @@ cancel-duplicate-packet: true
 # Dacă să se ignore rotația în pachetele duplicate
 ignore-duplicate-packet-rotation: false
 
+# How many inventory clicks should we allow per server tick?
+# Any clicks after this threshold is reached will be cancelled.
+# Set to -1 to disable.
+max-clicks-per-tick: 3
+
 Simulation:
     # Cu cât ar trebui să înmulțim avantajul total atunci când jucătorul este legitim
     # Așa arată configurația implicită (axa X = secunde, axa Y = 1/1000 bloc): https://www.desmos.com/calculator/d4ufgxrxer
@@ -239,4 +244,4 @@ max-ping-firework-boost: 1000
 update-permission-ticks: -1
 
 config-flavor: V2
-config-version: 11
+config-version: 12
