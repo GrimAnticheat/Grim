@@ -83,7 +83,7 @@ public class PlayerDataManager {
 
             // Geyser formatted player string
             // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
-            if (user.getUUID().toString().startsWith("00000000-0000-0000-0009")) {
+            if (GrimAPI.INSTANCE.getConfigManager().isExemptGeyserByUuid() && user.getUUID().toString().startsWith("00000000-0000-0000-0009")) {
                 exemptUser(user);
                 return false;
             }
