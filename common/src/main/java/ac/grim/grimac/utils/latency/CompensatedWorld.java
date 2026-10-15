@@ -312,14 +312,19 @@ public class CompensatedWorld implements PacketWorld {
             WrappedBlockState previousState = chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF);
             WrappedBlockState newState = WrappedBlockState.getByGlobalId(blockVersion, combinedID);
 
-            // The method also gets called for the previous state before replacement
-            player.pointThreeEstimator.handleChangeBlock(x, y, z, previousState);
+            // A resync that rewrites the same block is not a change.
+            // Treating it as one would hand out the wall-hit exemption, a point-three
+            // recalculation and a geyser update for free, so only process real changes.
+            if (previousState.getGlobalId() != combinedID) {
+                // The method also gets called for the previous state before replacement
+                player.pointThreeEstimator.handleChangeBlock(x, y, z, previousState);
 
-            chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
-            player.compensatedGeysers.updateBlock(x, y, z, previousState, newState, minHeight);
+                chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+                player.compensatedGeysers.updateBlock(x, y, z, previousState, newState, minHeight);
 
-            // Handle stupidity such as fluids changing in idle ticks.
-            player.pointThreeEstimator.handleChangeBlock(x, y, z, newState);
+                // Handle stupidity such as fluids changing in idle ticks.
+                player.pointThreeEstimator.handleChangeBlock(x, y, z, newState);
+            }
         }
     }
 
