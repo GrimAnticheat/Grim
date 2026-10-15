@@ -31,12 +31,9 @@ public class VehicleG extends Check implements PacketReceiveListener {
         if (event.getPacketType() == PacketType.Play.Client.STEER_BOAT) {
             sent = true;
         } else if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE && !player.packetStateData.lastPacketWasTeleport) {
-            if (!sent) {
-                if (flag() && shouldModifyPackets()) {
-                    event.setCancelled(true);
-                    player.onPacketCancel();
-                }
-
+            if (!sent && flag() && shouldModifyPackets()) {
+                event.setCancelled(true);
+                player.onPacketCancel();
             }
             sent = false;
         }
