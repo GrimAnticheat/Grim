@@ -219,6 +219,13 @@ max-ping-out-of-flying: 1000
 # Bu, yüksek gecikmeli oyuncuların bir havai fişek ivmesini elytra ile sonsuza kadar kullanmalarını engeller.
 max-ping-firework-boost: 1000
 
+# Settings for transaction ID spoofing.
+spoof-transaction-id:
+    # Starting transaction ID.
+    start-transaction-id: 0
+    # Increment between transaction IDs. Set to 0 to use random increment.
+    increment: 1
+
 # Şema işaretçileri — yalnızca ne yaptığınızı biliyorsanız değiştirin.
 #   config-flavor:  V2 = Grim 2.x derlemesi, V3 = Grim 3.x. Eklenti, flavor'ı
 #                   kendi derlemesiyle uyuşmayan bir config'i yüklemeyi

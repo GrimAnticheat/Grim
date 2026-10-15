@@ -219,6 +219,13 @@ max-ping-out-of-flying: 1000
 # Zapobiega to sytuacji, w której gracze z wysokim opóźnieniem mogą używać jednego boostu z fajerwerka z elytrą w nieskończoność.
 max-ping-firework-boost: 1000
 
+# Settings for transaction ID spoofing.
+spoof-transaction-id:
+    # Starting transaction ID.
+    start-transaction-id: 0
+    # Increment between transaction IDs. Set to 0 to use random increment.
+    increment: 1
+
 # Znaczniki schematu — zmieniaj tylko jeśli wiesz, co robisz.
 #   config-flavor:  V2 = build Grim 2.x, V3 = Grim 3.x. Wtyczka odmawia
 #                   wczytania konfiguracji, której flavor nie zgadza się z jej
