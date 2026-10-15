@@ -164,6 +164,9 @@ public final class PlayerBaseTick {
         // Pre-1.17 clients don't have powder snow and therefore don't desync
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) return;
 
+        // Since 1.21.5, clients use the frost speed modifier received from the server
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) return;
+
         final ValuedAttribute playerSpeed = player.compensatedEntities.self.getAttribute(Attributes.MOVEMENT_SPEED).orElseThrow();
 
         // Might be null after respawn?
