@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(name = "VehicleG", stableKey = "grim.vehicle.boat.ignore.steer", experimental = true, description = "Sending a vehicle in move without turning the steering.")
+@CheckData(name = "VehicleG", stableKey = "grim.vehicle.ignore_boat_steer", experimental = true, description = "Sending a vehicle in move without turning the steering.")
 public class VehicleG extends Check implements PacketReceiveListener {
     private boolean sent;
 
