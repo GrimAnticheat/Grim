@@ -42,6 +42,6 @@ public class Dripstone {
     }
 
     private static boolean isPointedDripstoneWithDirection(@NotNull WrappedBlockState unknown, VerticalDirection direction) {
-        return unknown.getType() == StateTypes.POINTED_DRIPSTONE && unknown.getVerticalDirection() == direction;
+        return (unknown.getType() == StateTypes.POINTED_DRIPSTONE || unknown.getType() == StateTypes.SULFUR_SPIKE) && unknown.getVerticalDirection() == direction;
     }
 }
