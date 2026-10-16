@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
+import ac.grim.grimac.utils.nmsutil.MovementPhysics;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -378,7 +379,10 @@ public class PredictionEngine {
             minimumMovement = 0.005D;
         }
 
-        boolean stupidVectors = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && !player.inVehicle();
+        var movementProfile = MovementPhysics.profile(player);
+        if (movementProfile != null) minimumMovement = movementProfile.componentThreshold();
+        boolean stupidVectors = movementProfile == null
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && !player.inVehicle();
         boolean stuckOnEdge = player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(2);
         Set<VectorData> vectors = stupidVectors && stuckOnEdge ? new HashSet<>(velocities) : velocities;
         for (VectorData vector : vectors) {

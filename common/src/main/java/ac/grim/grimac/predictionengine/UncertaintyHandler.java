@@ -5,11 +5,14 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.LastInstance;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
+import ac.grim.grimac.utils.nmsutil.MovementPhysics;
+import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -72,6 +75,8 @@ public class UncertaintyHandler {
     public final EvictingQueue<Integer> riptideEntities = new EvictingQueue<>(3);
     // Fishing rod pulling is another method of adding to a player's velocity
     public final List<Integer> fishingRodPulls = new ArrayList<>();
+    private final List<FishingRodPull> compensatedFishingRodPulls = new ArrayList<>();
+    private record FishingRodPull(int owner, SimpleCollisionBox hookPositions) {}
     public SimpleCollisionBox fireworksBox = null;
     public SimpleCollisionBox fishingRodPullBox = null;
     public boolean shouldSimulateStuckSpeed = false;
@@ -140,15 +145,82 @@ public class UncertaintyHandler {
         return lastStuckSpeedMultiplier.hasOccurredSince(5);
     }
 
+    public void queueFishingRodPull(int owner, PacketEntityHook hook) {
+        MovementPhysics.Profile profile = MovementPhysics.profile(player);
+        if (profile != null && profile.fishingPullLiftCoefficient() > 0) {
+            compensatedFishingRodPulls.add(new FishingRodPull(owner, hook.getPossibleLocationBoxes().copy()));
+        } else {
+            fishingRodPulls.add(owner);
+        }
+    }
+
+    private SimpleCollisionBox fishingHookPositions(SimpleCollisionBox tracked) {
+        SimpleCollisionBox positions = tracked.copy();
+        double currentY = player.lastY + 0.8 * (player.boundingBox.maxY - player.boundingBox.minY);
+        // Before the next tracked position, native attached hooks follow the target's body.
+        // Pose prediction runs later in this movement cycle, so include both current and
+        // the requested native pose, rather than trusting an unvalidated packet position.
+        Pose requested = player.isGliding ? Pose.FALL_FLYING : player.isInBed ? Pose.SLEEPING
+                : player.isSwimming ? Pose.SWIMMING : player.isRiptidePose ? Pose.SPIN_ATTACK
+                : player.isSneaking && !player.isFlying ? Pose.CROUCHING : Pose.STANDING;
+        float scale = (float) player.compensatedEntities.self.getAttributeValue(Attributes.SCALE);
+        double requestedY = player.lastY + 0.8 * (double) (requested.height * scale);
+        positions.expandToAbsoluteCoordinates(player.lastX, currentY, player.lastZ);
+        positions.expandToAbsoluteCoordinates(player.lastX, requestedY, player.lastZ);
+        return positions;
+    }
+
+    private void addFishingPullInterval(SimpleCollisionBox owner, double liftCoefficient) {
+        double hookY = player.lastY + 0.8 * (player.boundingBox.maxY - player.boundingBox.minY);
+        addFishingPullInterval(owner, new SimpleCollisionBox(player.lastX, hookY, player.lastZ,
+                player.lastX, hookY, player.lastZ), liftCoefficient);
+    }
+
+    private void addFishingPullInterval(SimpleCollisionBox owner, SimpleCollisionBox hook, double liftCoefficient) {
+        double minX = owner.minX - hook.maxX, maxX = owner.maxX - hook.minX;
+        double minY = owner.minY - hook.maxY, maxY = owner.maxY - hook.minY;
+        double minZ = owner.minZ - hook.maxZ, maxZ = owner.maxZ - hook.minZ;
+        // Norm is monotone in absolute components. Independent interval arithmetic encloses
+        // the nonlinear vertical lift, including interior minima when an axis spans zero.
+        double minSquared = nearestSquared(minX, maxX) + nearestSquared(minY, maxY) + nearestSquared(minZ, maxZ);
+        double maxSquared = farthestSquared(minX, maxX) + farthestSquared(minY, maxY) + farthestSquared(minZ, maxZ);
+        double minLift = fishingLift(minSquared, liftCoefficient);
+        double maxLift = fishingLift(maxSquared, liftCoefficient);
+        // Entity events may contain multiple pulls before this movement packet: each adds motion.
+        fishingRodPullBox.minX += Math.min(0, minX * 0.1);
+        fishingRodPullBox.maxX += Math.max(0, maxX * 0.1);
+        fishingRodPullBox.minY += Math.min(0, minY * 0.1 + minLift);
+        fishingRodPullBox.maxY += Math.max(0, maxY * 0.1 + maxLift);
+        fishingRodPullBox.minZ += Math.min(0, minZ * 0.1);
+        fishingRodPullBox.maxZ += Math.max(0, maxZ * 0.1);
+    }
+
+    private static double nearestSquared(double min, double max) {
+        if (min <= 0 && max >= 0) return 0;
+        double nearest = Math.min(Math.abs(min), Math.abs(max));
+        return nearest * nearest;
+    }
+
+    private static double farthestSquared(double min, double max) {
+        double farthest = Math.max(Math.abs(min), Math.abs(max));
+        return farthest * farthest;
+    }
+
+    private static double fishingLift(double squaredDistance, double coefficient) {
+        return (double) (float) Math.sqrt((double) (float) Math.sqrt(squaredDistance)) * coefficient;
+    }
+
     public void tickFireworksBox() {
-        fishingRodPullBox = fishingRodPulls.isEmpty() ? null : new SimpleCollisionBox();
+        fishingRodPullBox = fishingRodPulls.isEmpty() && compensatedFishingRodPulls.isEmpty() ? null : new SimpleCollisionBox();
         fireworksBox = null;
 
+        MovementPhysics.Profile profile = MovementPhysics.profile(player);
+        double liftCoefficient = profile == null ? 0 : profile.fishingPullLiftCoefficient();
         for (int owner : fishingRodPulls) {
             PacketEntity entity = player.compensatedEntities.getEntity(owner);
             if (entity == null) continue;
 
-            SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+            SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes().copy();
             final float scale = (float) entity.getAttributeValue(Attributes.SCALE);
             float width = BoundingBoxSize.getWidth(player, entity) * scale;
             float height = BoundingBoxSize.getHeight(player, entity) * scale;
@@ -156,6 +228,11 @@ public class UncertaintyHandler {
             // Convert back to coordinates instead of hitbox
             entityBox.maxY -= height;
             entityBox.expand(-width / 2, 0, -width / 2);
+
+            if (liftCoefficient > 0) {
+                addFishingPullInterval(entityBox, liftCoefficient);
+                continue;
+            }
 
             Vector3dm maxLocation = new Vector3dm(entityBox.maxX, entityBox.maxY, entityBox.maxZ);
             Vector3dm minLocation = new Vector3dm(entityBox.minX, entityBox.minY, entityBox.minZ);
@@ -172,6 +249,12 @@ public class UncertaintyHandler {
         }
 
         fishingRodPulls.clear();
+        for (FishingRodPull pull : compensatedFishingRodPulls) {
+            PacketEntity owner = player.compensatedEntities.getEntity(pull.owner());
+            if (owner != null) addFishingPullInterval(owner.getPossibleLocationBoxes().copy(),
+                    fishingHookPositions(pull.hookPositions()), liftCoefficient);
+        }
+        compensatedFishingRodPulls.clear();
 
         int maxFireworks = player.fireworks.getMaxFireworksAppliedPossible() * 2;
         if (maxFireworks <= 0 || (!player.isGliding && !player.wasGliding)) {
