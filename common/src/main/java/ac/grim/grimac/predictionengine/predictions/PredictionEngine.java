@@ -17,6 +17,7 @@ import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
+import ac.grim.grimac.utils.nmsutil.ClimbingVelocity;
 import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -269,7 +270,10 @@ public class PredictionEngine {
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
 
             // Calculate the Y velocity after friction
-            Vector3dm hackyClimbVector = new Vector3dm(0, 0.2, 0);
+            // Block profiles apply only to the dry movement predictor, not water or lava.
+            double climbingSpeed = this instanceof PredictionEngineNormal
+                    ? ClimbingVelocity.ascentSpeed(player, player.lastX, player.lastY, player.lastZ) : 0.2;
+            Vector3dm hackyClimbVector = new Vector3dm(0, climbingSpeed, 0);
             PredictionEngineNormal.staticVectorEndOfTick(player, hackyClimbVector);
 
             pointThreePossibilities.add(new VectorData(hackyClimbVector, VectorData.VectorType.ZeroPointZeroThree));
