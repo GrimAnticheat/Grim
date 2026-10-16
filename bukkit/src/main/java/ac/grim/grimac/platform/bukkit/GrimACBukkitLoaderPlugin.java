@@ -27,6 +27,7 @@ import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
 import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
 import ac.grim.grimac.platform.bukkit.initables.BukkitLuckPermsInitable;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
+import ac.grim.grimac.platform.bukkit.initables.FoliaRegionTPSTracker;
 import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
 import ac.grim.grimac.platform.bukkit.manager.BukkitMessagePlaceHolderManager;
 import ac.grim.grimac.platform.bukkit.manager.BukkitCloudPlatformCommandArguments;
@@ -87,6 +88,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
                 new ExemptOnlinePlayersOnReload(),
                 new BukkitEventManager(),
                 new BukkitTickEndEvent(),
+                new FoliaRegionTPSTracker(),
                 new BukkitBStats(),
                 new BukkitLuckPermsInitable(),
                 (StartableInitable) () -> {

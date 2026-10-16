@@ -244,7 +244,7 @@ public class GrimExternalAPI implements GrimAbstractAPI, ConfigReloadObserver, S
         variableReplacements.putIfAbsent("%h_sensitivity%", user -> ((int) Math.round(user.getHorizontalSensitivity() * 200)) + "");
         variableReplacements.putIfAbsent("%v_sensitivity%", user -> ((int) Math.round(user.getVerticalSensitivity() * 200)) + "");
         variableReplacements.putIfAbsent("%fast_math%", user -> !user.isVanillaMath() + "");
-        variableReplacements.putIfAbsent("%tps%", user -> String.format("%.2f", GrimAPI.INSTANCE.getPlatformServer().getTPS()));
+        variableReplacements.putIfAbsent("%tps%", user -> String.format("%.2f", GrimAPI.INSTANCE.getPlatformServer().getTPS(user.getUniqueId())));
         variableReplacements.putIfAbsent("%version%", GrimUser::getVersionName);
         // static variables
         staticReplacements.put("%prefix%", MessageUtil.translateAlternateColorCodes('&', GrimAPI.INSTANCE.getConfigManager().getPrefix()));
