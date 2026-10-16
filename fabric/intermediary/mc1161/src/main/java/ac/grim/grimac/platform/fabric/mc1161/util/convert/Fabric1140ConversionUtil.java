@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
+import ac.grim.grimac.platform.fabric.utils.convert.FabricComponentSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import net.kyori.adventure.text.Component;
@@ -39,7 +39,7 @@ public class Fabric1140ConversionUtil implements IFabricConversionUtil {
 
     @Override
     public Object toNativeText(Component component) {
-        return net.minecraft.network.chat.Component.Serializer.fromJson(GsonComponentSerializer.gson().serializeToTree(component));
+        return net.minecraft.network.chat.Component.Serializer.fromJson(FabricComponentSerializer.serializeToTree(component));
     }
 
     @Override
