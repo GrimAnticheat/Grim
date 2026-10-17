@@ -1,0 +1,116 @@
+# » là ký hiệu » (hai dấu lớn hơn), ANSI và UTF-8 xử lý khác nhau nên đôi khi có thể hiện thành dấu ?
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fĐã bật cảnh báo"
+alerts-disabled: "%prefix% &fĐã tắt cảnh báo"
+verbose-enabled: "%prefix% &fĐã bật verbose"
+verbose-disabled: "%prefix% &fĐã tắt verbose"
+brands-enabled: "%prefix% &fĐã bật hiển thị brand"
+brands-disabled: "%prefix% &fĐã tắt hiển thị brand"
+client-brand-format: "%prefix% &f%player% đã tham gia bằng %brand%"
+console-specify-target: "%prefix% &cConsole phải chỉ định người chơi mục tiêu!"
+reloading: "%prefix% &7Đang tải lại cấu hình..."
+reloaded: "%prefix% &fĐã tải lại cấu hình."
+reload-failed: "%prefix% &cKhông thể tải lại cấu hình."
+player-not-found: "%prefix% &cNgười chơi được miễn kiểm tra hoặc đang ngoại tuyến!"
+player-not-this-server: "%prefix% &cNgười chơi không ở server này!"
+sender-not-found: "%prefix% &cBạn không thể dùng lệnh miễn kiểm tra này!"
+spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fNhấp vào đây để quay lại vị trí trước đó\n</hover></click>"
+cannot-spectate-return: "%prefix% &cBạn chỉ có thể làm vậy sau khi theo dõi một người chơi"
+cannot-run-on-self: "%prefix% &cBạn không thể dùng lệnh này lên chính mình!"
+upload-log: "%prefix% &fĐã tải log debug lên: %url%"
+upload-log-start: "%prefix% &fĐang tải log lên... vui lòng chờ"
+upload-log-not-found: "%prefix% &cKhông tìm thấy log đó"
+upload-log-upload-failure: "%prefix% &cĐã xảy ra lỗi khi tải log này lên, xem console để biết thêm thông tin"
+disconnect:
+    timeout: "<lang:disconnect.timeout>"
+    closed: "<lang:disconnect.closed>"
+    error: "<red>Đã xảy ra lỗi khi xử lý packet. Vui lòng liên hệ quản trị viên."
+    blacklisted-forge: "<red>Phiên bản Forge của bạn bị chặn vì có sẵn reach hack.<newline><gold>Phiên bản bị ảnh hưởng: 1.18.2-1.19.3<newline><newline><red>Xem https://github.com/MinecraftForge/MinecraftForge/issues/9309."
+run-as-player: "%prefix% &cLệnh này chỉ có thể được dùng bởi người chơi!"
+run-as-player-or-console: "%prefix% &cLệnh này chỉ có thể được dùng bởi người chơi hoặc console!"
+webhook-not-enabled: "Webhook Discord chưa được bật!"
+webhook-test-message: "tin nhắn kiểm tra"
+webhook-test-succeeded: "Kiểm tra webhook Discord thành công!"
+webhook-test-failed: "Kiểm tra webhook Discord thất bại!"
+
+# Placeholder hợp lệ:
+# %prefix%
+# %player%
+# %check_name%
+# %description%
+# %experimental%
+# %vl% - số lần vi phạm
+# %verbose% - thông tin bổ sung từ check, chẳng hạn offset; không phải check nào cũng thêm thông tin
+alerts-format: "%prefix% &f%player% &bđã bị phát hiện bởi &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&cproxy&f] &f%player% &bđã bị phát hiện bởi &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
+profile:
+    - "&7======================"
+    - "%prefix% &bThông tin của &f%player%"
+    - "&bPing: &f%ping%"
+    - "&bPhiên bản: &f%version%"
+    - "&bClient brand: &f%brand%"
+    - "&bĐộ nhạy ngang: &f%h_sensitivity%%"
+    - "&bĐộ nhạy dọc: &f%v_sensitivity%%"
+    - "&bFastMath: &f%fast_math%"
+    - "&7======================"
+help:
+    - "&7======================"
+    - "/grim alerts &f- &7Bật hoặc tắt cảnh báo"
+    - "/grim brands &f- &7Bật hoặc tắt brand"
+    - "/grim profile <player> &f- &7Xem thông tin người chơi"
+    - "/grim help &f- &7Xem trợ giúp này"
+    - "/grim debug <player> &f- &7Hiển thị dự đoán dành cho nhà phát triển"
+    - "/grim perf &f- &7Hiển thị ms/dự đoán dành cho nhà phát triển"
+    - "/grim reload &f- &7Tải lại cấu hình"
+    - "/grim spectate <player> &f- &7Theo dõi một người chơi"
+    - "/grim verbose &f- &7Hiển thị mọi lần flag mà không dùng bộ đệm"
+    - "/grim log [0-255] &f- &7Tải log debug của các lần flag dự đoán lên"
+    - "/grim history <player> &f- &7Danh sách session, mới nhất trước"
+    - "/grim history <player> page <N> &f- &7Chuyển đến trang N của danh sách session"
+    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Chi tiết session, vi phạm mới nhất trước"
+    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Chi tiết session, trang vi phạm N"
+    - "&7======================"
+
+# === /grim history ===
+# Giao diện lịch sử theo session. Tất cả các dòng dưới đây đều có thể cấu hình;
+# placeholder hợp lệ được ghi ở từng khóa. Nội dung hover của session và vi phạm
+# do renderer tạo từ dữ liệu thô, nhưng bạn vẫn có thể thêm tooltip vào mọi dòng.
+
+grim-history-load-failure: "%prefix% &cKhông thể tải hệ thống lịch sử! Kiểm tra console của server để biết lỗi."
+grim-history-disabled: "%prefix% &cHệ thống lịch sử đang bị tắt!"
+grim-history-failed: "%prefix% &cKhông thể tải lịch sử: &7%error%"
+grim-history-unknown-player: "%prefix% &cKhông biết người chơi: &f%player%"
+grim-history-no-sessions: "%prefix% &7Không có lịch sử session của &f%player%&7."
+grim-history-session-not-found: "%prefix% &cKhông tìm thấy session &f%ordinal%&c của &f%player%&c."
+
+# Danh sách session, placeholder hợp lệ: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &bLịch sử session của &f%player% &8[&f%page%&7/&f%max_pages%&8]"
+# Dòng tóm tắt session, placeholder hợp lệ:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %crashed_marker%
+grim-history-session: "%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSession &f%ordinal%&b kéo dài &f%duration%&b với &c%violations%&b vi phạm &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% trước&8)"
+grim-history-crashed-marker: " &8(&cđã crash&8)"
+
+# Chi tiết session, placeholder hợp lệ:
+#   %prefix% %player% %ordinal% %grim_version% %server_name%
+#   %client_version% %client_brand% %duration% %timeago%
+#   %violations% %unique_checks% %bucket_size%
+grim-history-detail-header: "%prefix% &bChi tiết session &f%ordinal%&b của &f%player%&b:"
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Thời lượng: &f%duration%&b, Ngày: &7%timeago% trước"
+grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Brand: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bVi phạm: &8(%violations% tổng cộng, %unique_checks% check khác nhau)"
+grim-history-detail-empty: "%prefix% &7- (không có)"
+# Dòng nhóm mặc định, placeholder hợp lệ: %prefix% %offset% %checks_list%
+grim-history-detail-group: "%prefix% &7- %checks_list% &8(&b%offset%&8)"
+# Dòng vi phạm thô (--detailed), placeholder hợp lệ: %prefix% %offset% %check% %vl% %verbose%
+grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
+# Định dạng mỗi check trong %checks_list%, placeholder hợp lệ: %check_name% %count%
+grim-history-check-count: "&f%check_name%&7 x&c%count%"
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1
