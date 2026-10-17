@@ -25,6 +25,7 @@ import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.manager.AttackCooldownHandler;
 import ac.grim.grimac.predictionengine.blockeffects.CompensatedGeysers;
 import ac.grim.grimac.predictionengine.blockeffects.PotentSulfurGeyser;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -601,8 +602,20 @@ public class GrimPlayer implements GrimUser {
         }
 
         Set<VectorData> knockback = new HashSet<>();
-        if (firstBreadKB != null) knockback.add(new VectorData(firstBreadKB.vector, VectorData.VectorType.Knockback));
-        if (likelyKB != null) knockback.add(new VectorData(likelyKB.vector, VectorData.VectorType.Knockback));
+        if (firstBreadKB != null) knockback.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback));
+        if (likelyKB != null) knockback.add(new VectorData(likelyKB.vector.clone(), VectorData.VectorType.Knockback));
+
+        // 1. handleSetEntityMotion replaces deltaMovement with the decoded vector
+        // 2. LivingEntity.aiStep zeros small velocities (abs(Y) < 0.003)
+        // 3. Normal air travel moves the player, then applies gravity and drag for the next tick
+        // 4. LocalPlayer.sendPosition checks <= 0.0002
+        //
+        // For example, LP rounds Y = 0.00301626 to 0.00299091, which aiStep then zeros
+        // With no input or jump, the player does not move and can send no movement packet that tick,
+        // but gravity and drag still leave Y = -0.07840000 for the next tick
+        //
+        // Without this threshold, we test 0.00299091 against 0.0002 and think the knockback cannot hide a tick
+        new PredictionEngine().applyMovementThreshold(this, knockback);
 
         boolean kbPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), knockback);
         checkManager.getKnockbackHandler().setPointThree(kbPointThree);
