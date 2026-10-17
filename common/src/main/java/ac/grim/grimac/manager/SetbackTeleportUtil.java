@@ -323,7 +323,8 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             // There seems to be a version difference in teleports past 30 million... just clamp the vector
             Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
             double threshold = teleportPos.isRelativePos() ? player.getMovementThreshold() : 0;
-            boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
+            double yRoundingTolerance = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 1e-7 : 0; // 1.7 rounding
+            boolean closeEnoughY = Math.abs(clamped.getY() - y) <= yRoundingTolerance + threshold;
             // rotations are updated every frame, we can't accurately check them if they're relative
             boolean correctRotations = (yaw == teleportPos.getYaw() || teleportPos.isRelativeYaw())
                     && (pitch == teleportPos.getPitch() || teleportPos.isRelativePitch());
