@@ -116,11 +116,11 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private HistoryServiceImpl historyService;
     private PlayerIdentityService playerIdentityService;
     private NameResolver nameResolver;
-    private ViolationSinkImpl violationSink;
+    private volatile ViolationSinkImpl violationSink;
     private RetentionSweeper retentionSweeper;
-    private SessionTracker sessionTracker = SessionTracker.NOOP;
-    private LiveWriteHooks liveWriteHooks = LiveWriteHooks.NOOP;
-    private PlayerToggleStore playerToggleStore = PlayerToggleStore.NOOP;
+    private volatile SessionTracker sessionTracker = SessionTracker.NOOP;
+    private volatile LiveWriteHooks liveWriteHooks = LiveWriteHooks.NOOP;
+    private volatile PlayerToggleStore playerToggleStore = PlayerToggleStore.NOOP;
     private V2InstanceRegistry instanceRegistry;
     private HeartbeatScheduler heartbeatScheduler;
     private OwnershipHeartbeatScheduler ownershipHeartbeatScheduler;
@@ -133,6 +133,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private long startupStartedEpochMs;
     private ScheduledExecutorService duplicateWarningExecutor;
     private ScheduledExecutorService recoverySweepExecutor;
+    private boolean shutdownPrepared;
+    private PersistenceGeneration writeGeneration;
 
     @Getter
     private boolean enabled = true;
@@ -149,6 +151,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
 
     @Override
     public void start() {
+        shutdownPrepared = false;
         Path dataFolder = plugin.getDataFolder().toPath();
         DataStoreConfigBuilder builder = new DataStoreConfigBuilder(
                 backendRegistry,
@@ -508,8 +511,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         boolean sessionRouted = routes.contains(Categories.SESSION);
         boolean violationRouted = routes.contains(Categories.VIOLATION);
         boolean playerIdentityRouted = routes.contains(Categories.PLAYER_IDENTITY);
-        boolean settingRouted = routes.contains(Categories.SETTING);
-
         if (sessionRouted && violationRouted) {
             this.historyService = new HistoryServiceImpl(dataStore, checkRegistry,
                     config.history().entriesPerPage(), config.history().groupIntervalMs())
@@ -522,30 +523,39 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
         this.playerIdentityService = new PlayerIdentityService(dataStore);
         this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain(), playerIdentityRouted);
-        this.violationSink = violationRouted ? new ViolationSinkImpl(dataStore) : null;
         this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(), logger);
+        installWriteServices(routes);
+        return true;
+    }
+
+    void installWriteServices(V2Routes routes) {
+        boolean sessionRouted = routes.contains(Categories.SESSION);
+        boolean violationRouted = routes.contains(Categories.VIOLATION);
+        boolean playerIdentityRouted = routes.contains(Categories.PLAYER_IDENTITY);
+        boolean settingRouted = routes.contains(Categories.SETTING);
+        this.writeGeneration = new PersistenceGeneration(dataStore);
+        this.violationSink = violationRouted ? new ViolationSinkImpl(writeGeneration) : null;
         if (sessionRouted) {
             this.sessionTracker = new SessionTrackerImpl(
-                    dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
+                    writeGeneration, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
         } else {
             this.sessionTracker = SessionTracker.NOOP;
             logger.warning("[grim-datastore] session tracking disabled; missing session route");
         }
         if (sessionRouted && violationRouted) {
             this.liveWriteHooks = new LiveWriteHooksImpl(
-                    dataStore, playerIdentityService, checkRegistry, sessionTracker);
+                    writeGeneration, new PlayerIdentityService(writeGeneration), checkRegistry, sessionTracker);
         } else if (playerIdentityRouted) {
-            this.liveWriteHooks = new IdentityLiveWriteHooks(playerIdentityService);
+            this.liveWriteHooks = new IdentityLiveWriteHooks(new PlayerIdentityService(writeGeneration));
         } else {
             this.liveWriteHooks = LiveWriteHooks.NOOP;
         }
         if (settingRouted) {
-            this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
+            this.playerToggleStore = new PlayerToggleStoreImpl(writeGeneration, logger);
         } else {
             this.playerToggleStore = PlayerToggleStore.NOOP;
             logger.warning("[grim-datastore] player toggle persistence disabled; missing setting route");
         }
-        return true;
     }
 
     private static @NotNull String missingRoutes(
@@ -630,6 +640,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                 verboseManifest.get());
 
         if (enforceOwnership) {
+            ServerOwnershipGate schedulerGate = ownershipGate;
             this.ownershipHeartbeatScheduler = new OwnershipHeartbeatScheduler(
                     ownershipAdapter,
                     OWNERSHIP_STORE,
@@ -638,6 +649,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                     ownershipFence,
                     config.serverName(),
                     startupStartedEpochMs,
+                    dbNow,
                     metadata.hostname(),
                     metadata.grimVersion(),
                     metadata.serverVersionString(),
@@ -647,8 +659,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                     Duration.ofMillis(heartbeatMs),
                     ownershipGate,
                     instanceRegistry::publish,
-                    this::disablePersistenceAfterLostOwnership,
-                    logger);
+                    () -> disablePersistenceAfterLostOwnership(schedulerGate),
+                    logger).withRecovery(claimResult -> restorePersistenceAfterLeaseExpiry(schedulerGate, claimResult));
             ownershipHeartbeatScheduler.start();
         } else {
             this.heartbeatScheduler = new HeartbeatScheduler(
@@ -1046,11 +1058,10 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     }
 
     private synchronized void close() {
-        stopDuplicateWarning();
-        stopRecoverySweep();
+        prepareForShutdown();
         if (!enabled) return;
-        stopHeartbeatSchedulersForShutdown();
         playerToggleStore.shutdown();
+        if (writeGeneration != null) writeGeneration.retire();
         if (violationSink != null) violationSink.shutDown();
         shutdownInstanceRegistry();
         if (dataStore != null && config != null) dataStore.flushAndClose(config.writePath().shutdownDrainTimeoutMs());
@@ -1079,8 +1090,17 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         loaded = false;
     }
 
+    synchronized void prepareForShutdown() {
+        if (shutdownPrepared) return;
+        shutdownPrepared = true;
+        stopDuplicateWarning();
+        stopRecoverySweep();
+        stopHeartbeatSchedulersForShutdown();
+    }
+
     private void stopHeartbeatSchedulersForShutdown() {
         if (ownershipHeartbeatScheduler != null) {
+            ownershipHeartbeatScheduler.beginShutdown();
             ownershipHeartbeatScheduler.publishNowAndWait();
             ownershipHeartbeatScheduler.stop();
             ownershipHeartbeatScheduler = null;
@@ -1123,8 +1143,14 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
     }
 
+    private synchronized void disablePersistenceAfterLostOwnership(ServerOwnershipGate expectedGate) {
+        if (!shutdownPrepared && expectedGate == ownershipGate) disablePersistenceAfterLostOwnership();
+    }
+
     private synchronized void disablePersistenceAfterLostOwnership() {
         stopRecoverySweep();
+        if (writeGeneration != null) writeGeneration.retire();
+        playerToggleStore.shutdown();
         sessionTracker = SessionTracker.NOOP;
         liveWriteHooks = LiveWriteHooks.NOOP;
         playerToggleStore = PlayerToggleStore.NOOP;
@@ -1134,6 +1160,23 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
     }
 
+    synchronized void restorePersistenceAfterLeaseExpiry(ServerOwnershipGate expectedGate, OwnershipClaimResult claim) {
+        if (expectedGate != ownershipGate) throw new IllegalStateException("storage generation was replaced");
+        if (shutdownPrepared) throw new IllegalStateException("storage is shutting down");
+        // The scheduler keeps the gate closed until the startup manifest is
+        // persisted and the new lease is renewed. Retire stale caller handles
+        // before draining, so they cannot enqueue old sessions after recovery.
+        disablePersistenceAfterLostOwnership();
+        int queued = dataStore.drain(Math.max(1L, config.writePath().shutdownDrainTimeoutMs()));
+        if (queued > 0) throw new IllegalStateException("waiting for " + queued + " old storage writes to drain");
+        startupId = claim.startupId();
+        ownershipFence = claim.fence();
+        startupStartedEpochMs = claim.dbNowEpochMs();
+        installWriteServices(dataStore.v2Routes());
+        startupLiveness.refresh();
+        startRecoverySweep();
+    }
+
     public @Nullable DataStore dataStore() { return loaded ? dataStore : null; }
     public @Nullable HistoryService historyService() { return historyService; }
     public @Nullable NameResolver nameResolver() { return nameResolver; }
@@ -1141,8 +1184,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     public @Nullable DataStoreConfig config() { return config; }
     public @Nullable VerboseRegistry verboseRegistry() { return verboseRegistry; }
 
-    public @NotNull LiveWriteHooks liveWriteHooks() { return liveWriteHooks; }
-    public @NotNull SessionTracker sessionTracker() { return sessionTracker; }
+    public @NotNull LiveWriteHooks liveWriteHooks() { return ownershipGate.allowWrites() ? liveWriteHooks : LiveWriteHooks.NOOP; }
+    public @NotNull SessionTracker sessionTracker() { return ownershipGate.allowWrites() ? sessionTracker : SessionTracker.NOOP; }
     public @NotNull PlayerToggleStore playerToggleStore() { return playerToggleStore; }
 
     @ApiStatus.Internal
