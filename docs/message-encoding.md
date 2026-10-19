@@ -12,7 +12,7 @@ Outgoing packets use the server protocol and enter the ordinary outbound pipelin
 
 The optional `plain` and object `fallback` getters added in Adventure 5 use cached exact method handles. All ordinary component fields are read directly. No reflective Bukkit codec adapter or `Buildable` shim is included.
 
-The official-mapped Fabric variant bundles a coherent Adventure 5.2.0 dependency set. The intermediary variant retains the existing Adventure 4 dependency versions. The PE dependency includes the separate fix for the class-to-interface change in `BinaryTagType`.
+The official-mapped Fabric variant bundles a coherent Adventure 5.2.0 dependency set. The intermediary variant retains the existing Adventure 4 dependency versions. The PE dependency includes the separate fix for the class-to-interface change in `BinaryTagType`. Its NBT bridge resolves methods by signature and the registry by field type and contents. Tests exercise relocated and renamed classes, fields and methods on Adventure 4.26.1 and 5.2.0.
 
 ## Verification
 
