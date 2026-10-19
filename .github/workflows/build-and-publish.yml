@@ -219,9 +219,8 @@ jobs:
               uses: orhun/git-cliff-action@v4
               with:
                   config: cliff.toml
-                  args: --verbose ${{ steps.cliff_range.outputs.range_args }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # git-cliff needs a token
+                  args: --offline --verbose ${{ steps.cliff_range.outputs.range_args }}
+                  github_token: ${{ github.token }}
 
             - name: Prepare Final Changelog
               id: changelog
