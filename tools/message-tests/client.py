@@ -97,7 +97,9 @@ def rcon(command):
 
 def bukkit_messages():
     rcon('op MessageTest')
-    rcon('execute as MessageTest run grim alerts')
+    result = rcon('execute as MessageTest run grim alerts')
+    if b'disabled' in result.lower():
+        rcon('execute as MessageTest run grim alerts')
     samples = {
         'plain': 'Hello', 'rgb': '<#12abef><bold>RGB',
         'hover': "<hover:show_text:'Hover text'>Hover</hover>",
