@@ -38,6 +38,7 @@ Verified locally with Java 25 and Fabric Loader 0.19.5:
 | --- | --- | --- |
 | Fabric 26.2, Fabric API 0.152.1+26.2 | Native codec and socket delivery | 25 fixtures, disconnect, 51 messages |
 | Fabric 26.3, Fabric API 0.163.0+26.3 | Native codec and socket delivery | 25 fixtures, disconnect, 51 messages |
+| Fabric 26.3, fast bypass disabled | Native player/command paths and legacy formatting | 51 messages |
 | Fabric 26.3 + ViaFabric 0.4.22+186 + ViaBackwards 5.12.1 | 1.21.11 socket client | 51 messages; failed-encoding buffer released |
 | Paper 26.3 build 205 | `/grim sendalert` over a real connection | Text, RGB, text/item/entity hovers, click, translation and Unicode |
 

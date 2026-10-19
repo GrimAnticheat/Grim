@@ -61,11 +61,7 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
 
     @Override
     public void sendMessage(String message) {
-        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            sendFastMessage(LegacyComponentSerializer.legacySection().deserialize(message));
-        } else {
-            handle().sendSystemText(FabricPlatformServices.textLiteral(message));
-        }
+        sendMessage(LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
     @Override

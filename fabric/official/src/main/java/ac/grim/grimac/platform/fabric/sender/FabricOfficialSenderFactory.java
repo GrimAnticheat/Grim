@@ -7,6 +7,7 @@ import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.util.TriState;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,7 +49,7 @@ public class FabricOfficialSenderFactory extends AbstractFabricSenderFactory<Com
 
     @Override
     public void sendMessage(CommandSourceStack source, String message) {
-        fabricMessageUtils.sendMessage((Sender) (Object) source, fabricMessageUtils.textLiteral(message), false);
+        sendMessage(source, LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
     @Override

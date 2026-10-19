@@ -77,6 +77,15 @@ class MessageNbtEncoderTest {
     }
 
     @Test
+    void typedListsKeepTheirElementType() {
+        Component message = Component.text("custom").clickEvent(ClickEvent.custom(Key.key("grim:test"),
+                BinaryTagHolder.binaryTagHolder("{list:[1,2,3]}")));
+        NBTCompound payload = encode(message, ClientVersion.V_1_21_6).getCompoundTagOrThrow("click_event").getCompoundTagOrThrow("payload");
+        var list = assertInstanceOf(NBTList.class, payload.getTagOrNull("list"));
+        assertSame(NBTType.INT, list.getTagsType());
+    }
+
+    @Test
     void itemDataAndEntityHoverArePreserved() {
         DataComponentValue.TagSerializable data = () -> BinaryTagHolder.binaryTagHolder("{decimal:1.5d,long:9223372036854775807L}");
         Component item = Component.text("item").hoverEvent(HoverEvent.showItem(Key.key("minecraft:stone"), 2,

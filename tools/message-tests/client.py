@@ -151,6 +151,8 @@ while len(received) < args.expected and time.monotonic() - started < 60:
         elif packet_id == ids['system_chat'] and b'GRIM_MESSAGE_TEST:' in payload:
             match = re.search(rb'GRIM_MESSAGE_TEST:([a-z-]+):', payload)
             if match:
+                if match.group(1) == b'legacy':
+                    assert '§'.encode() not in payload, 'Legacy formatting was sent as literal text'
                 received.append(match.group(1).decode())
 sock.close()
 from collections import Counter
