@@ -86,6 +86,10 @@ dependencies {
     compileOnly(libs.luckperms)
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.mockito:mockito-core:5.24.0")
+    testImplementation(libs.packetevents.api)
+    testRuntimeOnly(libs.viaversion)
+    testRuntimeOnly(libs.netty)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
