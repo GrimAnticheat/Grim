@@ -47,10 +47,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -69,7 +68,7 @@ class OwnershipReconnectTest {
     private final AtomicInteger lost = new AtomicInteger();
 
     @Test
-    void outagePastTwentySecondsResumesRealLifecycleWritesWithNewSessions() throws Exception {
+    void outagePastTwentySecondsPreservesLiveSessionsAndMetadata() throws Exception {
         List<SessionEvent> sessions = new CopyOnWriteArrayList<>();
         List<ViolationEvent> violations = new CopyOnWriteArrayList<>();
         BackendV2 backend = mock(BackendV2.class);
@@ -77,10 +76,19 @@ class OwnershipReconnectTest {
         when(backend.id()).thenReturn("test");
         when(backend.capabilities()).thenReturn(EnumSet.noneOf(Capability.class));
         when(backend.adapterFor(any())).thenReturn(Optional.of(adapter));
+        when(adapter.execute(any(), any(), any())).thenAnswer(call -> {
+            if (call.getArgument(2) instanceof ac.grim.grimac.api.storage.kind.ops.EntityOps.ReassignSessionOp operation) {
+                assertTrue(operation.previousStartups().contains(originalStartup));
+                assertEquals(db.row.ownerStartupId(), operation.startupId());
+                return 1L;
+            }
+            throw new AssertionError("unexpected operation " + call.getArgument(2));
+        });
         when(adapter.writeHandler(any(), any(), any())).thenAnswer(invocation -> {
             if (invocation.getArgument(2) == Categories.SESSION) {
                 return (StorageEventHandler<SessionEvent>) (e, seq, end) -> sessions.add(
-                        new SessionEvent().sessionId(e.sessionId()).startupId(e.startupId()).playerUuid(e.playerUuid()));
+                        new SessionEvent().sessionId(e.sessionId()).startupId(e.startupId()).playerUuid(e.playerUuid())
+                                .clientBrand(e.clientBrand()).clientVersion(e.clientVersion()).startedEpochMs(e.startedEpochMs()).closedAtEpochMs(e.closedAtEpochMs()));
             }
             return (StorageEventHandler<ViolationEvent>) (e, seq, end) -> violations.add(
                     new ViolationEvent().sessionId(e.sessionId()).playerUuid(e.playerUuid()).vl(e.vl()));
@@ -95,6 +103,8 @@ class OwnershipReconnectTest {
         set(lifecycle, "config", new DataStoreConfig(null, null, null, null, null, null, null, null, null, "test"));
         set(lifecycle, "dataStore", store);
         set(lifecycle, "ownershipGate", gate);
+        set(lifecycle, "ownershipAdapter", db);
+        set(lifecycle, "instanceId", instance);
         set(lifecycle, "startupId", originalStartup);
         CheckRegistry checks = new CheckRegistry(new InMemoryCheckCatalogPersistence());
         checks.reload();
@@ -105,18 +115,21 @@ class OwnershipReconnectTest {
         set(lifecycle, "startupLiveness", new LeaseStartupLiveness(db, STORE, db::dbNowEpochMs, 30_000L));
         lifecycle.installWriteServices(routes);
         UUID player = UUID.randomUUID();
-        SessionTracker staleHandle = lifecycle.sessionTracker();
-        LiveWriteHooks staleHooks = lifecycle.liveWriteHooks();
-        UUID oldSession = staleHandle.observeActivity(player, db.now, SessionTracker.ClientMeta.empty());
+        SessionTracker originalTracker = lifecycle.sessionTracker();
+        LiveWriteHooks originalHooks = lifecycle.liveWriteHooks();
+        UUID sessionBeforeOutage = originalTracker.observeActivity(player, db.now, new SessionTracker.ClientMeta("test", "fabric", 765, "test"));
         assertEquals(0, store.drain(2_000));
         assertEquals(1, sessions.size());
         OwnershipHeartbeatScheduler scheduler = scheduler(manifests::add)
-                .withRecovery(claim -> lifecycle.restorePersistenceAfterLeaseExpiry(gate, claim));
+                .withRecovery(claim -> lifecycle.restorePersistenceAfterLeaseExpiry(gate, claim)).afterRecovery(lifecycle::finishSessionRecovery);
         try {
             db.unavailable = true;
             tick(scheduler);
             assertEquals(0, db.claims);
             db.now += TTL + 1;
+            gate.close("simulate-local-deadline-expiry");
+            lifecycle.liveWriteHooks().recordFlag(player, check, 1.0, "during outage", db.now, SessionTracker.ClientMeta.empty());
+            org.mockito.Mockito.verify(check, org.mockito.Mockito.never()).getCheckName();
             db.unavailable = false;
             tick(scheduler);
 
@@ -126,20 +139,25 @@ class OwnershipReconnectTest {
             assertNotEquals(originalFence, db.row.fence());
             assertEquals(db.row.ownerStartupId(), manifests.get(0).startupId());
             SessionTracker recovered = lifecycle.sessionTracker();
-            assertNotSame(staleHandle, recovered);
-            lifecycle.liveWriteHooks().recordFlag(player, check, 1.0, "after reconnect", db.now, SessionTracker.ClientMeta.empty());
-            UUID newSession = recovered.currentSessionId(player);
-            assertNotNull(newSession);
-            assertNotEquals(oldSession, newSession);
-            // A packet thread holding the old tracker cannot reopen its old session.
-            staleHandle.observeActivity(player, db.now + 1, SessionTracker.ClientMeta.empty());
-            staleHooks.recordFlag(player, check, 2.0, "stale caller", db.now, SessionTracker.ClientMeta.empty());
+            assertSame(originalTracker, recovered);
             assertEquals(0, store.drain(2_000));
+            // Quiet players are restored immediately, before any new flag.
             assertEquals(2, sessions.size());
-            assertEquals(newSession, sessions.get(1).sessionId());
+            assertEquals(sessionBeforeOutage, sessions.get(1).sessionId());
+            assertEquals("fabric", sessions.get(1).clientBrand());
+            assertEquals(765, sessions.get(1).clientVersion());
+            assertEquals(100_000L, sessions.get(1).startedEpochMs());
+            lifecycle.liveWriteHooks().recordFlag(player, check, 1.0, "after reconnect", db.now, SessionTracker.ClientMeta.empty());
+            UUID resumedSession = recovered.currentSessionId(player);
+            assertNotNull(resumedSession);
+            assertEquals(sessionBeforeOutage, resumedSession);
+            assertEquals(0, store.drain(2_000));
             assertEquals(1, violations.size());
-            assertEquals(newSession, violations.get(0).sessionId());
+            assertEquals(sessionBeforeOutage, violations.get(0).sessionId());
             assertEquals(db.row.ownerStartupId(), sessions.get(1).startupId());
+            originalHooks.onQuit(player, db.now + 1, SessionTracker.ClientMeta.empty());
+            UUID rejoined = recovered.observeActivity(player, db.now + 2, SessionTracker.ClientMeta.empty());
+            assertNotEquals(sessionBeforeOutage, rejoined, "a real disconnect still starts a new session");
             tick(scheduler);
             assertTrue(gate.allowWrites());
             assertEquals(1, db.claims);

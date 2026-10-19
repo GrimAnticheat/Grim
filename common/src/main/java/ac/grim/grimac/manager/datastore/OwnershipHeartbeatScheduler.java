@@ -112,6 +112,7 @@ final class OwnershipHeartbeatScheduler {
     }
 
     private @Nullable Consumer<OwnershipClaimResult> recoveryHandler;
+    private Runnable recoveryCompleted = () -> {};
     private @Nullable OwnershipClaimResult pendingRecovery;
     private volatile @Nullable UUID recoveryStartupId;
     private @Nullable UUID recoveryFence;
@@ -119,6 +120,11 @@ final class OwnershipHeartbeatScheduler {
 
     OwnershipHeartbeatScheduler withRecovery(@NotNull Consumer<OwnershipClaimResult> recoveryHandler) {
         this.recoveryHandler = recoveryHandler;
+        return this;
+    }
+
+    OwnershipHeartbeatScheduler afterRecovery(Runnable recoveryCompleted) {
+        this.recoveryCompleted = recoveryCompleted;
         return this;
     }
 
@@ -322,13 +328,13 @@ final class OwnershipHeartbeatScheduler {
         // startup publish. Old sessions must never be reopened: peers
         // may already have repaired them while this lease was expired.
         if (pendingRecovery == null) pendingRecovery = claim;
-        recoveryHandler.accept(pendingRecovery);
         publish.accept(new ServerStartupEvent()
                 .startupId(claim.startupId()).instanceId(instanceId).serverName(serverName)
                 .startedEpochMs(pendingRecovery.dbNowEpochMs()).lastHeartbeatEpochMs(claim.dbNowEpochMs())
                 .hostname(hostname).grimVersion(grimVersion).serverVersionString(serverVersionString)
                 .verboseManifest(verboseManifest.get()));
-        // Publishing may block past the TTL. Revalidate before admitting writes.
+        recoveryHandler.accept(pendingRecovery);
+        // Publishing and session reassignment may block past the TTL. Revalidate before admitting writes.
         OwnershipRenewResult renewed = ownership.renewOwnership(ownershipStore, instanceId,
                 claim.startupId(), claim.fence(), leaseTtlMs);
         if (!renewed.renewed()) return;
@@ -344,6 +350,7 @@ final class OwnershipHeartbeatScheduler {
             recoveryFence = null;
             previousRecoveryOwner = null;
         }
+        recoveryCompleted.run();
         requestPublish(renewed.dbNowEpochMs());
         logger.info("[grim-datastore] database persistence resumed with fresh startupId=" + startupId
                 + "; events dropped during the outage are not replayed");

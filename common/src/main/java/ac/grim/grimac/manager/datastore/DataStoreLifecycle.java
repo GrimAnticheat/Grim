@@ -87,6 +87,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import ac.grim.grimac.api.storage.kind.DataKind;
+import ac.grim.grimac.api.storage.kind.ops.EntityOps;
+import ac.grim.grimac.api.storage.model.SessionRecord;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -110,7 +115,7 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private final BackendRegistry backendRegistry;
 
     private DataStoreConfig config;
-    private DataStoreImpl dataStore;
+    private volatile DataStoreImpl dataStore;
     private CheckRegistry checkRegistry;
     private VerboseRegistry verboseRegistry;
     private HistoryServiceImpl historyService;
@@ -133,8 +138,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     private long startupStartedEpochMs;
     private ScheduledExecutorService duplicateWarningExecutor;
     private ScheduledExecutorService recoverySweepExecutor;
-    private boolean shutdownPrepared;
-    private PersistenceGeneration writeGeneration;
+    private volatile boolean shutdownPrepared;
+    private Runnable finishSessionRecovery = () -> {};
 
     @Getter
     private boolean enabled = true;
@@ -533,25 +538,24 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         boolean violationRouted = routes.contains(Categories.VIOLATION);
         boolean playerIdentityRouted = routes.contains(Categories.PLAYER_IDENTITY);
         boolean settingRouted = routes.contains(Categories.SETTING);
-        this.writeGeneration = new PersistenceGeneration(dataStore);
-        this.violationSink = violationRouted ? new ViolationSinkImpl(writeGeneration) : null;
+        this.violationSink = violationRouted ? new ViolationSinkImpl(dataStore) : null;
         if (sessionRouted) {
             this.sessionTracker = new SessionTrackerImpl(
-                    writeGeneration, config.serverName(), config.session().heartbeatIntervalMs(), startupId);
+                    dataStore, config.serverName(), config.session().heartbeatIntervalMs(), startupId, ownershipGate::allowWrites);
         } else {
             this.sessionTracker = SessionTracker.NOOP;
             logger.warning("[grim-datastore] session tracking disabled; missing session route");
         }
         if (sessionRouted && violationRouted) {
             this.liveWriteHooks = new LiveWriteHooksImpl(
-                    writeGeneration, new PlayerIdentityService(writeGeneration), checkRegistry, sessionTracker);
+                    dataStore, new PlayerIdentityService(dataStore), checkRegistry, sessionTracker, ownershipGate::allowWrites);
         } else if (playerIdentityRouted) {
-            this.liveWriteHooks = new IdentityLiveWriteHooks(new PlayerIdentityService(writeGeneration));
+            this.liveWriteHooks = new IdentityLiveWriteHooks(new PlayerIdentityService(dataStore));
         } else {
             this.liveWriteHooks = LiveWriteHooks.NOOP;
         }
         if (settingRouted) {
-            this.playerToggleStore = new PlayerToggleStoreImpl(writeGeneration, logger);
+            this.playerToggleStore = new PlayerToggleStoreImpl(dataStore, logger);
         } else {
             this.playerToggleStore = PlayerToggleStore.NOOP;
             logger.warning("[grim-datastore] player toggle persistence disabled; missing setting route");
@@ -660,7 +664,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
                     ownershipGate,
                     instanceRegistry::publish,
                     () -> disablePersistenceAfterLostOwnership(schedulerGate),
-                    logger).withRecovery(claimResult -> restorePersistenceAfterLeaseExpiry(schedulerGate, claimResult));
+                    logger).withRecovery(claimResult -> restorePersistenceAfterLeaseExpiry(schedulerGate, claimResult))
+                    .afterRecovery(this::finishSessionRecovery);
             ownershipHeartbeatScheduler.start();
         } else {
             this.heartbeatScheduler = new HeartbeatScheduler(
@@ -1061,7 +1066,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         prepareForShutdown();
         if (!enabled) return;
         playerToggleStore.shutdown();
-        if (writeGeneration != null) writeGeneration.retire();
         if (violationSink != null) violationSink.shutDown();
         shutdownInstanceRegistry();
         if (dataStore != null && config != null) dataStore.flushAndClose(config.writePath().shutdownDrainTimeoutMs());
@@ -1149,7 +1153,6 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
 
     private synchronized void disablePersistenceAfterLostOwnership() {
         stopRecoverySweep();
-        if (writeGeneration != null) writeGeneration.retire();
         playerToggleStore.shutdown();
         sessionTracker = SessionTracker.NOOP;
         liveWriteHooks = LiveWriteHooks.NOOP;
@@ -1160,21 +1163,78 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
     }
 
-    synchronized void restorePersistenceAfterLeaseExpiry(ServerOwnershipGate expectedGate, OwnershipClaimResult claim) {
-        if (expectedGate != ownershipGate) throw new IllegalStateException("storage generation was replaced");
-        if (shutdownPrepared) throw new IllegalStateException("storage is shutting down");
-        // The scheduler keeps the gate closed until the startup manifest is
-        // persisted and the new lease is renewed. Retire stale caller handles
-        // before draining, so they cannot enqueue old sessions after recovery.
-        disablePersistenceAfterLostOwnership();
-        int queued = dataStore.drain(Math.max(1L, config.writePath().shutdownDrainTimeoutMs()));
+    synchronized void finishSessionRecovery() {
+        Runnable completed = finishSessionRecovery;
+        finishSessionRecovery = () -> {};
+        if (!shutdownPrepared) completed.run();
+    }
+
+    private static <K extends DataKind<?, ?>> void reassignLiveSession(
+            V2Routes.Route<K> route, UUID session, Set<UUID> previousStartups, UUID nextStartup) throws Exception {
+        long moved = route.adapter().execute(route.storeId(), route.kind(),
+                new EntityOps.ReassignSessionOp(
+                        Categories.SESSION, session, previousStartups, nextStartup));
+        if (moved != 0L) return;
+        Optional<SessionRecord> current = route.adapter().execute(
+                        route.storeId(), route.kind(),
+                        new EntityOps.GetByIdOp<>(Categories.SESSION, session));
+        if (current.isPresent() && !nextStartup.equals(current.get().startupId())) {
+            throw new IllegalStateException("session is owned by a different storage startup: " + session);
+        }
+        // Missing rows are recreated by the final flush, including connections
+        // that joined while the database was unavailable.
+    }
+
+    void restorePersistenceAfterLeaseExpiry(ServerOwnershipGate expectedGate, OwnershipClaimResult claim) {
+        DataStoreImpl currentStore;
+        DataStoreConfig currentConfig;
+        ServerOwnershipAdapter adapter;
+        SessionTracker currentTracker;
+        UUID currentInstance;
+        synchronized (this) {
+            if (expectedGate != ownershipGate) throw new IllegalStateException("storage generation was replaced");
+            if (shutdownPrepared) throw new IllegalStateException("storage is shutting down");
+            currentStore = dataStore;
+            currentConfig = config;
+            adapter = ownershipAdapter;
+            currentTracker = sessionTracker;
+            currentInstance = instanceId;
+            stopRecoverySweep();
+        }
+        // No lifecycle or player lock is held across DB I/O. Shutdown can stop
+        // the worker and close the old datastore while a recovery call is stuck.
+        int queued = currentStore.drain(Math.max(1L, currentConfig.writePath().shutdownDrainTimeoutMs()));
         if (queued > 0) throw new IllegalStateException("waiting for " + queued + " old storage writes to drain");
-        startupId = claim.startupId();
-        ownershipFence = claim.fence();
-        startupStartedEpochMs = claim.dbNowEpochMs();
-        installWriteServices(dataStore.v2Routes());
-        startupLiveness.refresh();
-        startRecoverySweep();
+        Runnable completed = () -> {};
+        if (currentTracker instanceof SessionTrackerImpl tracker) {
+            long[] nextRenewNanos = {0L};
+            try {
+                completed = tracker.prepareResume(claim.startupId(), (session, previous, target) -> {
+                    if (shutdownPrepared || dataStore != currentStore) throw new IllegalStateException("storage recovery was stopped");
+                    long now = System.nanoTime();
+                    if (now >= nextRenewNanos[0]) {
+                        var renewed = adapter.renewOwnership(OWNERSHIP_STORE, currentInstance,
+                                claim.startupId(), claim.fence(), currentConfig.ownership().leaseTtlMs());
+                        if (!renewed.renewed()) throw new IllegalStateException("recovery lease expired during session handoff");
+                        long interval = Math.max(1L, Math.min(currentConfig.ownership().renewIntervalMs(),
+                                currentConfig.ownership().leaseTtlMs() / 3));
+                        nextRenewNanos[0] = now + TimeUnit.MILLISECONDS.toNanos(interval);
+                    }
+                    reassignLiveSession(currentStore.v2Routes().routeFor(Categories.SESSION), session, previous, target);
+                });
+            } catch (Exception e) {
+                throw new IllegalStateException("failed to resume existing sessions", e);
+            }
+        }
+        synchronized (this) {
+            if (shutdownPrepared || dataStore != currentStore) throw new IllegalStateException("storage recovery was stopped");
+            finishSessionRecovery = completed;
+            startupId = claim.startupId();
+            ownershipFence = claim.fence();
+            startupStartedEpochMs = claim.dbNowEpochMs();
+            startupLiveness.refresh();
+            startRecoverySweep();
+        }
     }
 
     public @Nullable DataStore dataStore() { return loaded ? dataStore : null; }
@@ -1184,8 +1244,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
     public @Nullable DataStoreConfig config() { return config; }
     public @Nullable VerboseRegistry verboseRegistry() { return verboseRegistry; }
 
-    public @NotNull LiveWriteHooks liveWriteHooks() { return ownershipGate.allowWrites() ? liveWriteHooks : LiveWriteHooks.NOOP; }
-    public @NotNull SessionTracker sessionTracker() { return ownershipGate.allowWrites() ? sessionTracker : SessionTracker.NOOP; }
+    public @NotNull LiveWriteHooks liveWriteHooks() { return liveWriteHooks; }
+    public @NotNull SessionTracker sessionTracker() { return sessionTracker; }
     public @NotNull PlayerToggleStore playerToggleStore() { return playerToggleStore; }
 
     @ApiStatus.Internal
