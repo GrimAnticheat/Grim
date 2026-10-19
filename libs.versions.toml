@@ -11,10 +11,10 @@ cloud-fabric-official = "2.0.0-beta.17"
 cloud-processors-requirements = "1.0.0-rc.1"
 
 # --- Minecraft-Specific APIs ---
-floodgate-api = "2.0-SNAPSHOT"
+floodgate-api = "2.2.5-SNAPSHOT"
 geyser-base-api = "1.0.2"
-grim-api = "1.6.0.13"
-packetevents = "2.14.1+1066184-SNAPSHOT"
+grim-api = "1.6.0.12"
+packetevents = "2.14.1+7967071-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
 luckperms = "5.5"

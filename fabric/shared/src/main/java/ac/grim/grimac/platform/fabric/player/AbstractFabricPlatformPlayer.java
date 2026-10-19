@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPluginMessage;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,11 +59,7 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
 
     @Override
     public void sendMessage(String message) {
-        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            user.sendMessage(message);
-        } else {
-            handle().sendSystemText(FabricPlatformServices.textLiteral(message));
-        }
+        sendMessage(AdventureSerializer.serializer().fromLegacy(message));
     }
 
     @Override
