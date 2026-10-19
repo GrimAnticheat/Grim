@@ -143,7 +143,7 @@ while len(received) < args.expected and time.monotonic() - started < 60:
             if ids['loaded'] >= 0:
                 send(ids['loaded'])
     else:
-        if args.bukkit_rcon_port and not commands_sent and packet_id == ids['system_chat']:
+        if args.bukkit_rcon_port and not commands_sent:
             commands_sent = True
             bukkit_messages()
         if packet_id == ids['keepalive']:
