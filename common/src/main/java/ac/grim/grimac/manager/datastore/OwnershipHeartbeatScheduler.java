@@ -284,6 +284,7 @@ final class OwnershipHeartbeatScheduler {
     }
 
     private void recoverOwnership() throws Exception {
+        gate.close("ownership-recovery");
         // Never compete with a different boot of a copied data folder. The claim
         // below is atomic; its previous owner also detects a takeover between
         // this read and the claim.
@@ -345,12 +346,22 @@ final class OwnershipHeartbeatScheduler {
             startedEpochMs = pendingRecovery.dbNowEpochMs();
             lastSuccessfulRenewEpochMs = renewed.dbNowEpochMs();
             gate.open(startupId, fence, leaseTtlMs, safetyMarginMs);
+        }
+        try {
+            recoveryCompleted.run();
+        } catch (RuntimeException | Error failure) {
+            gate.close("incomplete-session-recovery");
+            throw failure;
+        }
+        synchronized (lifecycleLock) {
+            if (shuttingDown.get()) return;
+            // Until completion succeeds, the next tick must retry recovery,
+            // even if ordinary renewal could still extend the candidate lease.
             pendingRecovery = null;
             recoveryStartupId = null;
             recoveryFence = null;
             previousRecoveryOwner = null;
         }
-        recoveryCompleted.run();
         requestPublish(renewed.dbNowEpochMs());
         logger.info("[grim-datastore] database persistence resumed with fresh startupId=" + startupId
                 + "; events dropped during the outage are not replayed");

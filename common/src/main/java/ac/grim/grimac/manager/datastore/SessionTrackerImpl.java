@@ -124,13 +124,15 @@ public final class SessionTrackerImpl implements SessionTracker {
     }
 
     private void finishResume(Ownership expected) {
-        if (ownership.get() != expected || !writesAllowed.getAsBoolean()) return;
+        if (ownership.get() != expected) return;
+        if (!writesAllowed.getAsBoolean()) throw new IllegalStateException("session recovery completion is paused");
         // Include terminal states retained by every failed attempt, as well as
         // joins after the current handoff snapshot. Clear only after completion;
         // an older callback must not discard a newer attempt's retained states.
         Set<Connection> flush = new HashSet<>(expected.pendingConnections);
         flush.addAll(connections.values());
         for (Connection connection : flush) publishLatest(connection);
+        if (!writesAllowed.getAsBoolean()) throw new IllegalStateException("session recovery completion was interrupted");
         ownership.compareAndSet(expected, new Ownership(expected.startupId, Set.of(expected.startupId), Set.of()));
     }
 

@@ -19,6 +19,7 @@ import static org.mockito.Mockito.*;
 class SessionContinuityTest {
     private final List<SessionEvent> writes = new CopyOnWriteArrayList<>();
     private final AtomicBoolean writable = new AtomicBoolean(true);
+    private final AtomicBoolean pauseAfterNextWrite = new AtomicBoolean();
     private final UUID initialStartup = UUID.randomUUID();
     private final UUID player = UUID.randomUUID();
 
@@ -29,6 +30,7 @@ class SessionContinuityTest {
             Consumer<SessionEvent> fill = call.getArgument(1);
             fill.accept(event);
             writes.add(event);
+            if (pauseAfterNextWrite.compareAndSet(true, false)) writable.set(false);
             return null;
         }).when(store).submit(eq(Categories.SESSION), any());
         return new SessionTrackerImpl(store, "test", 1_000, initialStartup, writable::get);
@@ -151,6 +153,28 @@ class SessionContinuityTest {
         writable.set(true);
         later.run();
         assertEquals(2, writes.size(), "completed closures must not remain retained across later recoveries");
+    }
+
+    @Test
+    void completionInterruptedDuringFlushRetainsAllPendingQuits() throws Exception {
+        SessionTrackerImpl tracker = tracker();
+        UUID otherPlayer = UUID.randomUUID();
+        UUID first = tracker.observeActivity(player, 100, meta("fabric", 765));
+        UUID second = tracker.observeActivity(otherPlayer, 200, meta("vanilla", 766));
+        writable.set(false);
+        Runnable completion = tracker.prepareResume(UUID.randomUUID(), (id, previous, target) -> {});
+        tracker.close(player, 500, SessionTracker.ClientMeta.empty());
+        tracker.close(otherPlayer, 600, SessionTracker.ClientMeta.empty());
+        writable.set(true);
+        pauseAfterNextWrite.set(true);
+        assertThrows(IllegalStateException.class, completion::run);
+        assertEquals(3, writes.size(), "only the first pending close was submitted before the gate closed");
+        Runnable retry = tracker.prepareResume(UUID.randomUUID(), (id, previous, target) -> fail("quit must not reopen"));
+        writable.set(true);
+        retry.run();
+        assertEquals(5, writes.size(), "both terminal states survive partial completion");
+        assertTrue(writes.stream().anyMatch(event -> event.sessionId().equals(first) && event.closedAtEpochMs() == 500));
+        assertTrue(writes.stream().anyMatch(event -> event.sessionId().equals(second) && event.closedAtEpochMs() == 600));
     }
 
     private static SessionTracker.ClientMeta meta(String brand, int version) {

@@ -63,6 +63,16 @@ class RecoveryQuitRetryTest {
         exercise(directory, Failure.FINAL_RENEW, false, true);
     }
 
+    @Test
+    void expiredLocalGateRetriesCompletionBeforeReturningToOrdinaryRenewal(@TempDir Path directory) throws Exception {
+        exercise(directory, Failure.COMPLETION_GATE, false, false);
+    }
+
+    @Test
+    void completionExceptionClosesGateAndRemainsRetryable(@TempDir Path directory) throws Exception {
+        exercise(directory, Failure.COMPLETION_EXCEPTION, false, false);
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void exercise(Path directory, Failure failure, boolean expireCandidate, boolean rejoin) throws Exception {
         UUID instance = UUID.randomUUID();
@@ -121,14 +131,23 @@ class RecoveryQuitRetryTest {
             }
             return result;
         });
+        boolean[] completionInterrupted = {false};
         OwnershipHeartbeatScheduler scheduler = new OwnershipHeartbeatScheduler(
                 ownership, OWNERSHIP, original, instance, originalFence, "test", 70_000, 70_000,
                 null, null, null, () -> null, TTL, 5_000, Duration.ofSeconds(10), gate,
                 event -> {}, () -> fail("ownership must not be permanently lost"), LOG)
                 .withRecovery(claim -> {
                     lifecycle.restorePersistenceAfterLeaseExpiry(gate, claim);
-                    if (failure == Failure.FINAL_RENEW && !ownership.failureInjected) ownership.failNextRenew = disconnect;
-                }).afterRecovery(lifecycle::finishSessionRecovery);
+                    if (failure != Failure.AFTER_HANDOFF && !ownership.failureInjected) ownership.failNextRenew = disconnect;
+                }).afterRecovery(() -> {
+                    if (!completionInterrupted[0] && (failure == Failure.COMPLETION_GATE || failure == Failure.COMPLETION_EXCEPTION)) {
+                        completionInterrupted[0] = true;
+                        assertTrue(ownership.row.activeAt(ownership.now), "DB lease survives the local gate deadline");
+                        if (failure == Failure.COMPLETION_EXCEPTION) throw new IllegalStateException("injected completion failure");
+                        gate.close("simulate-local-deadline-before-completion");
+                    }
+                    lifecycle.finishSessionRecovery();
+                });
         try {
             tick(scheduler);
             assertFalse(gate.allowWrites(), "first recovery must fail with writes still paused");
@@ -140,6 +159,10 @@ class RecoveryQuitRetryTest {
             if (expireCandidate) ownership.now += TTL + 1;
 
             tick(scheduler);
+            if (failure == Failure.COMPLETION_GATE || failure == Failure.COMPLETION_EXCEPTION) {
+                assertFalse(gate.allowWrites(), "failed completion must keep normal writes paused");
+                tick(scheduler);
+            }
             assertTrue(gate.allowWrites());
             assertEquals(0, store.drain(2_000));
             if (!expireCandidate) assertEquals(firstCandidate, ownership.row.ownerStartupId());
@@ -171,7 +194,7 @@ class RecoveryQuitRetryTest {
         }
     }
 
-    private enum Failure { FINAL_RENEW, AFTER_HANDOFF }
+    private enum Failure { FINAL_RENEW, AFTER_HANDOFF, COMPLETION_GATE, COMPLETION_EXCEPTION }
 
     private static SessionTracker.ClientMeta meta(String brand, int version) {
         return new SessionTracker.ClientMeta("test", brand, version, "test");
