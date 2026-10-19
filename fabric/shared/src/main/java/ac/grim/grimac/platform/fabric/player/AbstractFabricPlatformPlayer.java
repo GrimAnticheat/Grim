@@ -24,12 +24,15 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     public AbstractFabricPlatformPlayer(T player) {
         super(player);
         this.inventory = FabricPlatformServices.createInventory(this);
+        User resolvedUser = null;
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value()) {
-            Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(handle().uuid());
-            this.user = PacketEvents.getAPI().getProtocolManager().getUser(channel);
-        } else {
-            this.user = null;
+            try {
+                Object channel = PacketEvents.getAPI().getProtocolManager().getChannel(handle().uuid());
+                resolvedUser = PacketEvents.getAPI().getProtocolManager().getUser(channel);
+            } catch (Throwable ignored) {
+            }
         }
+        this.user = resolvedUser;
         this.blockTranslator = FabricPlatformServices.createBlockTranslator(player);
     }
 
@@ -59,20 +62,28 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     @Override
     public void sendMessage(String message) {
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            user.sendMessage(message);
-        } else {
-            handle().sendSystemText(FabricPlatformServices.textLiteral(message));
+            try {
+                user.sendMessage(message);
+                return;
+            } catch (Throwable ignored) {
+                // Fall back to native sendSystemText if fast bypass encounters any issues
+            }
         }
+        handle().sendSystemText(FabricPlatformServices.textLiteral(message));
     }
 
     @Override
     public void sendMessage(Component message) {
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            user.sendMessage(message);
-        } else {
-            Object nativeText = FabricPlatformServices.conversionUtil().toNativeText(message);
-            handle().sendSystemText(nativeText);
+            try {
+                user.sendMessage(message);
+                return;
+            } catch (Throwable ignored) {
+                // Fall back to native sendSystemText if fast bypass encounters any issues
+            }
         }
+        Object nativeText = FabricPlatformServices.conversionUtil().toNativeText(message);
+        handle().sendSystemText(nativeText);
     }
 
     @Override
