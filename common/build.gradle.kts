@@ -79,7 +79,8 @@ dependencies {
         isTransitive = false // messes with guava otherwise
     }
 
-    compileOnly(libs.floodgate.api)
+    // The self-contained API jar retains DeviceOs; its unshaded POM references a retired Geyser snapshot.
+    compileOnly(variantOf(libs.floodgate.api) { classifier("shaded") }) { isTransitive = false }
     compileOnly(libs.viaversion)
     compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
