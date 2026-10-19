@@ -17,6 +17,7 @@ public class JumpPower {
     public static void jumpFromGround(@NotNull GrimPlayer player, @NotNull Vector3dm vector) {
         float jumpPower = getJumpPower(player);
 
+        MovementPhysics.Profile movementProfile = MovementPhysics.profile(player);
         final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             double jumpVelocity = jumpPower;
@@ -32,12 +33,16 @@ public class JumpPower {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && jumpPower <= 1.0E-5f)
                 return;
 
-            vector.setY(player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) ? jumpPower : Math.max(jumpPower, vector.getY()));
+            boolean preserveUpwardJump = movementProfile == null
+                    ? player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)
+                    : movementProfile.preserveUpwardJump();
+            vector.setY(preserveUpwardJump ? Math.max(jumpPower, vector.getY()) : jumpPower);
         }
 
         if (player.isSprinting) {
             float radRotation = GrimMath.radians(player.yaw);
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+            if ((movementProfile == null || !movementProfile.floatSprintJump())
+                    && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
                 vector.add(-player.trigHandler.sin(radRotation) * 0.2, 0.0, player.trigHandler.cos(radRotation) * 0.2);
             } else {
                 vector.add(-player.trigHandler.sin(radRotation) * 0.2F, 0.0, player.trigHandler.cos(radRotation) * 0.2F);

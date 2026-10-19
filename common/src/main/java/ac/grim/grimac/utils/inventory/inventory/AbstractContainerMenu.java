@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.inventory.inventory;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.nmsutil.MovementPhysics;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.inventory.ClickAction;
 import ac.grim.grimac.utils.inventory.Inventory;
@@ -109,6 +110,8 @@ public abstract class AbstractContainerMenu {
     }
 
     public void doClick(int button, int slotID, WrapperPlayClientClickWindow.WindowClickType clickType) {
+        if (clickType == WrapperPlayClientClickWindow.WindowClickType.SWAP && button == 40
+                && !MovementPhysics.offHandEnabled(player)) return;
         if (clickType == WrapperPlayClientClickWindow.WindowClickType.QUICK_CRAFT) {
             int status = this.quickcraftStatus;
             this.quickcraftStatus = getQuickcraftHeader(button);

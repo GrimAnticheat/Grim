@@ -86,6 +86,14 @@ dependencies {
     compileOnly(libs.luckperms)
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.mockito:mockito-core:5.24.0")
+    testImplementation(libs.packetevents.api)
+    testImplementation("com.github.retrooper:packetevents-netty-common:${libs.versions.packetevents.get()}")
+    testRuntimeOnly(libs.viaversion)
+    testRuntimeOnly(libs.netty)
+    testRuntimeOnly("com.google.guava:guava:32.1.2-jre") // Same provided version as the pinned Paper API.
+    testRuntimeOnly("net.kyori:adventure-nbt:${libs.versions.adventure.asProvider().get()}")
+    testRuntimeOnly("net.kyori:adventure-text-serializer-gson:${libs.versions.adventure.asProvider().get()}")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
