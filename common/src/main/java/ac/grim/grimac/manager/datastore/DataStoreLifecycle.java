@@ -1163,10 +1163,14 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
     }
 
-    synchronized void finishSessionRecovery() {
-        Runnable completed = finishSessionRecovery;
-        finishSessionRecovery = () -> {};
-        if (!shutdownPrepared) completed.run();
+    void finishSessionRecovery() {
+        Runnable completed;
+        synchronized (this) {
+            if (shutdownPrepared) return;
+            completed = finishSessionRecovery;
+            finishSessionRecovery = () -> {};
+        }
+        completed.run();
     }
 
     private static <K extends DataKind<?, ?>> void reassignLiveSession(

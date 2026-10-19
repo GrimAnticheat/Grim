@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 /** Keeps connection identity and metadata alive independently of database ownership. */
@@ -20,8 +22,7 @@ public final class SessionTrackerImpl implements SessionTracker {
     private final DataStore store;
     private final long heartbeatIntervalMs;
     private final BooleanSupplier writesAllowed;
-    private volatile @Nullable UUID startupId;
-    private final Set<UUID> knownStartups = new HashSet<>();
+    private final AtomicReference<Ownership> ownership;
     private final Map<UUID, Connection> connections = new ConcurrentHashMap<>();
 
     public SessionTrackerImpl(@NotNull DataStore store, @NotNull String serverName, long heartbeatIntervalMs) {
@@ -37,23 +38,29 @@ public final class SessionTrackerImpl implements SessionTracker {
                        @Nullable UUID startupId, BooleanSupplier writesAllowed) {
         this.store = store;
         this.heartbeatIntervalMs = heartbeatIntervalMs;
-        this.startupId = startupId;
         this.writesAllowed = writesAllowed;
-        if (startupId != null) knownStartups.add(startupId);
+        this.ownership = new AtomicReference<>(new Ownership(startupId, startupId == null ? Set.of() : Set.of(startupId)));
     }
 
     @Override
     public @NotNull UUID observeActivity(@NotNull UUID player, long now, @NotNull ClientMeta meta) {
         while (true) {
-            Connection connection = connections.computeIfAbsent(player, id -> new Connection(id, now, meta));
-            synchronized (connection) {
-                if (connection.closedAt != SessionRecord.OPEN) {
-                    connections.remove(player, connection);
-                    continue;
-                }
-                connection.lastActivity = Math.max(connection.lastActivity, now);
-                connection.meta = mergeMeta(connection.meta, meta);
-                emit(connection);
+            Connection connection = connections.get(player);
+            if (connection == null) {
+                // UUID generation and state construction stay outside map bin locks.
+                Connection fresh = new Connection(player, now, meta);
+                Connection existing = connections.putIfAbsent(player, fresh);
+                connection = existing == null ? fresh : existing;
+            }
+            State current = connection.state.get();
+            if (current.closedAt != SessionRecord.OPEN) {
+                connections.remove(player, connection);
+                continue;
+            }
+            State next = new State(Math.max(current.lastActivity, now), Math.max(current.lastRequested, now),
+                    SessionRecord.OPEN, mergeMeta(current.meta, meta));
+            if (connection.state.compareAndSet(current, next)) {
+                publishLatest(connection);
                 return connection.sessionId;
             }
         }
@@ -61,33 +68,36 @@ public final class SessionTrackerImpl implements SessionTracker {
 
     @Override
     public void pollHeartbeat(@NotNull UUID player, long now) {
+        if (heartbeatIntervalMs <= 0) return;
         Connection connection = connections.get(player);
-        if (connection == null || heartbeatIntervalMs <= 0) return;
-        synchronized (connection) {
-            if (connection.closedAt != SessionRecord.OPEN) return;
-            connection.lastActivity = Math.max(connection.lastActivity, now);
-            if (now - connection.lastEmitted >= heartbeatIntervalMs) emit(connection);
-        }
+        if (connection == null) return;
+        State current = connection.state.get();
+        if (current.closedAt != SessionRecord.OPEN || now - current.lastRequested < heartbeatIntervalMs) return;
+        State next = new State(Math.max(current.lastActivity, now), now, SessionRecord.OPEN, current.meta);
+        // A competing update already observed activity or closed the connection.
+        if (connection.state.compareAndSet(current, next)) publishLatest(connection);
     }
 
     @Override
     public void close(@NotNull UUID player, long now, @NotNull ClientMeta meta) {
-        Connection connection = connections.remove(player);
+        Connection connection = connections.get(player);
         if (connection == null) return;
-        synchronized (connection) {
-            connection.closedAt = now;
-            connection.meta = mergeMeta(connection.meta, meta);
-            emit(connection);
+        while (true) {
+            State current = connection.state.get();
+            if (current.closedAt != SessionRecord.OPEN) return;
+            State closed = new State(current.lastActivity, current.lastRequested, now, mergeMeta(current.meta, meta));
+            if (connection.state.compareAndSet(current, closed)) {
+                connections.remove(player, connection);
+                publishLatest(connection);
+                return;
+            }
         }
     }
 
     @Override
     public @Nullable UUID currentSessionId(@NotNull UUID player) {
         Connection connection = connections.get(player);
-        if (connection == null) return null;
-        synchronized (connection) {
-            return connection.closedAt == SessionRecord.OPEN ? connection.sessionId : null;
-        }
+        return connection == null || connection.state.get().closedAt != SessionRecord.OPEN ? null : connection.sessionId;
     }
 
     @FunctionalInterface
@@ -96,50 +106,61 @@ public final class SessionTrackerImpl implements SessionTracker {
     }
 
     /** Called with normal writes paused and the replacement lease already claimed. */
-    synchronized Runnable prepareResume(UUID nextStartup, SessionResumer resumer) throws Exception {
-        knownStartups.add(nextStartup);
-        startupId = nextStartup;
-        Set<UUID> previous = Set.copyOf(knownStartups);
+    Runnable prepareResume(UUID nextStartup, SessionResumer resumer) throws Exception {
+        Ownership next = ownership.updateAndGet(current -> {
+            Set<UUID> known = new HashSet<>(current.knownStartups);
+            known.add(nextStartup);
+            return new Ownership(nextStartup, Set.copyOf(known));
+        });
         List<Connection> captured = new ArrayList<>(connections.values());
         for (Connection connection : captured) {
-            synchronized (connection) {
-                if (connection.closedAt != SessionRecord.OPEN) continue;
+            if (connection.state.get().closedAt == SessionRecord.OPEN) {
+                resumer.reassign(connection.sessionId, next.knownStartups, nextStartup);
             }
-            // Never hold a connection lock during database I/O. Quit/brand/join
-            // events keep updating memory while this call is blocked.
-            resumer.reassign(connection.sessionId, previous, nextStartup);
         }
-        return () -> finishResume(nextStartup, captured);
+        return () -> finishResume(next, captured);
     }
 
-    private synchronized void finishResume(UUID expectedStartup, List<Connection> captured) {
-        if (!expectedStartup.equals(startupId) || !writesAllowed.getAsBoolean()) return;
-        // Include joins after the handoff snapshot and quits during handoff.
-        // Each captured connection remains observable even after removal from
-        // the active map, so a late quit is persisted as closed, not resurrected.
+    private void finishResume(Ownership expected, List<Connection> captured) {
+        if (ownership.get() != expected || !writesAllowed.getAsBoolean()) return;
+        // Stable connection objects retain a concurrent quit even after removal
+        // from the active map. Also include joins after the handoff snapshot.
         Set<Connection> flush = new HashSet<>(captured);
         flush.addAll(connections.values());
-        for (Connection connection : flush) {
-            synchronized (connection) {
-                emit(connection);
-            }
-        }
-        knownStartups.clear();
-        knownStartups.add(expectedStartup);
+        for (Connection connection : flush) publishLatest(connection);
+        ownership.compareAndSet(expected, new Ownership(expected.startupId, Set.of(expected.startupId)));
     }
 
-    /** Caller holds the connection lock; submit only fills a ring slot, never performs DB I/O. */
-    private void emit(Connection connection) {
-        if (!writesAllowed.getAsBoolean()) return;
-        UUID owner = startupId;
-        ClientMeta meta = connection.meta;
-        long activity = connection.lastActivity;
-        long closedAt = connection.closedAt;
-        store.submit(Categories.SESSION, event -> event
-                .sessionId(connection.sessionId).playerUuid(connection.player)
-                .startedEpochMs(connection.started).lastActivityEpochMs(activity).closedAtEpochMs(closedAt)
-                .clientBrand(meta.clientBrand()).clientVersion(meta.clientVersion()).startupId(owner));
-        connection.lastEmitted = activity;
+    /**
+     * One caller submits snapshots for a connection. Other callers only request
+     * another pass and return; they never wait for the submitting thread. This
+     * keeps a delayed heartbeat from landing after a newer metadata/quit write.
+     * The datastore submission itself is a nonblocking ring operation.
+     */
+    private void publishLatest(Connection connection) {
+        if (connection.publications.getAndIncrement() != 0) return;
+        int pending = 1;
+        try {
+            do {
+                if (writesAllowed.getAsBoolean()) {
+                    store.submit(Categories.SESSION, event -> {
+                        State snapshot = connection.state.get();
+                        // A producer can be descheduled before claiming its ring
+                        // slot. Resolve ownership when that slot is actually filled.
+                        event.sessionId(connection.sessionId).playerUuid(connection.player)
+                                .startedEpochMs(connection.started).lastActivityEpochMs(snapshot.lastActivity)
+                                .closedAtEpochMs(snapshot.closedAt).clientBrand(snapshot.meta.clientBrand())
+                                .clientVersion(snapshot.meta.clientVersion()).startupId(ownership.get().startupId);
+                    });
+                }
+                pending = connection.publications.addAndGet(-pending);
+            } while (pending != 0);
+        } catch (RuntimeException | Error failure) {
+            // A failed submission must not leave future publication requests
+            // behind a permanently busy publisher. The current state is retained.
+            connection.publications.set(0);
+            throw failure;
+        }
     }
 
     private static ClientMeta mergeMeta(ClientMeta current, ClientMeta incoming) {
@@ -150,20 +171,20 @@ public final class SessionTrackerImpl implements SessionTracker {
                 incoming.serverVersion() != null ? incoming.serverVersion() : current.serverVersion());
     }
 
+    private record Ownership(@Nullable UUID startupId, Set<UUID> knownStartups) {}
+    private record State(long lastActivity, long lastRequested, long closedAt, ClientMeta meta) {}
+
     private static final class Connection {
         final UUID player;
         final UUID sessionId = UUID.randomUUID();
         final long started;
-        long lastActivity;
-        long lastEmitted;
-        long closedAt = SessionRecord.OPEN;
-        ClientMeta meta;
+        final AtomicReference<State> state;
+        final AtomicInteger publications = new AtomicInteger();
 
         Connection(UUID player, long now, ClientMeta meta) {
             this.player = player;
             this.started = now;
-            this.lastActivity = now;
-            this.meta = meta;
+            this.state = new AtomicReference<>(new State(now, now, SessionRecord.OPEN, meta));
         }
     }
 }
