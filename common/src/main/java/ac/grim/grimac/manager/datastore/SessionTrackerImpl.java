@@ -6,9 +6,7 @@ import ac.grim.grimac.api.storage.model.SessionRecord;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -39,7 +37,7 @@ public final class SessionTrackerImpl implements SessionTracker {
         this.store = store;
         this.heartbeatIntervalMs = heartbeatIntervalMs;
         this.writesAllowed = writesAllowed;
-        this.ownership = new AtomicReference<>(new Ownership(startupId, startupId == null ? Set.of() : Set.of(startupId)));
+        this.ownership = new AtomicReference<>(new Ownership(startupId, startupId == null ? Set.of() : Set.of(startupId), Set.of()));
     }
 
     @Override
@@ -107,28 +105,33 @@ public final class SessionTrackerImpl implements SessionTracker {
 
     /** Called with normal writes paused and the replacement lease already claimed. */
     Runnable prepareResume(UUID nextStartup, SessionResumer resumer) throws Exception {
+        Set<Connection> active = Set.copyOf(connections.values());
         Ownership next = ownership.updateAndGet(current -> {
             Set<UUID> known = new HashSet<>(current.knownStartups);
             known.add(nextStartup);
-            return new Ownership(nextStartup, Set.copyOf(known));
+            Set<Connection> pending = new HashSet<>(current.pendingConnections);
+            pending.addAll(active);
+            // Retain before the first handoff. A failed attempt may have moved
+            // rows already, and a concurrent quit removes them from the active map.
+            return new Ownership(nextStartup, Set.copyOf(known), Set.copyOf(pending));
         });
-        List<Connection> captured = new ArrayList<>(connections.values());
-        for (Connection connection : captured) {
+        for (Connection connection : next.pendingConnections) {
             if (connection.state.get().closedAt == SessionRecord.OPEN) {
                 resumer.reassign(connection.sessionId, next.knownStartups, nextStartup);
             }
         }
-        return () -> finishResume(next, captured);
+        return () -> finishResume(next);
     }
 
-    private void finishResume(Ownership expected, List<Connection> captured) {
+    private void finishResume(Ownership expected) {
         if (ownership.get() != expected || !writesAllowed.getAsBoolean()) return;
-        // Stable connection objects retain a concurrent quit even after removal
-        // from the active map. Also include joins after the handoff snapshot.
-        Set<Connection> flush = new HashSet<>(captured);
+        // Include terminal states retained by every failed attempt, as well as
+        // joins after the current handoff snapshot. Clear only after completion;
+        // an older callback must not discard a newer attempt's retained states.
+        Set<Connection> flush = new HashSet<>(expected.pendingConnections);
         flush.addAll(connections.values());
         for (Connection connection : flush) publishLatest(connection);
-        ownership.compareAndSet(expected, new Ownership(expected.startupId, Set.of(expected.startupId)));
+        ownership.compareAndSet(expected, new Ownership(expected.startupId, Set.of(expected.startupId), Set.of()));
     }
 
     /**
@@ -171,7 +174,7 @@ public final class SessionTrackerImpl implements SessionTracker {
                 incoming.serverVersion() != null ? incoming.serverVersion() : current.serverVersion());
     }
 
-    private record Ownership(@Nullable UUID startupId, Set<UUID> knownStartups) {}
+    private record Ownership(@Nullable UUID startupId, Set<UUID> knownStartups, Set<Connection> pendingConnections) {}
     private record State(long lastActivity, long lastRequested, long closedAt, ClientMeta meta) {}
 
     private static final class Connection {

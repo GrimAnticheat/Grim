@@ -131,6 +131,28 @@ class SessionContinuityTest {
         assertEquals(1, writes.size());
     }
 
+    @Test
+    void staleCompletionCannotDiscardPendingQuitAndSuccessfulCompletionReleasesIt() throws Exception {
+        SessionTrackerImpl tracker = tracker();
+        UUID session = tracker.observeActivity(player, 100, meta("fabric", 765));
+        writable.set(false);
+        Runnable stale = tracker.prepareResume(UUID.randomUUID(), (id, previous, target) -> {});
+        tracker.close(player, 500, SessionTracker.ClientMeta.empty());
+        Runnable retry = tracker.prepareResume(UUID.randomUUID(), (id, previous, target) -> fail("quit must not reopen"));
+        writable.set(true);
+        stale.run();
+        assertEquals(1, writes.size());
+        retry.run();
+        assertEquals(2, writes.size());
+        assertEquals(session, writes.get(1).sessionId());
+        assertEquals(500, writes.get(1).closedAtEpochMs());
+        writable.set(false);
+        Runnable later = tracker.prepareResume(UUID.randomUUID(), (id, previous, target) -> fail("no active connections"));
+        writable.set(true);
+        later.run();
+        assertEquals(2, writes.size(), "completed closures must not remain retained across later recoveries");
+    }
+
     private static SessionTracker.ClientMeta meta(String brand, int version) {
         return new SessionTracker.ClientMeta("test", brand, version, "test");
     }
