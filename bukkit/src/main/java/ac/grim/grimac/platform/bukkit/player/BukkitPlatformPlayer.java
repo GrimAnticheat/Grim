@@ -12,6 +12,8 @@ import ac.grim.grimac.platform.bukkit.utils.convert.BukkitConversionUtils;
 import ac.grim.grimac.platform.bukkit.utils.reflection.PaperUtils;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
 import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.utils.message.MessagePackets;
+import ac.grim.grimac.utils.message.SystemMessagePacket;
 import ac.grim.grimac.utils.reflection.ReflectionUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -23,6 +25,7 @@ import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -84,7 +87,7 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @Override
     public void sendMessage(String message) {
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            user.sendMessage(message);
+            sendFastMessage(LegacyComponentSerializer.legacySection().deserialize(message));
         } else {
             bukkitPlayer.sendMessage(message);
         }
@@ -93,12 +96,19 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
     @Override
     public void sendMessage(Component message) {
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            user.sendMessage(message);
+            sendFastMessage(message);
         } else if (Audience.class.isInstance(bukkitPlayer)) {
             Audience.class.cast(bukkitPlayer).sendMessage(message);
         } else {
             audiences.player(bukkitPlayer).sendMessage(message);
         }
+    }
+
+    private void sendFastMessage(Component message) {
+        ServerVersion version = PacketEvents.getAPI().getServerManager().getVersion();
+        int dataVersion = version.isNewerThanOrEquals(ServerVersion.V_1_13)
+                ? Bukkit.getUnsafe().getDataVersion() : 0;
+        MessagePackets.send(user, new SystemMessagePacket(version, dataVersion, message));
     }
 
     @Override

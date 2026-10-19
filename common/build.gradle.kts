@@ -67,6 +67,9 @@ dependencies {
     api(libs.snakeyaml)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
+    api(libs.adventure.text.serializer.gson)
+    api(libs.adventure.text.serializer.json.legacy)
+    api(libs.adventure.text.serializer.legacy)
     api(libs.jetbrains.annotations)
     api(libs.hikaricp)
     runtimeOnly(libs.slf4j.jdk14)
@@ -86,11 +89,24 @@ dependencies {
     compileOnly(libs.luckperms)
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation(libs.packetevents.api)
+    testImplementation(libs.netty)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+providers.gradleProperty("adventureTestVersion").orNull?.let { adventureTestVersion ->
+    configurations.named("testRuntimeClasspath") {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "net.kyori" && requested.name.startsWith("adventure-")
+                && !requested.name.startsWith("adventure-platform-")) {
+                useVersion(adventureTestVersion)
+            }
+        }
+    }
 }
 
 publishing.publications.create<MavenPublication>("maven") {

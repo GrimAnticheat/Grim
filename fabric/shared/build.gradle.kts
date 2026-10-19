@@ -32,6 +32,8 @@ dependencies {
     compileOnly(libs.grim.internal.shims)
 
     compileOnly(libs.packetevents.api)
+    compileOnly(libs.netty)
+    compileOnly("com.google.code.gson:gson:2.11.0")
 
     compileOnly(libs.fabric.loader)
 

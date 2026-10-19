@@ -4,6 +4,8 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
+import ac.grim.grimac.utils.message.DisconnectMessagePacket;
+import ac.grim.grimac.utils.message.MessagePackets;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -11,7 +13,6 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.configuration.client.WrapperConfigClientPluginMessage;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisconnect;
 import org.jetbrains.annotations.NotNull;
 
 public class PacketPluginMessage extends PacketListenerAbstract {
@@ -43,10 +44,11 @@ public class PacketPluginMessage extends PacketListenerAbstract {
             LogUtil.warn(user.getName() + " is being disconnected for sending ViaVersion proxy data.");
 
             try {
-                WrapperPlayServerDisconnect disconnect = new WrapperPlayServerDisconnect(
+                DisconnectMessagePacket disconnect = new DisconnectMessagePacket(
+                        GrimAPI.INSTANCE.getPlatformServer().getDataVersion(),
                         MessageUtil.miniMessage(GrimAPI.INSTANCE.getConfigManager().getDisconnectPacketError())
                 );
-                user.sendPacket(disconnect);
+                MessagePackets.send(user, disconnect);
             } catch (Exception e) {
                 LogUtil.warn("Failed to send disconnect packet to kick " + user.getName() + "!");
             }

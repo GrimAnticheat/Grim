@@ -4,11 +4,19 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.Platform;
 import ac.grim.grimac.platform.api.PlatformServer;
 import ac.grim.grimac.platform.api.sender.Sender;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 public class BukkitPlatformServer implements PlatformServer {
+
+    @Override
+    public int getDataVersion() {
+        return PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
+                ? Bukkit.getUnsafe().getDataVersion() : 0;
+    }
 
     @Override
     public String getPlatformImplementationString() {

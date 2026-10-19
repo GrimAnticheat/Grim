@@ -12,6 +12,10 @@ public interface IFabricConversionUtil {
 
     Object toNativeText(Component component);
 
+    default int dataVersion() {
+        return FabricDataVersion.CURRENT;
+    }
+
     GameMode fromNativeGameMode(Object gameMode);
 
     Object toNativeGameMode(GameMode gameMode);

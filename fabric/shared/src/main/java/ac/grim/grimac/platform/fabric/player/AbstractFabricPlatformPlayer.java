@@ -8,12 +8,15 @@ import ac.grim.grimac.platform.fabric.FabricPlatformServices;
 import ac.grim.grimac.platform.fabric.entity.AbstractFabricGrimEntity;
 import ac.grim.grimac.platform.fabric.inject.FabricServerPlayerHandle;
 import ac.grim.grimac.utils.common.arguments.CommonGrimArguments;
+import ac.grim.grimac.utils.message.MessagePackets;
+import ac.grim.grimac.utils.message.SystemMessagePacket;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPluginMessage;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPluginMessage;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrimEntity<T> implements PlatformPlayer {
@@ -59,7 +62,7 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     @Override
     public void sendMessage(String message) {
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            user.sendMessage(message);
+            sendFastMessage(LegacyComponentSerializer.legacySection().deserialize(message));
         } else {
             handle().sendSystemText(FabricPlatformServices.textLiteral(message));
         }
@@ -68,11 +71,17 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
     @Override
     public void sendMessage(Component message) {
         if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
-            user.sendMessage(message);
+            sendFastMessage(message);
         } else {
             Object nativeText = FabricPlatformServices.conversionUtil().toNativeText(message);
             handle().sendSystemText(nativeText);
         }
+    }
+
+    private void sendFastMessage(Component message) {
+        var conversion = FabricPlatformServices.conversionUtil();
+        MessagePackets.send(user, new SystemMessagePacket(PacketEvents.getAPI().getServerManager().getVersion(),
+                conversion.dataVersion(), message));
     }
 
     @Override

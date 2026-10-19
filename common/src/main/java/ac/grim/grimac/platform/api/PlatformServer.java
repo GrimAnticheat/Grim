@@ -6,6 +6,8 @@ public interface PlatformServer {
 
     String getPlatformImplementationString();
 
+    int getDataVersion();
+
     void dispatchCommand(Sender sender, String command);
 
     Sender getConsoleSender();

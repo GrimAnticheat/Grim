@@ -14,7 +14,7 @@ cloud-processors-requirements = "1.0.0-rc.1"
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
 grim-api = "1.6.0.12"
-packetevents = "2.14.1+c11273e-SNAPSHOT"
+packetevents = "2.14.1+137fad8-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
 luckperms = "5.5"
@@ -40,6 +40,9 @@ spotless = "6.25.0"
 # --- Core Frameworks: Adventure (Text) & Cloud (Commands) ---
 adventure-platform-bukkit = { group = "net.kyori", name = "adventure-platform-bukkit", version.ref = "adventure-platform-bukkit" }
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
+adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
+adventure-text-serializer-json-legacy = { group = "net.kyori", name = "adventure-text-serializer-json-legacy-impl", version.ref = "adventure" }
+adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
 cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-fabric" }
 cloud-fabric-official = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-fabric-official" }

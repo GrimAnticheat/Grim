@@ -13,6 +13,11 @@ public abstract class AbstractFabricPlatformServer implements PlatformServer {
     public abstract boolean hasPermission(Sender sender, int level);
 
     @Override
+    public int getDataVersion() {
+        return FabricPlatformServices.conversionUtil().dataVersion();
+    }
+
+    @Override
     public String getPlatformImplementationString() {
         return "Fabric " + FabricLoader.getInstance().getModContainer("fabricloader").orElseThrow().getMetadata().getVersion().getFriendlyString() + " (MC: " + AbstractGrimACFabricEntryPoint.server().getServerVersion() + ")";
     }

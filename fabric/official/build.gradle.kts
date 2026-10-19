@@ -25,6 +25,10 @@ loom {
 }
 
 dependencies {
+    implementation(platform("net.kyori:adventure-bom:5.2.0"))
+    implementation("net.kyori:adventure-text-serializer-gson:5.2.0")
+    implementation("net.kyori:adventure-text-serializer-json-legacy-impl:5.2.0")
+    implementation("net.kyori:adventure-text-serializer-legacy:5.2.0")
     minecraft("com.mojang:minecraft:$minecraft_version")
     compileOnly(libs.fabric.loader)
 

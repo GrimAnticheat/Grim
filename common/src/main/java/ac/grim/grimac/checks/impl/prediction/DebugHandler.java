@@ -96,9 +96,9 @@ public class DebugHandler extends AbstractDebugHandler implements PostPrediction
 
         if (thisFlag) {
             for (int i = 0; i < this.predicted.size(); i++) {
-                player.user.sendMessage(this.predicted.get(i));
-                player.user.sendMessage(this.actually.get(i));
-                player.user.sendMessage(this.offset.get(i));
+                player.sendMessage(this.predicted.get(i));
+                player.sendMessage(this.actually.get(i));
+                player.sendMessage(this.offset.get(i));
             }
         }
 
