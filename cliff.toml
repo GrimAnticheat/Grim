@@ -45,6 +45,7 @@ commit_preprocessors = [
 ]
 sort_commits = "oldest"
 
-[remote]
-# Dev build notes use local Git metadata and do not need GitHub API data.
-offline = true
+[remote.github]
+owner = "GrimAnticheat"
+repo = "Grim"
+http_timeout = "60s"
