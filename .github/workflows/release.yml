@@ -9,6 +9,7 @@ jobs:
         uses: ./.github/workflows/build-and-publish.yml
         with:
             runner: 'ix'
+            fabric-loom-override: '1.17-SNAPSHOT'
             is-release-build: true
             release-version-type: release # Official releases are 'release'
             # Use the body of the GitHub Release as the changelog
@@ -20,3 +21,5 @@ jobs:
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
             BUILD_UPDATE_URL: ${{ secrets.BUILD_UPDATE_URL }}
+            ENGINE_USERNAME: ${{ secrets.ENGINE_USERNAME }}
+            ENGINE_PASSWORD: ${{ secrets.ENGINE_PASSWORD }}

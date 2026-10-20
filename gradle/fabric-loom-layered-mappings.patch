@@ -1,0 +1,24 @@
+diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/LayeredMappingsFactory.java b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/LayeredMappingsFactory.java
+index d7ba663a..2db55ac7 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/providers/mappings/LayeredMappingsFactory.java
++++ b/src/main/java/net/fabricmc/loom/configuration/providers/mappings/LayeredMappingsFactory.java
+@@ -83,10 +83,15 @@ public record LayeredMappingsFactory(LayeredMappingSpec spec) {
+ 		final LocalMavenHelper maven = new LocalMavenHelper(GROUP, MODULE, spec().getVersion(), null, mavenRepoDir);
+ 
+ 		LoomGradleExtension extension = LoomGradleExtension.get(configContext.project());
+-
+-		// If we have not generated these mappings already, regenerate them
+-		if (!maven.exists(null) || extension.refreshDeps()) {
+-			final Path jar = resolve(configContext.project());
++		final Path jar = resolve(configContext.project());
++		final Path mavenJar = maven.getOutputFile(null);
++
++		// Resolve the project-local mapping first. Different projects can share a
++		// layered mapping version, so the Maven copy alone is not enough to prove
++		// that this project's mapping artifact is current.
++		if (!maven.exists(null)
++				|| extension.refreshDeps()
++				|| Files.mismatch(jar, mavenJar) != -1) {
+ 			maven.copyToMaven(jar, null);
+ 		}
+ 	}
