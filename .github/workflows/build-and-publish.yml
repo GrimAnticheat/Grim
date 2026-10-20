@@ -38,7 +38,7 @@ on:
                 description: 'Private Fabric Loom version override; empty uses the public catalog version.'
                 required: false
                 type: string
-                default: '1.17-SNAPSHOT'
+                default: ''
         secrets:
             MODRINTH_ID:
                 required: false

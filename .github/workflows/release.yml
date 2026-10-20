@@ -9,7 +9,7 @@ jobs:
         uses: ./.github/workflows/build-and-publish.yml
         with:
             runner: 'ix'
-            fabric-loom-override: '1.17-SNAPSHOT'
+            fabric-loom-override: ''
             is-release-build: true
             release-version-type: release # Official releases are 'release'
             # Use the body of the GitHub Release as the changelog
