@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsB;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.PlayerBaseTick;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
@@ -594,6 +595,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 // Track dash cooldown
                 if (!player.inVehicle()) {
                     player.dashableEntities.tick();
+                    // The client still updates its pose on ticks it sends no movement for, so a crouch
+                    // released while standing still has to reach the pose here or the next move uses a stale hitbox
+                    PlayerBaseTick.updatePlayerPose(player);
                 }
             }
             player.packetStateData.didSendMovementBeforeTickEnd = false;
