@@ -35,8 +35,9 @@ println("    version            = $version")
 tasks.register("printVersion") {
     group = "versioning"
     description = "Prints the computed project version"
+    inputs.property("version", version.toString())
     doLast {
-        println("VERSION=$version")
+        println("VERSION=${inputs.properties["version"]}")
     }
 }
 

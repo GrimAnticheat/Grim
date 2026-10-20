@@ -7,7 +7,7 @@ on:
                 description: 'The runner to use for the build job.'
                 required: false
                 type: string
-                default: 'ubuntu-latest'
+                default: 'ix'
             is-release-build:
                 description: 'True if this is a release build, which affects versioning and publishing.'
                 required: true
@@ -46,7 +46,8 @@ on:
 
 jobs:
     build:
-        runs-on: ${{ inputs.runner }}
+        # The ix default mints one disposable runner for this exact workflow attempt.
+        runs-on: ${{ inputs.runner == 'ix' && format('ix-ci-run-{0}-{1}-build', github.run_id, github.run_attempt) || inputs.runner }}
         permissions:
             contents: read
             pull-requests: read
@@ -75,7 +76,8 @@ jobs:
             - name: Setup Gradle
               uses: gradle/actions/setup-gradle@v3
               with:
-                  cache-read-only: ${{ github.ref_name != github.event.repository.default_branch && github.ref_name != 'dev' }}
+                  # Pushes and dispatches seed the shared cache; pull requests read it.
+                  cache-read-only: ${{ github.event_name == 'pull_request' }}
 
             - name: Cache Gradle Loom Cache
               uses: actions/cache@v4
