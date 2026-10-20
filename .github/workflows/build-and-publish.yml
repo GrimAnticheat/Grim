@@ -7,7 +7,7 @@ on:
                 description: 'The runner to use for the build job.'
                 required: false
                 type: string
-                default: 'ubuntu-latest'
+                default: 'ix'
             is-release-build:
                 description: 'True if this is a release build, which affects versioning and publishing.'
                 required: true
@@ -35,6 +35,8 @@ on:
                 type: boolean
                 default: true
         secrets:
+            GRADLE_ENCRYPTION_KEY:
+                required: false
             MODRINTH_ID:
                 required: false
             MODRINTH_TOKEN:
@@ -59,13 +61,13 @@ jobs:
 
         steps:
             - name: Checkout repository with full history
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   persist-credentials: false
                   fetch-depth: 0
 
             - name: Set up JDK 25
-              uses: actions/setup-java@v4
+              uses: actions/setup-java@v5
               with:
                   java-version: '25'
                   distribution: 'temurin'
@@ -73,12 +75,14 @@ jobs:
                   settings-path: ${{ github.workspace }}
 
             - name: Setup Gradle
-              uses: gradle/actions/setup-gradle@v3
+              uses: gradle/actions/setup-gradle@v6
               with:
-                  cache-read-only: ${{ github.ref_name != github.event.repository.default_branch && github.ref_name != 'dev' }}
+                  # Pushes and dispatches seed the shared cache; pull requests read it.
+                  cache-read-only: ${{ github.event_name == 'pull_request' }}
+                  cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
             - name: Cache Gradle Loom Cache
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                   path: .gradle/loom-cache
                   key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
@@ -133,14 +137,14 @@ jobs:
                   fi
 
             - name: Upload Bukkit Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v7
               with:
                   name: grimac-bukkit
                   path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
             - name: Upload Fabric Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v7
               with:
                   name: grimac-fabric
                   path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
