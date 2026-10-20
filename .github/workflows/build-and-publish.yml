@@ -34,11 +34,6 @@ on:
                 required: false
                 type: boolean
                 default: true
-            fabric-loom-override:
-                description: 'Private Fabric Loom version override; empty uses the public catalog version.'
-                required: false
-                type: string
-                default: ''
         secrets:
             MODRINTH_ID:
                 required: false
@@ -48,10 +43,6 @@ on:
                 required: true
             BUILD_UPDATE_URL:
                 required: true
-            ENGINE_USERNAME:
-                required: false
-            ENGINE_PASSWORD:
-                required: false
 
 jobs:
     build:
@@ -66,9 +57,6 @@ jobs:
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             GRIM_MAIN_BRANCH: ${{ github.event.repository.default_branch }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
-            GRIM_MAVEN_PRIVATE_SNAPSHOTS_URL: https://maven.grim.ac/private/snapshots
-            GRIM_MAVEN_USERNAME: ${{ secrets.ENGINE_USERNAME }}
-            GRIM_MAVEN_PASSWORD: ${{ secrets.ENGINE_PASSWORD }}
 
         steps:
             - name: Checkout repository with full history
@@ -117,9 +105,6 @@ jobs:
                   # Conditionally add the --scan flag
                   if [[ "${{ inputs.run-build-scan }}" == "true" ]]; then
                     BUILD_ARGS="$BUILD_ARGS --scan"
-                  fi
-                  if [[ -n "${{ inputs.fabric-loom-override }}" ]]; then
-                    BUILD_ARGS="$BUILD_ARGS -PfabricLoomOverride=${{ inputs.fabric-loom-override }}"
                   fi
 
                   echo "Running: ./gradlew printVersion $BUILD_ARGS"

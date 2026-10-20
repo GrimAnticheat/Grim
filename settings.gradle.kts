@@ -23,48 +23,22 @@ dependencyResolutionManagement {
 }
 
 pluginManagement {
-    val fabricLoomOverride = gradle.startParameter.projectProperties["fabricLoomOverride"]
     repositories {
-        if (fabricLoomOverride != null) {
-            mavenLocal()
-            maven {
-                name = "GrimPrivateSnapshots"
-                url = uri(System.getenv("GRIM_MAVEN_PRIVATE_SNAPSHOTS_URL") ?: "https://maven.grim.ac/private/snapshots")
-                credentials {
-                    username = System.getenv("GRIM_MAVEN_USERNAME") ?: ""
-                    password = System.getenv("GRIM_MAVEN_PASSWORD") ?: ""
+        // For the Fabric Loom plugin
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "FabricMC"
+                    url = uri("https://maven.fabricmc.net/")
                 }
             }
-            maven {
-                name = "FabricMC"
-                url = uri("https://maven.fabricmc.net/")
-            }
-        } else {
-            // For the Fabric Loom plugin
-            exclusiveContent {
-                forRepository {
-                    maven {
-                        name = "FabricMC"
-                        url = uri("https://maven.fabricmc.net/")
-                    }
-                }
-                filter {
-                    includeModule("fabric-loom", "fabric-loom.gradle.plugin")
-                    includeGroupByRegex("net.fabricmc.*")
-                }
+            filter {
+                includeModule("fabric-loom", "fabric-loom.gradle.plugin")
+                includeGroupByRegex("net.fabricmc.*")
             }
         }
 
         gradlePluginPortal()
-    }
-    if (fabricLoomOverride != null) {
-        resolutionStrategy {
-            eachPlugin {
-                if (requested.id.id.startsWith("net.fabricmc.fabric-loom")) {
-                    useVersion(fabricLoomOverride)
-                }
-            }
-        }
     }
 }
 
