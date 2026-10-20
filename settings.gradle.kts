@@ -26,8 +26,8 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             // Temporary fork until FabricMC/fabric-loom#1648 is released upstream.
-            if (requested.id.id in setOf("net.fabricmc.fabric-loom", "net.fabricmc.fabric-loom-remap") && requested.version == "1.18.4-grim.1") {
-                useModule("ac.grim.grimac:fabric-loom:1.18.4-grim.1")
+            if (requested.id.id in setOf("net.fabricmc.fabric-loom", "net.fabricmc.fabric-loom-remap") && requested.version == "1.18.4-grim.2") {
+                useModule("ac.grim.grimac:fabric-loom:1.18.4-grim.2")
             }
         }
     }
