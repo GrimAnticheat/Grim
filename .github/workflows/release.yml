@@ -16,6 +16,7 @@ jobs:
             run-build-scan: false
             publish-artifacts: true
         secrets:
+            GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}

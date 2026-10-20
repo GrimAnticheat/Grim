@@ -48,6 +48,7 @@ jobs:
             publish-artifacts: ${{ github.event.inputs.publish-artifacts != 'false' }}
             use-modrinth-fallback: ${{ github.event.inputs.use-modrinth-fallback != 'false' }}
         secrets:
+            GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}

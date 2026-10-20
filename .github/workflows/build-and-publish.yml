@@ -35,6 +35,8 @@ on:
                 type: boolean
                 default: true
         secrets:
+            GRADLE_ENCRYPTION_KEY:
+                required: false
             MODRINTH_ID:
                 required: false
             MODRINTH_TOKEN:
@@ -46,8 +48,7 @@ on:
 
 jobs:
     build:
-        # The ix default mints one disposable runner for this exact workflow attempt.
-        runs-on: ${{ inputs.runner == 'ix' && format('ix-ci-run-{0}-{1}-build', github.run_id, github.run_attempt) || inputs.runner }}
+        runs-on: ${{ inputs.runner }}
         permissions:
             contents: read
             pull-requests: read
@@ -78,6 +79,7 @@ jobs:
               with:
                   # Pushes and dispatches seed the shared cache; pull requests read it.
                   cache-read-only: ${{ github.event_name == 'pull_request' }}
+                  cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
             - name: Cache Gradle Loom Cache
               uses: actions/cache@v5
