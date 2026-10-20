@@ -50,7 +50,6 @@ jobs:
         permissions:
             contents: read
             pull-requests: read
-            packages: write
 
         env:
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
