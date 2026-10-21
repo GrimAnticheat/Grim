@@ -339,9 +339,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             double threshold = teleportPos.isRelativePos() ? player.getMovementThreshold() : 0;
             double yRoundingTolerance = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 1e-7 : 0; // 1.7 rounding
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= yRoundingTolerance + threshold;
-            // rotations are updated every frame, we can't accurately check them if they're relative
-            boolean correctRotations = (yaw == teleportPos.getYaw() || teleportPos.isRelativeYaw())
-                    && (pitch == teleportPos.getPitch() || teleportPos.isRelativePitch());
+            boolean correctRotations = teleportPos.isValidRotation(player.getClientVersion(), yaw, pitch);
 
             if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
                 pendingTeleports.poll();
