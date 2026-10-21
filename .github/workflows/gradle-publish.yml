@@ -22,6 +22,11 @@ on:
                 required: false
                 type: string
                 default: 'ix'
+            refresh-gradle-cache:
+                description: 'Write a new Gradle User Home cache entry instead of using read-only ix caching.'
+                required: false
+                type: boolean
+                default: false
     push:
         branches:
             - 'main'
@@ -47,6 +52,7 @@ jobs:
             run-build-scan: ${{ github.event.inputs.run-build-scan == 'true' }}
             publish-artifacts: ${{ github.event.inputs.publish-artifacts != 'false' }}
             use-modrinth-fallback: ${{ github.event.inputs.use-modrinth-fallback != 'false' }}
+            refresh-gradle-cache: ${{ github.event.inputs.refresh-gradle-cache == 'true' }}
         secrets:
             GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
