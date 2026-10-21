@@ -11,7 +11,6 @@ import ac.grim.grimac.utils.nmsutil.PistonPushReaction.Reaction;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersions;
 
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -63,11 +62,11 @@ public final class PistonBlockEvent {
         if (action != EXTEND && action != RETRACT && action != DROP) return null;
 
         ClientVersion version = player.getClientVersion();
-        boolean modern = version.isNewerThanOrEquals(ClientVersions.V_1_13);
+        boolean modern = version.isNewerThanOrEquals(ClientVersion.V_1_13);
         // Without our world changes the push is still given, which is all the old event listeners did
         boolean changeWorld = !GeyserUtil.isBedrockPlayer(player.user.getUUID()) && (action != DROP || modern);
 
-        BlockFace facing = piston.facing();
+        BlockFace facing = piston.getFacing();
         Pos base = new Pos(x, y, z);
         Pos head = base.relative(facing);
         Rules rules = Rules.of(version);

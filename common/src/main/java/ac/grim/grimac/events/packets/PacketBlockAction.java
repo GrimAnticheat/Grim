@@ -49,7 +49,7 @@ public class PacketBlockAction extends PacketListenerAbstract {
             PistonData piston = PistonBlockEvent.handle(
                     player, blockPos.getX(), blockPos.getY(), blockPos.getZ(), actionId, transaction);
             if (piston != null) {
-                player.compensatedWorld.addActivePistons(piston);
+                player.compensatedWorld.activePistons.add(piston);
             } else if (Materials.isShulker(existing.getType())) {
                 ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), actionData < 1);
                 player.compensatedWorld.openShulkerBoxes.remove(data);

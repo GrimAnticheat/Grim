@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.nmsutil.PistonPushReaction.Reaction;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.ClientVersions;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
@@ -49,7 +48,7 @@ final class PistonStructure {
      */
     record Rules(boolean honeyIsSlime, boolean pushOnly) {
         static Rules of(ClientVersion version) {
-            return new Rules(version.isOlderThan(ClientVersions.V_1_15), version.isNewerThanOrEquals(ClientVersions.V_1_12));
+            return new Rules(version.isOlderThan(ClientVersion.V_1_15), version.isNewerThanOrEquals(ClientVersion.V_1_12));
         }
     }
 
