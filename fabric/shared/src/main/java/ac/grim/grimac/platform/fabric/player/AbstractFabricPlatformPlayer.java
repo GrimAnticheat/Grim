@@ -59,7 +59,12 @@ public abstract class AbstractFabricPlatformPlayer<T> extends AbstractFabricGrim
 
     @Override
     public void sendMessage(String message) {
-        sendMessage(AdventureSerializer.serializer().fromLegacy(message));
+        if (CommonGrimArguments.USE_CHAT_FAST_BYPASS.value() && user != null) {
+            // User.sendMessage(String) selects the serializer for this player's client version.
+            user.sendMessage(message);
+        } else {
+            sendMessage(AdventureSerializer.serializer().fromLegacy(message));
+        }
     }
 
     @Override
