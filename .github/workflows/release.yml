@@ -15,6 +15,7 @@ jobs:
             release-changelog: ${{ github.event.release.body }}
             run-build-scan: false
             publish-artifacts: true
+            refresh-gradle-cache: true
         secrets:
             GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}

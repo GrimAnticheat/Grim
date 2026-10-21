@@ -34,6 +34,11 @@ on:
                 required: false
                 type: boolean
                 default: true
+            refresh-gradle-cache:
+                description: 'Write a new Gradle User Home cache entry. Normal ix runs restore state without uploading it.'
+                required: false
+                type: boolean
+                default: false
         secrets:
             GRADLE_ENCRYPTION_KEY:
                 required: false
@@ -77,8 +82,9 @@ jobs:
             - name: Setup Gradle
               uses: gradle/actions/setup-gradle@v6
               with:
-                  # Pushes and dispatches seed the shared cache; pull requests read it.
-                  cache-read-only: ${{ github.event_name == 'pull_request' }}
+                  # ix workspaces are disposable. Restore shared Gradle state by default;
+                  # only explicitly seeded runs upload the large Gradle User Home cache.
+                  cache-read-only: ${{ github.event_name == 'pull_request' || (inputs.runner == 'ix' && !inputs.refresh-gradle-cache) }}
                   cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
             - name: Cache Gradle Loom Cache
