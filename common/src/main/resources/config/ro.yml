@@ -199,6 +199,9 @@ debug-pipeline-on-join: false
 # Activează verificări experimentale
 experimental-checks: false
 
+# Partajează secțiunile identice de chunk între jucători pentru a economisi memorie (copiere la scriere).
+experimental-chunk-sharing: false
+
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true

@@ -51,7 +51,7 @@ public class BlockPlace {
     @Getter private boolean isCancelled;
     private final GrimPlayer player;
     public final ItemStack itemStack;
-    public final StateType material;
+    @Getter public final StateType material;
     public final @Nullable HitData hitData;
     @Getter private int faceId;
     @Getter private BlockFace face;

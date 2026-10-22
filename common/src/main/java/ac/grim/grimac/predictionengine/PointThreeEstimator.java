@@ -157,7 +157,7 @@ public class PointThreeEstimator {
             isNearFluid = true;
         }
 
-        if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+        if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z)) && !data.isNull()) {
             // https://github.com/MWHunter/Grim/issues/613
             int controllingEntityId = player.inVehicle() ? player.getRidingVehicleId() : player.entityID;
 

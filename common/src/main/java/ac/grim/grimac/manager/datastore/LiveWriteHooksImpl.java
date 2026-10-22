@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -32,6 +33,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
     private final PlayerIdentityService identityService;
     private final CheckRegistry checkRegistry;
     private final SessionTracker sessionTracker;
+    private final BooleanSupplier writesAllowed;
     /** display name (lowercased) → checkId. Populated lazily via intern. */
     private final Map<String, Integer> checkIdCache = new ConcurrentHashMap<>();
     /** display-name-lowercase of checks we've already warned about. Prevents log spam. */
@@ -42,6 +44,12 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
             @NotNull PlayerIdentityService identityService,
             @NotNull CheckRegistry checkRegistry,
             @NotNull SessionTracker sessionTracker) {
+        this(store, identityService, checkRegistry, sessionTracker, () -> true);
+    }
+
+    LiveWriteHooksImpl(DataStore store, PlayerIdentityService identityService, CheckRegistry checkRegistry,
+                       SessionTracker sessionTracker, BooleanSupplier writesAllowed) {
+        this.writesAllowed = writesAllowed;
         this.store = store;
         this.identityService = identityService;
         this.checkRegistry = checkRegistry;
@@ -76,6 +84,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
             @Nullable String verbose,
             long now,
             @NotNull SessionTracker.ClientMeta meta) {
+        if (!writesAllowed.getAsBoolean()) return;
         UUID sessionId = sessionTracker.currentSessionId(playerUuid);
         if (sessionId == null) {
             // Two real cases: a check fired on a packet between LOGIN_SUCCESS
@@ -104,6 +113,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
             byte @Nullable [] verboseData,
             long now,
             @NotNull SessionTracker.ClientMeta meta) {
+        if (!writesAllowed.getAsBoolean()) return;
         UUID sessionId = sessionTracker.currentSessionId(playerUuid);
         if (sessionId == null) {
             // See recordFlag(): binary verbose uses the same synthesized-session fallback.

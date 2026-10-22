@@ -24,20 +24,8 @@ public class LatencyUtils {
     }
 
     public void addRealTimeTask(int transaction, Runnable runnable) {
-        addRealTimeTask(transaction, false, runnable);
-    }
-
-    public void addRealTimeTaskAsync(int transaction, Runnable runnable) {
-        addRealTimeTask(transaction, true, runnable);
-    }
-
-    public void addRealTimeTask(int transaction, boolean async, Runnable runnable) {
         if (player.lastTransactionReceived.get() >= transaction) { // If the player already responded to this transaction
-            if (async) {
-                player.runSafely(runnable);
-            } else {
-                runnable.run();
-            }
+            runnable.run();
             return;
         }
         synchronized (this) {

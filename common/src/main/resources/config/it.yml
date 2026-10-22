@@ -30,8 +30,8 @@ client-brand:
         - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
         - "^Feather Fabric$"
         - "^labymod$"
-    # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
-    # Setting this option to false will allow said clients to connect to the server. Disable this at your own risk.
+    # Grim bloccherà specifiche versioni di Forge che includono hack di Reach integrati (Forge dalla 1.18.2 alla 1.19.3).
+    # Impostando questa opzione su false, tali client potranno connettersi al server. Disattivala a tuo rischio.
     disconnect-blacklisted-forge-versions: true
 
 spectators:
@@ -41,11 +41,12 @@ spectators:
     allowed-worlds:
         - ""
 
+# Dopo quanto tempo i giocatori devono essere espulsi per timeout? Predefinito = 60 secondi
 max-transaction-time: 60
 
-# Enable this to stop Grim cancelling pongs received from players.
-# This may improve compatibility with other anticheats. It may cause issues with packet limiters.
-# Do not enable this if you are not sure what you are doing.
+# Abilita questa opzione per impedire a Grim di annullare i pong ricevuti dai giocatori.
+# Potrebbe migliorare la compatibilità con altri anticheat. Potrebbe causare problemi con i limitatori di pacchetti.
+# Non abilitarla se non sai cosa stai facendo.
 disable-pong-cancelling: false
 
 # Il gestore predefinito per la risincronizzazione dei blocchi deve essere disabilitato?
@@ -55,12 +56,12 @@ disable-pong-cancelling: false
 # Questo forza l'uso di un gestore "NoOp" (Nessuna Operazione) a meno che non ne venga fornito uno personalizzato via API.
 disable-default-resync-handler: false
 
-# Should the duplicate movement packet be cancelled?
-# Mojang has fixed this issue in 1.21. This was their attempt to fix the "bucket desync". https://bugs.mojang.com/browse/MC-12363
-# This setting only applies to 1.17-1.20.5 clients on 1.8 servers.
+# Il pacchetto di movimento duplicato deve essere annullato?
+# Mojang ha corretto questo problema nella 1.21. Era il loro tentativo di correggere il "bucket desync". https://bugs.mojang.com/browse/MC-12363
+# Questa impostazione si applica solo ai client 1.17-1.20.5 sui server 1.8.
 cancel-duplicate-packet: true
 
-# Whether or not to ignore the rotation in duplicate packets
+# Se ignorare o meno la rotazione nei pacchetti duplicati
 ignore-duplicate-packet-rotation: false
 
 Simulation:
@@ -136,11 +137,11 @@ TimerA:
     # Millisecondi accumulabili per il timer
     drift: 120
 
-# This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
+# Questo controllo limita l'abuso del saldo di TimerA impedendo al movimento del giocatore di restare troppo indietro rispetto al tempo reale
 TimerLimit:
-    # Ping at which the check will start to limit timer balance, to prevent abuse.
-    # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
-    # -1 to disable
+    # Ping al quale il controllo inizierà a limitare il saldo del timer, per prevenire abusi.
+    # Può causare alcuni setback per i giocatori legittimi, ma solo se superano questa soglia di ping.
+    # -1 per disattivare
     ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
@@ -171,19 +172,24 @@ exploit:
     # Distanza per controllare i ghost blocks
     distance-to-check-if-ghostblocks: 2
 
-# Enable logging plugins who have injected into netty on join to debug compatibility issues
+# Abilita il registro dei plugin che si sono iniettati in netty all'ingresso per diagnosticare problemi di compatibilità
 debug-pipeline-on-join: false
 
-# Enables experimental checks
+# Abilita i check sperimentali
 experimental-checks: false
+
+# Condivide le sezioni dei chunk identiche tra i giocatori per risparmiare memoria (copia in scrittura).
+# Sperimentale: abilita solo dopo la verifica con /grim chunkmemory sul tuo server.
+experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
 reset-item-usage-on-item-use: true
 
-# Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
-# we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
+# Grim a volte annulla i pacchetti illegali, come nel caso del timer. Dopo X pacchetti
+# annullati in un secondo, quando dovremmo semplicemente espellere il giocatore?
+# Questo è necessario perché alcuni limitatori di pacchetti non contano i pacchetti annullati da Grim.
 packet-spam-threshold: 100
 # Abilita questa opzione per stampare uno stacktrace quando un giocatore viene espulso a causa del packet-spam-threshold
 debug-packet-cancel: false
