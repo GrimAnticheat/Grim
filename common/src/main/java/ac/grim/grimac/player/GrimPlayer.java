@@ -278,7 +278,6 @@ public class GrimPlayer implements GrimUser {
     // Grim disabler 2022 still working!
     public boolean disableGrim;
     public double regionTps = Double.NaN;
-    public long regionTpsUpdatedAt;
     public final @NotNull ArrayDeque<@NotNull Movement> movementThisTick = new ArrayDeque<>(8);
     public final @NotNull List<@NotNull Movement> finalMovementsThisTick = new ObjectArrayList<>();
     public final @NotNull LongSet visitedBlocks = new LongOpenHashSet();
