@@ -87,14 +87,6 @@ jobs:
                   cache-read-only: ${{ github.event_name == 'pull_request' || (inputs.runner == 'ix' && !inputs.refresh-gradle-cache) }}
                   cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-            - name: Cache Gradle Loom Cache
-              uses: actions/cache@v5
-              with:
-                  path: .gradle/loom-cache
-                  key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
-                  restore-keys: |
-                      loom-cache-${{ runner.os }}
-
             - name: Set Git Environment Variables
               run: |
                   echo "GRIM_GIT_REPO=${{ github.event.repository.name }}" >> $GITHUB_ENV
