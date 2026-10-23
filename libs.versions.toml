@@ -31,7 +31,7 @@ configuralize = "1.4.1" # :slim classifier is applied in build.gradle.kts
 
 # --- Build & Tooling ---
 fabric-loader = "0.16.14"
-fabric-loom = "1.18.4-grim.2"
+fabric-loom = "1.19.3"
 lombok = "9.0.0"
 shadow = "9.3.0"
 spotless = "8.9.0"

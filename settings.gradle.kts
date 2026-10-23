@@ -23,26 +23,7 @@ dependencyResolutionManagement {
 }
 
 pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            // Temporary fork until FabricMC/fabric-loom#1648 is released upstream.
-            if (requested.id.id in setOf("net.fabricmc.fabric-loom", "net.fabricmc.fabric-loom-remap") && requested.version == "1.18.4-grim.2") {
-                useModule("ac.grim.grimac:fabric-loom:1.18.4-grim.2")
-            }
-        }
-    }
     repositories {
-        exclusiveContent {
-            forRepository {
-                maven {
-                    name = "GrimLoom"
-                    url = uri("https://maven.grim.ac/public/releases")
-                }
-            }
-            filter {
-                includeModule("ac.grim.grimac", "fabric-loom")
-            }
-        }
         // For the Fabric Loom plugin
         exclusiveContent {
             forRepository {
