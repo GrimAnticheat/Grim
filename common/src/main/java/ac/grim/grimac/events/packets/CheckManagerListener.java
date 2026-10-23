@@ -408,7 +408,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             Vector3d position = VectorUtils.clampVector(new Vector3d(teleportConfirm.getX(), teleportConfirm.getY(), teleportConfirm.getZ()));
-            teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ(), teleportConfirm.getYaw(), teleportConfirm.getPitch());
+            teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ(), teleportConfirm.getYaw(), teleportConfirm.getPitch(), teleportConfirm.getTeleportId());
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
         }
 
@@ -580,16 +580,24 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Such as the NoFall check setting the player to not be on the ground
         player.checkManager.onPacketReceive(event);
 
+        if (!event.isCancelled() && teleportConfirm != null && teleportData.isTeleport()) {
+            SetBackData setback = teleportData.getSetback();
+            if (setback != null && !setback.isPlugin() && player.platformPlayer != null) {
+                SetbackMovementHandler.queue(player.platformPlayer, teleportConfirm.getTeleportId(), teleportConfirm.getX(), teleportConfirm.getY(), teleportConfirm.getZ(), teleportConfirm.getYaw(), teleportConfirm.getPitch(), setback.isOnGround(), setback.isVehicle());
+                event.setCancelled(true);
+            }
+        }
+
         if (player.packetStateData.cancelDuplicatePacket) {
             event.setCancelled(true);
             player.packetStateData.cancelDuplicatePacket = false;
         }
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && player.packetStateData.lastPacketWasTeleport) {
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && player.packetStateData.lastPacketWasTeleport && teleportData != null) {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
             SetBackData setback = teleportData.getSetback();
 
-            if (flying.hasPositionChanged() && setback != null && !setback.isPlugin() && !setback.isVehicle()) {
+            if (flying.hasPositionChanged() && setback != null && !setback.isPlugin()) {
                 flying.setOnGround(setback.isOnGround());
                 event.markForReEncode(true);
             }

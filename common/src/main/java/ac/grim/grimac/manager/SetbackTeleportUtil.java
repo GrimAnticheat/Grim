@@ -268,15 +268,17 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
                     player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(position.getX(), position.getY(), position.getZ()), player.yaw % 360, 0, false));
                     player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay = Integer.MAX_VALUE; // Set to max until player accepts the new position
 
-                    // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
-                    GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
-                        if (player.platformPlayer != null) {
-                            GrimEntity vehicle = player.platformPlayer.getVehicle();
-                            if (vehicle != null) {
-                                vehicle.eject();
+                    if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_26_3)) {
+                        // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
+                        GrimAPI.INSTANCE.getScheduler().getEntityScheduler().execute(player.platformPlayer, GrimAPI.INSTANCE.getGrimPlugin(), () -> {
+                            if (player.platformPlayer != null) {
+                                GrimEntity vehicle = player.platformPlayer.getVehicle();
+                                if (vehicle != null) {
+                                    vehicle.eject();
+                                }
                             }
-                        }
-                    }, null, 0);
+                        }, null, 0);
+                    }
                 }
             }
 
@@ -291,7 +293,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             // Min value is 10000000000000000000000000000000 in binary, this makes sure the number is always < 0
             int teleportId = random.nextInt() | Integer.MIN_VALUE;
             data.setPlugin(false);
-            data.setOnGround(!data.isVehicle() && isOnGround(position));
+            data.setOnGround(isOnGround(position));
             data.getTeleportData().setTeleportId(teleportId);
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
@@ -324,6 +326,10 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
      * @return - Whether the player has completed a teleport by being at this position
      */
     public TeleportAcceptData checkTeleportQueue(double x, double y, double z, float yaw, float pitch) {
+        return checkTeleportQueue(x, y, z, yaw, pitch, null);
+    }
+
+    public TeleportAcceptData checkTeleportQueue(double x, double y, double z, float yaw, float pitch, @Nullable Integer teleportId) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         TeleportAcceptData teleportData = new TeleportAcceptData();
@@ -341,7 +347,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= yRoundingTolerance + threshold;
             boolean correctRotations = teleportPos.isValidRotation(player.getClientVersion(), yaw, pitch);
 
-            if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
+            if ((teleportId == null || teleportId == teleportPos.getTeleportId()) && player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
                 pendingTeleports.poll();
                 hasAcceptedSpawnTeleport = true;
                 blockOffsets = false;
