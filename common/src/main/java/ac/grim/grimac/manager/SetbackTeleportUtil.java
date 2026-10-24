@@ -30,6 +30,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAttachEntity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
@@ -291,7 +292,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             // Min value is 10000000000000000000000000000000 in binary, this makes sure the number is always < 0
             int teleportId = random.nextInt() | Integer.MIN_VALUE;
             data.setPlugin(false);
-            data.setOnGround(!data.isVehicle() && isOnGround(position));
+            data.setOnGround(isOnGround(position));
             data.getTeleportData().setTeleportId(teleportId);
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
@@ -301,6 +302,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
+            PacketEvents.getAPI().getProtocolManager().receivePacketSilently(player.user.getChannel(), new WrapperPlayClientPlayerPosition(new Vector3d(position.getX(), y, position.getZ()), data.isOnGround()));
             PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), teleportId, false));
             // Dual fire: packet-level signal for anticheat compat (GrimTeleportEvent),
             // semantic signal for admin/observability consumers (GrimPlayerSetbackEvent).
