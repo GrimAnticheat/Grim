@@ -1,6 +1,7 @@
 name: CI
 
 on:
+    workflow_dispatch:
     # Validate workflow and build-system changes on the default branch without
     # entering the publishing workflow.
     push:
