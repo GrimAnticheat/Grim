@@ -39,10 +39,12 @@ public class PacketEntityAction extends PacketListenerAbstract {
                 case START_SPRINTING -> {
                     player.isSprinting = true;
                     player.vehicleData.camelSprintingState = SprintingState.STARTED;
+                    player.uncertaintyHandler.lastSprintingStatusChange.reset();
                 }
                 case STOP_SPRINTING -> {
                     player.isSprinting = false;
                     player.vehicleData.camelSprintingState = SprintingState.STOPPED;
+                    player.uncertaintyHandler.lastSprintingStatusChange.reset();
                 }
                 case START_SNEAKING -> player.isSneaking = true;
                 case STOP_SNEAKING -> player.isSneaking = false;
