@@ -245,7 +245,7 @@ public class MovementCheckRunner extends GrimProcessor {
 
                 if (player.isClimbing) {
                     Vector3dm ladder = player.clientVelocity.clone().setY(0.2);
-                    PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
+                    PredictionEngineNormal.staticVectorEndOfTick(player, ladder, player.clientVelocity.getY());
                     player.lastWasClimbing = ladder.getY();
                 }
                 return;
