@@ -477,6 +477,7 @@ public class MovementCheckRunner extends GrimProcessor {
 
         player.uncertaintyHandler.shouldSimulateStuckSpeed = hasDifferentStuckSpeeds || hasMultipleStuckSpeeds || lastStuckSpeedNotIncluded;
         player.uncertaintyHandler.stuckSpeedMultiplierMask = maxStuckSpeed;
+        player.uncertaintyHandler.minimumStuckSpeedMultiplierMask = minStuckSpeed;
 
         if (couldBeStuckSpeed) {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
@@ -661,7 +662,7 @@ public class MovementCheckRunner extends GrimProcessor {
         // Or gravity made the player enter 0.03 movement
         // TODO: This needs to be secured better.  isWasAlwaysCertain() seems like a bit of a hack.
         player.uncertaintyHandler.wasZeroPointThreeVertically = !player.inVehicle() &&
-                ((player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement())
+                ((player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && (player.pointThreeEstimator.controlsVerticalMovement() || stuckSpeed.getIndex() != player.predictedVelocity.stuckSpeedMultiplier.getIndex()))
                         || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain());
 
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
