@@ -330,7 +330,9 @@ public class UncertaintyHandler {
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            // Passengers of our own vehicle move with it and can't be collided with, don't give them lenience
             if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && entity != riding
+                    && (riding == null || !riding.hasPassenger(entity))
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }

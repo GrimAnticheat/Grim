@@ -200,6 +200,9 @@ debug-pipeline-on-join: false
 # Habilitar comprobaciones experimentales
 experimental-checks: false
 
+# Comparte secciones de chunks idénticas entre jugadores para ahorrar memoria (copia al escribir).
+experimental-chunk-sharing: false
+
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
