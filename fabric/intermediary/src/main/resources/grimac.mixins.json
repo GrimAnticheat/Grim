@@ -7,7 +7,6 @@
         "FabricIntermediaryCommandSourceStackMixin",
         "FabricIntermediaryLevelChunkMixin",
         "FabricIntermediaryLevelMixin",
-        "FabricIntermediaryPistonBaseBlockMixin",
         "FabricIntermediaryServerMixin",
         "FabricIntermediaryServerPlayerMixin",
         "FabricIntermediaryEntityMixin"

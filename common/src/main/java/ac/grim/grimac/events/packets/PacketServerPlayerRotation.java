@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.connection.ConnectionUtils;
 import ac.grim.grimac.utils.data.RotationData;
-import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -46,9 +45,10 @@ public class PacketServerPlayerRotation extends PacketListenerAbstract {
                 event.getTasksAfterSend().add(() -> ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle()));
             }
             player.sendTransaction();
-            player.pendingRotations.add(new RotationData(
+            player.pendingRotations.add(RotationData.fromServer(
+                    player.getClientVersion(),
                     packet.getYaw(),
-                    packet.isRelativePitch() ? packet.getPitch() : GrimMath.clamp(packet.getPitch() % 360F, -90F, 90F),
+                    packet.getPitch(),
                     packet.isRelativeYaw(),
                     packet.isRelativePitch(),
                     player.getLastTransactionSent()

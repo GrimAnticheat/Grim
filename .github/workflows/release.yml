@@ -8,14 +8,16 @@ jobs:
     call-release-workflow:
         uses: ./.github/workflows/build-and-publish.yml
         with:
-            runner: 'ubuntu-latest'
+            runner: 'ix'
             is-release-build: true
             release-version-type: release # Official releases are 'release'
             # Use the body of the GitHub Release as the changelog
             release-changelog: ${{ github.event.release.body }}
             run-build-scan: false
             publish-artifacts: true
+            refresh-gradle-cache: true
         secrets:
+            GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}
