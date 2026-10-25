@@ -27,7 +27,9 @@ public final class BoundingBoxSize {
 
     private static float getWidthMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
         final EntityType type = packetEntity.getType();
-        if (type == EntityTypes.AXOLOTL) {
+        if (type == EntityTypes.CUSHION) {
+            return 1.0F;
+        } else if (type == EntityTypes.AXOLOTL) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.375f;
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby ? 0.5f : 0.75f;
         } else if (type == EntityTypes.PANDA) {
@@ -240,7 +242,9 @@ public final class BoundingBoxSize {
             return (getHeight(player, packetEntity) * 0.75) - 0.25;
 
         final EntityType type = packetEntity.getType();
-        if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
+        if (type == EntityTypes.CUSHION) {
+            return 0;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
             return 0;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
             return -0.1;
@@ -269,7 +273,9 @@ public final class BoundingBoxSize {
 
     private static float getHeightMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
         final EntityType type = packetEntity.getType();
-        if (type == EntityTypes.ARMADILLO) {
+        if (type == EntityTypes.CUSHION) {
+            return 0.25F;
+        } else if (type == EntityTypes.ARMADILLO) {
             return 0.65f;
         } else if (type == EntityTypes.AXOLOTL) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.21f;

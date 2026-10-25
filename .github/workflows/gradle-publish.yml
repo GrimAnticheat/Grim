@@ -21,7 +21,12 @@ on:
                 description: 'The runner to use for the build job.'
                 required: false
                 type: string
-                default: 'ubuntu-latest'
+                default: 'ix'
+            refresh-gradle-cache:
+                description: 'Write a new Gradle User Home cache entry instead of using read-only ix caching.'
+                required: false
+                type: boolean
+                default: false
     push:
         branches:
             - 'main'
@@ -41,13 +46,15 @@ jobs:
     call-build-workflow:
         uses: ./.github/workflows/build-and-publish.yml
         with:
-            runner: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
+            runner: ${{ github.event.inputs.runner || 'ix' }}
             is-release-build: false
             release-version-type: alpha # Dev builds are always 'alpha'
             run-build-scan: ${{ github.event.inputs.run-build-scan == 'true' }}
             publish-artifacts: ${{ github.event.inputs.publish-artifacts != 'false' }}
             use-modrinth-fallback: ${{ github.event.inputs.use-modrinth-fallback != 'false' }}
+            refresh-gradle-cache: ${{ github.event.inputs.refresh-gradle-cache == 'true' }}
         secrets:
+            GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             BUILD_UPDATE_TOKEN: ${{ secrets.BUILD_UPDATE_TOKEN }}

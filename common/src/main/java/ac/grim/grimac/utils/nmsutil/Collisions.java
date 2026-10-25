@@ -642,8 +642,9 @@ public final class Collisions {
         } else if (getOldDeltaY(player, vector.getY()) >= -0.08D) {
             return false;
         } else {
-            double d0 = Math.abs(locationX + 0.5D - player.lastX);
-            double d1 = Math.abs(locationZ + 0.5D - player.lastZ);
+            // Vanilla reads x/y/z from the same (post-move) position, so this has to match the y check above
+            double d0 = Math.abs(locationX + 0.5D - player.x);
+            double d1 = Math.abs(locationZ + 0.5D - player.z);
             // Calculate player width using bounding box, which will change while swimming or gliding
             double d2 = 0.4375D + ((player.pose.width) / 2.0F);
             return d0 + COLLISION_EPSILON > d2 || d1 + COLLISION_EPSILON > d2;
