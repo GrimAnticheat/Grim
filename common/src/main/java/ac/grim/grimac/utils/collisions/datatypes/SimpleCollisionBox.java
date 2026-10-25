@@ -180,6 +180,16 @@ public class SimpleCollisionBox implements CollisionBox {
         return this;
     }
 
+    public SimpleCollisionBox encompass(double x, double y, double z) {
+        this.minX = Math.min(this.minX, x);
+        this.minY = Math.min(this.minY, y);
+        this.minZ = Math.min(this.minZ, z);
+        this.maxX = Math.max(this.maxX, x);
+        this.maxY = Math.max(this.maxY, y);
+        this.maxZ = Math.max(this.maxZ, z);
+        return this;
+    }
+
     public SimpleCollisionBox expandToAbsoluteCoordinates(double x, double y, double z) {
         return expandToCoordinate(x - ((minX + maxX) / 2), y - ((minY + maxY) / 2), z - ((minZ + maxZ) / 2));
     }

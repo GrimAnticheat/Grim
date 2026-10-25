@@ -7,7 +7,7 @@ on:
                 description: 'The runner to use for the build job.'
                 required: false
                 type: string
-                default: 'ubuntu-latest'
+                default: 'ix'
             is-release-build:
                 description: 'True if this is a release build, which affects versioning and publishing.'
                 required: true
@@ -34,7 +34,14 @@ on:
                 required: false
                 type: boolean
                 default: true
+            refresh-gradle-cache:
+                description: 'Write a new Gradle User Home cache entry. Normal ix runs restore state without uploading it.'
+                required: false
+                type: boolean
+                default: false
         secrets:
+            GRADLE_ENCRYPTION_KEY:
+                required: false
             MODRINTH_ID:
                 required: false
             MODRINTH_TOKEN:
@@ -49,7 +56,7 @@ jobs:
         runs-on: ${{ inputs.runner }}
         permissions:
             contents: read
-            packages: write
+            pull-requests: read
 
         env:
             MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
@@ -59,13 +66,13 @@ jobs:
 
         steps:
             - name: Checkout repository with full history
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   persist-credentials: false
                   fetch-depth: 0
 
             - name: Set up JDK 25
-              uses: actions/setup-java@v4
+              uses: actions/setup-java@v5
               with:
                   java-version: '25'
                   distribution: 'temurin'
@@ -73,17 +80,12 @@ jobs:
                   settings-path: ${{ github.workspace }}
 
             - name: Setup Gradle
-              uses: gradle/actions/setup-gradle@v3
+              uses: gradle/actions/setup-gradle@v6
               with:
-                  cache-read-only: ${{ github.ref_name != github.event.repository.default_branch && github.ref_name != 'dev' }}
-
-            - name: Cache Gradle Loom Cache
-              uses: actions/cache@v4
-              with:
-                  path: .gradle/loom-cache
-                  key: loom-cache-${{ runner.os }}-${{ hashFiles('**/libs.versions.toml', 'fabric/**/build.gradle.kts') }}
-                  restore-keys: |
-                      loom-cache-${{ runner.os }}
+                  # ix workspaces are disposable. Restore shared Gradle state by default;
+                  # only explicitly seeded runs upload the large Gradle User Home cache.
+                  cache-read-only: ${{ github.event_name == 'pull_request' || (inputs.runner == 'ix' && !inputs.refresh-gradle-cache) }}
+                  cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
             - name: Set Git Environment Variables
               run: |
@@ -133,14 +135,14 @@ jobs:
                   fi
 
             - name: Upload Bukkit Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v7
               with:
                   name: grimac-bukkit
                   path: ${{ github.workspace }}/bukkit/build/libs/grimac-bukkit-${{ env.BUILD_VERSION }}.jar
                   if-no-files-found: error
 
             - name: Upload Fabric Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v7
               with:
                   name: grimac-fabric
                   path: ${{ github.workspace }}/fabric/build/libs/grimac-fabric-${{ env.BUILD_VERSION }}.jar
@@ -216,12 +218,11 @@ jobs:
             - name: Generate Changelog with git-cliff (for Dev Builds)
               if: ${{ !inputs.is-release-build }}
               id: git-cliff
-              uses: orhun/git-cliff-action@v4
+              uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
               with:
                   config: cliff.toml
                   args: --verbose ${{ steps.cliff_range.outputs.range_args }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # git-cliff needs a token
+                  github_token: ${{ github.token }}
 
             - name: Prepare Final Changelog
               id: changelog
@@ -269,7 +270,7 @@ jobs:
                   # Union of both shipped variants (mc-publish reads the multi-line
                   # scalar as OR). Keep in sync with fabric.mod.json depends.minecraft.
                   game-versions: |
-                      >=1.16.1 <=26.2
+                      >=1.16.1 <=26.3
                   dependencies: 'fabric-api'
 
             #------------------------------------------------------------------
@@ -294,7 +295,7 @@ jobs:
                     paper
                     folia
                     purpur
-                  game-versions: '>=1.7 <=26.2'
+                  game-versions: '>=1.7 <=26.3'
 
             - name: Publish to API
               if: ${{ inputs.publish-artifacts == true && env.BUILD_UPDATE_TOKEN != '' && inputs.is-release-build == false }}

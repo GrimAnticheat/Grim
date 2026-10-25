@@ -61,10 +61,16 @@ public class GrimProcessor implements AbstractProcessor, ConfigReloadable, Confi
                 || packetType == PacketType.Play.Client.RESOURCE_PACK_STATUS;
     }
 
-    public static boolean isUpdate(PacketTypeCommon packetType) {
+    public final boolean isUpdate(PacketTypeCommon packetType) {
         return isFlying(packetType)
-                || packetType == PacketType.Play.Client.CLIENT_TICK_END
+                // ViaBackwards emulates this packet for clients older than 1.21.2, and it can arrive
+                // before the movement packet of the same client tick, so it tells us nothing about them
+                || packetType == PacketType.Play.Client.CLIENT_TICK_END && player.supportsEndTickPreVia()
                 || isTransaction(packetType);
+    }
+
+    public static boolean isAnimation(PacketTypeCommon packetType) {
+        return packetType == PacketType.Play.Client.ANIMATION || packetType == PacketType.Play.Client.PUNCH;
     }
 
     public final boolean isTickPacket(PacketTypeCommon packetType) {

@@ -219,6 +219,9 @@ debug-pipeline-on-join: false
 # 启用实验性检查
 experimental-checks: false
 
+# 在玩家之间共享相同的区块分区以节省内存（写入时复制）。
+experimental-chunk-sharing: false
+
 # 取消有问题的格挡
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

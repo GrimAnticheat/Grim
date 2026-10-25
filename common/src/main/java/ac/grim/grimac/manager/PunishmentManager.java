@@ -236,7 +236,7 @@ public class PunishmentManager implements ConfigReloadable {
 class PunishGroup {
     public final List<AbstractCheck> checks;
     public final List<ParsedCommand> commands;
-    public final ViolationHistory<Check> violations = new ViolationHistory<>();
+    public final ViolationHistory<AbstractCheck> violations = new ViolationHistory<>();
     public final int removeViolationsAfter; // time to remove violations after in milliseconds
 }
 
