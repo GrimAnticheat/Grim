@@ -134,6 +134,17 @@ public enum BlockPlaceResult {
         }
     }, ItemTypes.LADDER),
 
+    SHELF_MUSHROOM((player, place) -> {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            if (BlockFaceHelper.isFaceHorizontal(face) && place.isFullFace(face)) {
+                WrappedBlockState mushroom = place.material.createBlockState(CompensatedWorld.blockVersion);
+                mushroom.setFacing(face.getOppositeFace());
+                place.set(mushroom);
+                return;
+            }
+        }
+    }, ItemTypes.SHELF_MUSHROOM),
+
     FARM_BLOCK((player, place) -> {
         // What we also need to check:
         WrappedBlockState above = place.getAboveState();
@@ -327,7 +338,7 @@ public enum BlockPlaceResult {
         // No valid locations
         if (!primaryValid) return;
 
-        WrappedBlockState toPlace = StateTypes.POINTED_DRIPSTONE.createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState toPlace = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
         toPlace.setVerticalDirection(VerticalDirection.valueOf(primaryDir.name())); // This block is facing UPWARDS as placed on the top face
 
         // We then have to calculate the thickness of the dripstone
@@ -342,7 +353,7 @@ public enum BlockPlaceResult {
         Dripstone.update(player, toPlace, placedPos.getX(), placedPos.getY(), placedPos.getZ(), place.isSecondaryUse());
 
         place.set(toPlace);
-    }, ItemTypes.POINTED_DRIPSTONE),
+    }, ItemTypes.POINTED_DRIPSTONE, ItemTypes.SULFUR_SPIKE),
 
     CACTUS((player, place) -> {
         for (BlockFace face : BlockPlace.BY_2D) {

@@ -668,6 +668,86 @@ public enum CollisionData implements CollisionFactory {
         return baseBox;
     }, BlockTags.BEDS.getStates().toArray(new StateType[0])),
 
+    STRAW_BED((player, version, data, x, y, z) -> {
+        // viabackwards replacement block - bed
+        if (version.isOlderThan(ClientVersion.V_26_3)) {
+            return BED.fetch(player, version, data, x, y, z);
+        }
+
+        SimpleCollisionBox base = new HexCollisionBox(0, 0, 0, 16, 4, 16);
+        if (data.getPart() == Part.FOOT) {
+            return base;
+        }
+
+        ComplexCollisionBox baseBox = new ComplexCollisionBox(2, base);
+        switch (data.getFacing()) {
+            case NORTH:
+                baseBox.add(new HexCollisionBox(0, 4, 0, 16, 5, 8));
+                break;
+            case SOUTH:
+                baseBox.add(new HexCollisionBox(0, 4, 8, 16, 5, 16));
+                break;
+            case WEST:
+                baseBox.add(new HexCollisionBox(0, 4, 0, 8, 5, 16));
+                break;
+            case EAST:
+                baseBox.add(new HexCollisionBox(8, 4, 0, 16, 5, 16));
+                break;
+        }
+
+        return baseBox;
+    }, StateTypes.STRAW_BED),
+
+    SHELF_MUSHROOM((player, version, data, x, y, z) -> {
+        // viabackwards replacement block - cocoa
+        if (version.isOlderThan(ClientVersion.V_26_3)) {
+            return getCocoa(version, data.getAge(), data.getFacing().getOppositeFace());
+        }
+
+        ComplexCollisionBox baseBox = new ComplexCollisionBox(2);
+        if (data.getAge() == 0) {
+            switch (data.getFacing()) {
+                case NORTH:
+                    baseBox.add(new HexCollisionBox(3, 9, 9, 13, 11, 16));
+                    baseBox.add(new HexCollisionBox(5, 8, 12, 11, 9, 16));
+                    break;
+                case SOUTH:
+                    baseBox.add(new HexCollisionBox(3, 9, 0, 13, 11, 7));
+                    baseBox.add(new HexCollisionBox(5, 8, 0, 11, 9, 4));
+                    break;
+                case WEST:
+                    baseBox.add(new HexCollisionBox(9, 9, 3, 16, 11, 13));
+                    baseBox.add(new HexCollisionBox(12, 8, 5, 16, 9, 11));
+                    break;
+                case EAST:
+                    baseBox.add(new HexCollisionBox(0, 9, 3, 7, 11, 13));
+                    baseBox.add(new HexCollisionBox(0, 8, 5, 4, 9, 11));
+                    break;
+            }
+        } else {
+            switch (data.getFacing()) {
+                case NORTH:
+                    baseBox.add(new HexCollisionBox(1, 8, 6, 15, 11, 16));
+                    baseBox.add(new HexCollisionBox(4, 6, 10, 12, 8, 16));
+                    break;
+                case SOUTH:
+                    baseBox.add(new HexCollisionBox(1, 8, 0, 15, 11, 10));
+                    baseBox.add(new HexCollisionBox(4, 6, 0, 12, 8, 6));
+                    break;
+                case WEST:
+                    baseBox.add(new HexCollisionBox(6, 8, 1, 16, 11, 15));
+                    baseBox.add(new HexCollisionBox(10, 6, 4, 16, 8, 12));
+                    break;
+                case EAST:
+                    baseBox.add(new HexCollisionBox(0, 8, 1, 10, 11, 15));
+                    baseBox.add(new HexCollisionBox(0, 6, 4, 6, 8, 12));
+                    break;
+            }
+        }
+
+        return baseBox;
+    }, StateTypes.SHELF_MUSHROOM),
+
     TRAPDOOR(new TrapDoorHandler(), BlockTags.TRAPDOORS.getStates().toArray(new StateType[0])),
 
 

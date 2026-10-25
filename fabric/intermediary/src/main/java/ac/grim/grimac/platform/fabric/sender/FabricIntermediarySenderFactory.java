@@ -6,6 +6,7 @@ import ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryLoaderPlugin;
 import ac.grim.grimac.platform.fabric.utils.message.IFabricMessageUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.util.TriState;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import net.kyori.adventure.text.Component;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
@@ -46,7 +47,7 @@ public class FabricIntermediarySenderFactory extends AbstractFabricSenderFactory
 
     @Override
     public void sendMessage(CommandSourceStack sender, String message) {
-        fabricMessageUtils.sendMessage((Sender) (Object) sender, fabricMessageUtils.textLiteral(message), false);
+        sendMessage(sender, AdventureSerializer.serializer().fromLegacy(message));
     }
 
     @Override

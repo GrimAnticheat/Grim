@@ -285,7 +285,7 @@ public class GrimPlayer implements GrimUser {
     public boolean wasLastPredictionCompleteChecked;
     public boolean isJumping;
     public boolean lastJumping;
-    public final @NotNull EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(FluidTag.WATER, FluidTag.LAVA);
+    public final @NotNull EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(this, FluidTag.WATER, FluidTag.LAVA);
     public boolean canFloatWhileRidden;
 
     public GrimPlayer(@NotNull User user) {
@@ -823,9 +823,8 @@ public class GrimPlayer implements GrimUser {
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
-            // 1.21.5 introduced this again! (only in minecarts?)
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) ||
-                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && EntityTypes.MINECART == entityType)) {
+            // 1.21.5 introduced this again! (only in dummy vehicles?)
+            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
@@ -841,12 +840,11 @@ public class GrimPlayer implements GrimUser {
         if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
                 || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) return false;
 
-        // PacketEvents mappings are wrong
-        return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
-                || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
-                || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
-                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND)
-                || isGlider(inventory.getOffHand(), EquipmentSlot.HELMET);
+        return isGlider(inventory.getHelmet(), EquipmentSlot.HELMET)
+                || isGlider(inventory.getChestplate(), EquipmentSlot.CHEST_PLATE)
+                || isGlider(inventory.getLeggings(), EquipmentSlot.LEGGINGS)
+                || isGlider(inventory.getBoots(), EquipmentSlot.BOOTS)
+                || isGlider(inventory.getOffHand(), EquipmentSlot.OFF_HAND);
     }
 
     private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {

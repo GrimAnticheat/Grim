@@ -21,8 +21,22 @@ public class FluidTypeFlowing {
         return version.isOlderThan(ClientVersion.V_1_13) ? legacy$getFlow(player, version, originalX, originalY, originalZ) : modern$getFlow(player, version, originalX, originalY, originalZ);
     }
 
+    // getOwnHeight, vanilla's getFlow ignores fluid above unlike getFluidLevelAt
+    private static float ownHeight(GrimPlayer player, int x, int y, int z) {
+        WrappedBlockState state = player.compensatedWorld.getBlock(x, y, z);
+        if (state.getType() == StateTypes.LAVA) {
+            return state.getLevel() >= 8 ? 8 / 9f : (8 - state.getLevel()) / 9f;
+        }
+        if (!Materials.isWater(player.getClientVersion(), state)) return 0f;
+        if (state.getType() == StateTypes.WATER) {
+            int level = state.getLevel();
+            return (level & 0x8) == 8 ? 8 / 9f : (8 - level) / 9f;
+        }
+        return 8 / 9f; // waterlogged, or a source-like block such as kelp
+    }
+
     private static Vector3dm modern$getFlow(GrimPlayer player, ClientVersion version, int originalX, int originalY, int originalZ) {
-        float fluidLevel = Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9f);
+        float fluidLevel = ownHeight(player, originalX, originalY, originalZ);
         if (fluidLevel == 0) return new Vector3dm();
 
         double modX = 0.0D;
@@ -32,7 +46,7 @@ public class FluidTypeFlowing {
             int modifiedZ = originalZ + direction.getModZ();
 
             if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
-                float adjacentLevel = Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9f);
+                float adjacentLevel = ownHeight(player, modifiedX, originalY, modifiedZ);
                 float flow = 0.0F;
                 if (adjacentLevel == 0.0F) {
                     StateType mat = player.compensatedWorld.getBlockType(modifiedX, originalY, modifiedZ);
@@ -42,7 +56,7 @@ public class FluidTypeFlowing {
                     // Use method call to support 1.13-1.15 clients and banner oddity
                     if (Materials.isSolidBlockingBlacklist(mat, version)) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
-                            adjacentLevel = Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9f);
+                            adjacentLevel = ownHeight(player, modifiedX, originalY - 1, modifiedZ);
                             if (adjacentLevel > 0.0F) {
                                 flow = fluidLevel - (adjacentLevel - 0.8888889F);
                             }
@@ -194,6 +208,9 @@ public class FluidTypeFlowing {
                 return true;
             } else if (type == StateTypes.SOUL_SAND) {
                 return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
+            } else if (type == StateTypes.MUD) {
+                // Support shape is a full block even though it collides 2 pixels short
+                return true;
             } else if (type == StateTypes.LADDER) {
                 return data.getFacing().getOppositeFace() == direction;
             } else if (BlockTags.TRAPDOORS.contains(type)) {
