@@ -22,7 +22,7 @@ public class MultiActionsS extends Check implements PreViaPacketReceiveListener 
 
     @Override
     public void onPreViaPacketReceive(@NotNull PacketReceiveEvent event) {
-        if (isAnimation(event)) {
+        if (isAnimation(event.getPacketType())) {
             if (swing) {
                 flag();
             }
