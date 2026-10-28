@@ -96,6 +96,9 @@ public class FastBreak extends Check implements BlockBreakListener, PreViaPacket
         }
 
         if (blockBreak.action == DiggingAction.FINISHED_DIGGING && targetBlockPosition != null) {
+            // The finishing tick used the ground state from the client's last movement, which the flying listener below
+            // sees before it's applied, so landing right before the finish (digging straight down) kept the in air damage
+            maximumBlockDamage = Math.max(maximumBlockDamage, BlockBreakSpeed.getBlockDamage(player, player.compensatedWorld.getBlock(targetBlockPosition)));
             double predictedTime = Math.ceil(1 / maximumBlockDamage) * 50;
             double realTime = System.currentTimeMillis() - startBreak;
             double diff = predictedTime - realTime;
