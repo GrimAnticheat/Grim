@@ -389,6 +389,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
+        if (event.isCancelled() && (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE || event.getPacketType() == PacketType.Play.Client.TELEPORT_CONFIRM)) {
+            return;
+        }
+
         // Determine if teleport BEFORE we call the pre-prediction vehicle
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
@@ -608,6 +612,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // The client still updates its pose on ticks it sends no movement for, so a crouch
                     // released while standing still has to reach the pose here or the next move uses a stale hitbox
                     PlayerBaseTick.updatePlayerPose(player);
+                    player.wasSneaking = player.isSneaking;
                 }
             }
             player.packetStateData.didSendMovementBeforeTickEnd = false;

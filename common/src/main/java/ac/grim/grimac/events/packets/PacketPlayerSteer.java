@@ -31,6 +31,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.isCancelled()) return;
         if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;

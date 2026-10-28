@@ -26,7 +26,7 @@ public class BadPacketsQ extends Check implements PacketReceiveListener {
             WrapperPlayClientEntityAction.Action action = wrapper.getAction();
             int entity = wrapper.getEntityId();
             // you are able to send negative jump boost, how and why!?
-            if (Math.abs(boost) > 100
+            if (boost < -100 || boost > 100
                     || entity != player.entityID
                     || wrapper.getAction() != WrapperPlayClientEntityAction.Action.START_JUMPING_WITH_HORSE && boost != 0) {
                 int actionId = VerboseCodecs.enumId(action);
