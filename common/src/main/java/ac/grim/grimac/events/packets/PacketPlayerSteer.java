@@ -40,6 +40,15 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             float forwards = steer.getForward();
             float sideways = steer.getSideways();
 
+            // NaN/Infinite steering input is not something a vanilla client can produce (real
+            // input is only ever 0, +-1, or that times 0.98). Math.min/Math.max do not strip NaN
+            // (both return NaN if either operand is NaN), so the clamp in MovementCheckRunner
+            // was a no-op and let NaN poison the horse/boat prediction, silencing every
+            // "actual > predicted" style check downstream. Reject it at the one place all
+            // steer input enters instead of chasing every consumer.
+            if (!Float.isFinite(forwards)) forwards = 0F;
+            if (!Float.isFinite(sideways)) sideways = 0F;
+
             player.vehicleData.nextVehicleForward = forwards;
             player.vehicleData.nextVehicleHorizontal = sideways;
 
