@@ -726,7 +726,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         // This stupid mechanic has been measured with 0.03403409022229198 y velocity... DAMN IT MOJANG, use 0.06 to be safe...
-        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && !player.inVehicle()) {
+        // Rotation responses (ClientboundPlayerRotationPacket) always carry onGround=false, ignore them
+        if (!hasPosition && !player.packetStateData.lastPacketWasTeleport
+                && onGround != player.packetStateData.packetPlayerOnGround && !player.inVehicle()) {
             // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
             // Cannot use collisions like normal because stepping messes it up :(
             //
