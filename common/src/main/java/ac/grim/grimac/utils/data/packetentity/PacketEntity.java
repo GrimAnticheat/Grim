@@ -30,6 +30,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
+import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.util.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -273,6 +274,10 @@ public class PacketEntity extends TypedPacketEntity {
     // TLDR If we want to get 90% of the way there everything can be hit except for fishing rod bobbers, arrows, and marker armor stands
     public boolean canHit() {
         return !this.isDead;
+    }
+
+    public final boolean hasTag(ResourceLocation tag) {
+        return player.tagManager.entityType(tag).contains(this.getType());
     }
 
     public void setItemBySlot(EquipmentSlot slot, ItemStack item) {
