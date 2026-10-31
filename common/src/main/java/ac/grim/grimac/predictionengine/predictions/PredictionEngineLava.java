@@ -23,7 +23,7 @@ public class PredictionEngineLava extends PredictionEngine {
             if (player.getFluidHeight(FluidTag.LAVA) <= 0.4D && player.lastOnGround && !player.onGround) {
                 Vector3dm withJump = vector.vector.clone();
                 super.doJump(player, withJump);
-                existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
+                existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.JumpFromGround));
             }
         }
     }
