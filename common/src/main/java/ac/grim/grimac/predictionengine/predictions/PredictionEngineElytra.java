@@ -72,7 +72,7 @@ public class PredictionEngineElytra extends PredictionEngine {
 
                 if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
                     // only simulate no stuck speed if player is leaving
-                    if (player.uncertaintyHandler.stuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
+                    if (player.uncertaintyHandler.minimumStuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
                         addStuckSpeedResult(results, result, null);
                     addStuckSpeedResult(results, result, player.stuckSpeedMultiplier);
                     addPossibleStuckSpeedResults(player, results, result);

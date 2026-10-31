@@ -76,6 +76,7 @@ public class UncertaintyHandler {
     public SimpleCollisionBox fishingRodPullBox = null;
     public boolean shouldSimulateStuckSpeed = false;
     public int stuckSpeedMultiplierMask = StuckSpeed.NONE.getIndex();
+    public int minimumStuckSpeedMultiplierMask = StuckSpeed.NONE.getIndex();
 
     public final LastInstance lastFlyingTicks;
     public final LastInstance lastFlyingStatusChange;

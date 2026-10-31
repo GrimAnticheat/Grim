@@ -5,6 +5,7 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.IndexedVector3d;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
@@ -14,6 +15,7 @@ import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
@@ -25,6 +27,8 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -365,30 +369,48 @@ public class PointThreeEstimator {
 
         boolean couldStep = player.isPointThree() && checkForGround(player.clientVelocity.getY());
 
+        List<IndexedVector3d> stuckMultipliers = new ArrayList<>();
+        stuckMultipliers.add(player.stuckSpeedMultiplier);
+        if (!player.isForceStuckSpeed() || (player.uncertaintyHandler.shouldSimulateStuckSpeed && player.uncertaintyHandler.minimumStuckSpeedMultiplierMask == 0)) {
+            stuckMultipliers.add(StuckSpeed.NONE);
+        }
+
+        if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
+            for (IndexedVector3d multiplier : StuckSpeed.POSSIBILITIES) {
+                if ((player.uncertaintyHandler.stuckSpeedMultiplierMask & multiplier.getIndex()) != 0 && multiplier.getIndex() != player.stuckSpeedMultiplier.getIndex()) {
+                    stuckMultipliers.add(multiplier);
+                }
+            }
+        }
+
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {
             // Try to get the vector as close to zero as possible to give the best chance at 0.03...
             Vector3dm toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector3dm());
-            // Collide to handle mostly gravity, but other scenarios similar to this.
-            Vector3dm collisionResult = Collisions.collide(player, toZeroVec.getX(), toZeroVec.getY(), toZeroVec.getZ(), Integer.MIN_VALUE, null);
+            for (IndexedVector3d multiplier : stuckMultipliers) {
+                // The packet threshold applies to movement after cobweb and other stuck speed scaling.
+                Vector3dm movement = toZeroVec.clone().multiply(multiplier);
+                // Collide to handle mostly gravity, but other scenarios similar to this.
+                Vector3dm collisionResult = Collisions.collide(player, movement.getX(), movement.getY(), movement.getZ(), Integer.MIN_VALUE, null);
 
-            // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
-            // A bit hacky... is there a better way?  I'm unsure...
-            boolean likelyStepSkip = player.isPointThree() && (data.vector.getY() > -0.08 && data.vector.getY() < 0.06) && couldStep;
+                // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
+                // A bit hacky... is there a better way?  I'm unsure...
+                boolean likelyStepSkip = player.isPointThree() && (data.vector.getY() > -0.08 && data.vector.getY() < 0.06) && couldStep;
 
-            // We need to do hypot calculations for all 3 axis
-            // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
-            double minHorizLength = Math.max(0, Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed);
-            // Detection > 100% falseless for explosions and knockback... disappearing blocks below player is rare
-            // plus we should be able to detect 0.03 with the other vectors anyways
-            boolean forcedNo003 = data.isExplosion() || data.isKnockback();
-            // If the player was last on the ground, then let's consider them to have not moved vertically
-            // The world could have changed since the last tick causing a false
-            double length = Math.hypot((!forcedNo003 && player.lastOnGround) || (likelyStepSkip || controlsVerticalMovement()) ? 0 : Math.abs(collisionResult.getY()), minHorizLength);
+                // We need to do hypot calculations for all 3 axis
+                // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
+                double minHorizLength = Math.max(0, Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed * Math.max(multiplier.getX(), multiplier.getZ()));
+                // Detection > 100% falseless for explosions and knockback... disappearing blocks below player is rare
+                // plus we should be able to detect 0.03 with the other vectors anyways
+                boolean forcedNo003 = data.isExplosion() || data.isKnockback();
+                // If the player was last on the ground, then let's consider them to have not moved vertically
+                // The world could have changed since the last tick causing a false
+                double length = Math.hypot((!forcedNo003 && player.lastOnGround) || (likelyStepSkip || controlsVerticalMovement()) ? 0 : Math.abs(collisionResult.getY()), minHorizLength);
 
-            minimum = Math.min(minimum, length);
+                minimum = Math.min(minimum, length);
 
-            if (minimum < player.getMovementThreshold()) break;
+                if (minimum < player.getMovementThreshold()) return true;
+            }
         }
 
         // As long as we are mathematically correct here, this should be perfectly accurate

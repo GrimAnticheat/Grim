@@ -65,7 +65,7 @@ public final class PredictionEngineRideableUtils {
     private static void addStuckSpeedResults(GrimPlayer player, List<VectorData> returnVectors, VectorData result) {
         if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
             // only simulate no stuck speed if player is leaving
-            if (player.uncertaintyHandler.stuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
+            if (player.uncertaintyHandler.minimumStuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
                 addStuckSpeedResult(player, returnVectors, result, null);
             addStuckSpeedResult(player, returnVectors, result, player.stuckSpeedMultiplier);
             addPossibleStuckSpeedResults(player, returnVectors, result);
