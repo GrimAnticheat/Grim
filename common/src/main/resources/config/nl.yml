@@ -160,6 +160,12 @@ VehicleTimer:
     # Doel 1.005 timer
     setbackvl: 10
 
+FastBreak:
+    # Hoeveel milliseconden voordeel door blokken te snel te breken voordat er wordt gemarkeerd
+    break-threshold: 1000
+    # Hoeveel milliseconden voordeel door te snel na het vorige blok een nieuw blok te beginnen breken voordat er wordt gemarkeerd
+    delay-threshold: 1000
+
 PacketOrderI:
     # Inschakelen als spelers worden gemarkeerd vanwege het gebruik van 1.7-animatiemods
     exempt-placing-while-digging: false

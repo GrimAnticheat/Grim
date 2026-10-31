@@ -165,6 +165,12 @@ VehicleTimer:
     # 目標タイマー値は1.005です
     setbackvl: 10
 
+FastBreak:
+    # ブロックを速く壊しすぎた場合に、検出するまで許容する有利時間（ミリ秒）
+    break-threshold: 1000
+    # 前のブロックの直後に次のブロックを壊し始めた場合に、検出するまで許容する有利時間（ミリ秒）
+    delay-threshold: 1000
+
 PacketOrderI:
     # プレイヤーが1.7のアニメーションMODを使用したことで検出されている場合に有効にします
     exempt-placing-while-digging: false

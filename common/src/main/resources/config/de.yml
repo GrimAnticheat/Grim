@@ -163,6 +163,12 @@ VehicleTimer:
 VehicleC:
     setbackvl: 25
 
+FastBreak:
+    # Wie viele Millisekunden Vorteil durch zu schnelles Abbauen von Blöcken, bevor markiert wird
+    break-threshold: 1000
+    # Wie viele Millisekunden Vorteil durch zu frühes Beginnen des nächsten Blocks nach dem letzten, bevor markiert wird
+    delay-threshold: 1000
+
 PacketOrderI:
     # Aktivieren, wenn Spieler markiert werden, weil sie 1.7-Animationsmods verwenden
     exempt-placing-while-digging: false
