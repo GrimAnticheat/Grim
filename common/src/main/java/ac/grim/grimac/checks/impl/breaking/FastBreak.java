@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.breaking;
 
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
@@ -20,6 +21,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -54,6 +56,9 @@ public class FastBreak extends Check implements BlockBreakListener, PreViaPacket
     double blockBreakBalance = 0;
     double blockDelayBalance = 0;
 
+    private double breakThreshold;
+    private double delayThreshold;
+
     @Override
     public void onBlockBreak(BlockBreak blockBreak) {
         if (blockBreak.action == DiggingAction.START_DIGGING) {
@@ -85,7 +90,7 @@ public class FastBreak extends Check implements BlockBreakListener, PreViaPacket
                 blockDelayBalance += 300 - breakDelay;
             }
 
-            if (blockDelayBalance > 1000) { // If more than a second of advantage
+            if (blockDelayBalance > delayThreshold) {
                 int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
                 if (flag(V.write(verbose()).bool(true).ulong((long) breakDelay).f64(0).f64(0).sint(type)) && shouldModifyPackets()) {
                     blockBreak.cancel();
@@ -108,7 +113,7 @@ public class FastBreak extends Check implements BlockBreakListener, PreViaPacket
                 blockBreakBalance += diff;
             }
 
-            if (blockBreakBalance > 1000) { // If more than a second of advantage
+            if (blockBreakBalance > breakThreshold) {
                 int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
                 if (flag(V.write(verbose()).bool(false).ulong(0).f64(diff).f64(blockBreakBalance).sint(type)) && shouldModifyPackets()) {
                     blockBreak.cancel();
@@ -133,8 +138,15 @@ public class FastBreak extends Check implements BlockBreakListener, PreViaPacket
     }
 
     private void clampBalance() {
-        double balance = Math.max(1000, (player.getTransactionPing()));
-        blockBreakBalance = GrimMath.clamp(blockBreakBalance, -balance, balance); // Clamp not Math.max in case other logic changes
-        blockDelayBalance = GrimMath.clamp(blockDelayBalance, -balance, balance);
+        double breakBalance = Math.max(breakThreshold, player.getTransactionPing());
+        double delayBalance = Math.max(delayThreshold, player.getTransactionPing());
+        blockBreakBalance = GrimMath.clamp(blockBreakBalance, -breakBalance, breakBalance); // Clamp not Math.max in case other logic changes
+        blockDelayBalance = GrimMath.clamp(blockDelayBalance, -delayBalance, delayBalance);
+    }
+
+    @Override
+    public void onReload(@NotNull ConfigManager config) {
+        breakThreshold = config.getDoubleElse(getConfigName() + ".break-threshold", 1000);
+        delayThreshold = config.getDoubleElse(getConfigName() + ".delay-threshold", 1000);
     }
 }
