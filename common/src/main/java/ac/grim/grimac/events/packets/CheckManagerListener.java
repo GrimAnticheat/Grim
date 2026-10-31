@@ -589,11 +589,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.cancelDuplicatePacket = false;
         }
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && player.packetStateData.lastPacketWasTeleport) {
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) && player.packetStateData.lastPacketWasTeleport && teleportData != null) {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
             SetBackData setback = teleportData.getSetback();
 
-            if (flying.hasPositionChanged() && setback != null && !setback.isPlugin() && !setback.isVehicle()) {
+            if (flying.hasPositionChanged() && setback != null && !setback.isPlugin()) {
                 flying.setOnGround(setback.isOnGround());
                 event.markForReEncode(true);
             }
