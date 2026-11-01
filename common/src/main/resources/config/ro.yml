@@ -160,6 +160,12 @@ VehicleTimer:
     # Țintă timer 1.005
     setbackvl: 10
 
+FastBreak:
+    # Câte milisecunde de avantaj din spargerea prea rapidă a blocurilor înainte de semnalare
+    break-threshold: 1000
+    # Câte milisecunde de avantaj din începerea spargerii unui bloc prea devreme după cel anterior înainte de semnalare
+    delay-threshold: 1000
+
 PacketOrderI:
     # activează dacă jucătorii sunt marcați folosind moduri de animații 1.7
     exempt-placing-while-digging: false
