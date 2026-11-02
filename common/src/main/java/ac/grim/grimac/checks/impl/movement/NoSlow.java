@@ -50,9 +50,6 @@ public class NoSlow extends Check implements PostPredictionListener {
             } else {
                 reward();
             }
-        } else {
-            // A failed tick from an earlier item use must not count towards the next one
-            flaggedLastTick = false;
         }
 
         flaggedMainHandSlotLastTick = flaggedMainHandSlotThisTick;
