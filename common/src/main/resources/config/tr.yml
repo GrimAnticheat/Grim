@@ -160,6 +160,12 @@ VehicleTimer:
     # Hedef 1.005 timer
     setbackvl: 10
 
+FastBreak:
+    # İşaretlemeden önce blokları çok hızlı kırmaktan kaç milisaniye avantaj sağlanabilir
+    break-threshold: 1000
+    # İşaretlemeden önce bir önceki bloktan hemen sonra yeni bloğu kırmaya başlamaktan kaç milisaniye avantaj sağlanabilir
+    delay-threshold: 1000
+
 PacketOrderI:
     # Oyuncular 1.7 animasyon modlarını kullandıkları için işaretleniyorsa etkinleştirin
     exempt-placing-while-digging: false

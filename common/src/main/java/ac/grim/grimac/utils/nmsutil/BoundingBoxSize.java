@@ -40,8 +40,6 @@ public final class BoundingBoxSize {
             return 0.7f;
         } else if (type == EntityTypes.WITHER_SKELETON) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.7f : 0.72f;
-        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET) {
-            return 0.3125f;
         } else if (type == EntityTypes.HOGLIN || type == EntityTypes.ZOGLIN) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.75f;
             return 1.3964844f;
@@ -76,7 +74,7 @@ public final class BoundingBoxSize {
             return 2f;
         } else if (type == EntityTypes.ENDER_DRAGON) {
             return 16f;
-        } else if (type == EntityTypes.FIREBALL) {
+        } else if (type == EntityTypes.FIREBALL || type == EntityTypes.DRAGON_FIREBALL) {
             return 1f;
         } else if (type == EntityTypes.GHAST) {
             return 4f;
@@ -127,8 +125,6 @@ public final class BoundingBoxSize {
             }
 
             return 0.3125f;
-        } else if (type == EntityTypes.SMALL_FIREBALL) {
-            return 0.3125f;
         } else if (type == EntityTypes.SPIDER) {
             return 1.4f;
         } else if (type == EntityTypes.SQUID || type == EntityTypes.GLOW_SQUID) {
@@ -142,18 +138,25 @@ public final class BoundingBoxSize {
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.95f;
             return 1.7f;
-        } else if (type == EntityTypes.WIND_CHARGE) {
-            return 0.3125f;
         } else if (type == EntityTypes.ARMOR_STAND) {
             return 0.5F;
         } else if (type == EntityTypes.FALLING_BLOCK) {
             return 0.98F;
-        } else if (type == EntityTypes.FIREWORK_ROCKET) {
-            return 0.25F;
         } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.DROWNED || type == EntityTypes.HUSK || type == EntityTypes.ZOMBIE || type == EntityTypes.VILLAGER || type == EntityTypes.ZOMBIE_VILLAGER || type == EntityTypes.ZOMBIFIED_PIGLIN) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
             return 0.49f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ARROW)) {
+            return 0.5f;
+        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET
+                || EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_WIND_CHARGE)
+                || type == EntityTypes.SMALL_FIREBALL) {
+            return 0.3125f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.PROJECTILE_ABSTRACT) // this includes wind charges, so it must be after the wind charge check
+                || type == EntityTypes.FIREWORK_ROCKET || type == EntityTypes.EYE_OF_ENDER
+                || type == EntityTypes.LLAMA_SPIT || type == EntityTypes.FISHING_BOBBER) {
+            return 0.25f;
         }
+
         return 0.6f;
     }
 
@@ -288,8 +291,6 @@ public final class BoundingBoxSize {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby ? 0.63f : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.8f : 0.95f;
         } else if (type == EntityTypes.PARROT || type == EntityTypes.BAT || type == EntityTypes.PIG || type == EntityTypes.SPIDER) {
             return 0.9f;
-        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET) {
-            return 0.3125f;
         } else if (type == EntityTypes.BLAZE) {
             return 1.8f;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
@@ -329,7 +330,7 @@ public final class BoundingBoxSize {
             return 2f;
         } else if (type == EntityTypes.ENDER_DRAGON) {
             return 8f;
-        } else if (type == EntityTypes.FIREBALL) {
+        } else if (type == EntityTypes.FIREBALL || type == EntityTypes.DRAGON_FIREBALL) {
             return 1f;
         } else if (type == EntityTypes.FOX) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.42f;
@@ -421,8 +422,6 @@ public final class BoundingBoxSize {
             }
 
             return 0.3125f;
-        } else if (type == EntityTypes.SMALL_FIREBALL) {
-            return 0.3125f;
         } else if (type == EntityTypes.SNOW_GOLEM) {
             return 1.9f;
         } else if (type == EntityTypes.STRAY) {
@@ -450,21 +449,28 @@ public final class BoundingBoxSize {
             return 1.99f;
         } else if (type == EntityTypes.PARCHED) {
             return 1.99f;
-        } else if (type == EntityTypes.WIND_CHARGE) {
-            return 0.3125f;
         } else if (type == EntityTypes.ARMOR_STAND) {
             return 1.975F;
         } else if (type == EntityTypes.FALLING_BLOCK) {
             return 0.98F;
         } else if (type == EntityTypes.VILLAGER && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
             return 1.8F;
-        } else if (type == EntityTypes.FIREWORK_ROCKET) {
-            return 0.25F;
         } else if (type == EntityTypes.COPPER_GOLEM) {
             return 1.0F;
         } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.DROWNED || type == EntityTypes.HUSK || type == EntityTypes.ZOMBIE || type == EntityTypes.ZOMBIE_VILLAGER || type == EntityTypes.VILLAGER || type == EntityTypes.ZOMBIFIED_PIGLIN) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) ? 0.98f : 0.99f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ARROW)) {
+            return 0.5f;
+        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET
+                || EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_WIND_CHARGE)
+                || type == EntityTypes.SMALL_FIREBALL) {
+            return 0.3125f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.PROJECTILE_ABSTRACT) // this includes wind charges, so it must be after the wind charge check
+                || type == EntityTypes.FIREWORK_ROCKET || type == EntityTypes.EYE_OF_ENDER
+                || type == EntityTypes.LLAMA_SPIT || type == EntityTypes.FISHING_BOBBER) {
+            return 0.25f;
         }
+
         return 1.95f;
     }
 
