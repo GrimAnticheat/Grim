@@ -48,6 +48,8 @@ max-transaction-time: 60
 # Potrebbe migliorare la compatibilità con altri anticheat. Potrebbe causare problemi con i limitatori di pacchetti.
 # Non abilitarla se non sai cosa stai facendo.
 disable-pong-cancelling: false
+# Exempt players with Geyser/Floodgate UUID format (starting with 00000000-0000-0000-0009)
+exempt-geyser-by-uuid: true
 
 # Il gestore predefinito per la risincronizzazione dei blocchi deve essere disabilitato?
 # Di default, Grim legge i blocchi dal mondo del server e li invia al client per correggere il desync.
