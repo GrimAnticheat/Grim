@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.connection;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
@@ -15,6 +16,11 @@ import java.util.Objects;
 
 @UtilityClass
 public class ConnectionUtils {
+    @SuppressWarnings("UnstableApiUsage")
+    public static final String POST_VIA_DECODER_NAME = PacketEvents.DECODER_NAME;
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static final String POST_VIA_ENCODER_NAME = PacketEvents.ENCODER_NAME;
 
     @SuppressWarnings("UnstableApiUsage")
     public static final String PRE_VIA_DECODER_NAME = "pre-" + PacketEvents.DECODER_NAME;
@@ -38,7 +44,7 @@ public class ConnectionUtils {
         injectPacketPreVia(player, buffer, PacketSide.CLIENT);
     }
 
-    public void injectPacketPreVia(@NotNull GrimPlayer player, @NotNull PacketWrapper<?> wrapper, @NotNull PacketSide side) {
+    private void injectPacketPreVia(@NotNull GrimPlayer player, @NotNull PacketWrapper<?> wrapper, @NotNull PacketSide side) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(wrapper, "wrapper");
         Objects.requireNonNull(side, "side");
@@ -59,7 +65,7 @@ public class ConnectionUtils {
         injectPacketPreVia(player, buffer, side);
     }
 
-    public void injectPacketPreVia(@NotNull GrimPlayer player, @NotNull Object buffer, @NotNull PacketSide side) {
+    private void injectPacketPreVia(@NotNull GrimPlayer player, @NotNull Object buffer, @NotNull PacketSide side) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(buffer, "buffer");
         Objects.requireNonNull(side, "side");
@@ -80,9 +86,9 @@ public class ConnectionUtils {
 
         // pass buffer to next handler
         if (side == PacketSide.SERVER) {
-            ChannelHelper.writeAndFlushInContext(channel, PRE_VIA_ENCODER_NAME, buffer);
+            ChannelHelper.writeAndFlushInContext(channel, ViaVersionUtil.isAvailable ? PRE_VIA_ENCODER_NAME : POST_VIA_ENCODER_NAME, buffer);
         } else {
-            ChannelHelper.fireChannelReadInContext(channel, PRE_VIA_DECODER_NAME, buffer);
+            ChannelHelper.fireChannelReadInContext(channel, ViaVersionUtil.isAvailable ? PRE_VIA_DECODER_NAME : POST_VIA_DECODER_NAME, buffer);
         }
     }
 }
