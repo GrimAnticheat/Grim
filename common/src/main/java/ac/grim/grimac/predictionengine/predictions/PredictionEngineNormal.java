@@ -58,7 +58,9 @@ public class PredictionEngineNormal extends PredictionEngine {
                 // And 0.03 didn't affect onGround status
                 // The player cannot jump
                 final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
-                if (((jumpBoost.isEmpty() || jumpBoost.getAsInt() >= 0) && player.onGround) || !player.lastOnGround)
+                // player can jump and fall down within 0.03 (jumping in cobweb <=1.18.1) and we will never see that the player even moved
+                boolean leftGroundWithoutPosition = player.uncertaintyHandler.onGroundUncertain && !player.clientClaimsLastOnGround;
+                if (((jumpBoost.isEmpty() || jumpBoost.getAsInt() >= 0) && player.onGround) || (!player.lastOnGround && !leftGroundWithoutPosition))
                     return;
 
                 JumpPower.jumpFromGround(player, jump);
