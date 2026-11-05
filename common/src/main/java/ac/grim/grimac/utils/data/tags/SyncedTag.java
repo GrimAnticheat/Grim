@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.data.tags;
 
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTags;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -13,13 +14,15 @@ public final class SyncedTag<T> {
     private final ResourceLocation location;
     private final Set<T> values;
     private final IntFunction<T> remapper;
+    private final @Nullable IntFunction<T> clientRemapper;
     private final boolean supported;
 
-    private SyncedTag(ResourceLocation location, IntFunction<T> remapper, Set<T> defaultValues, boolean supported) {
+    private SyncedTag(ResourceLocation location, IntFunction<T> remapper, @Nullable IntFunction<T> clientRemapper, Set<T> defaultValues, boolean supported) {
         this.location = location;
         this.supported = supported;
         this.values = Collections.newSetFromMap(new IdentityHashMap<>());
         this.remapper = remapper;
+        this.clientRemapper = clientRemapper;
         this.values.addAll(defaultValues);
     }
 
@@ -42,12 +45,18 @@ public final class SyncedTag<T> {
         values.clear();
         for (int id : tag.getValues()) {
             values.add(remapper.apply(id));
+            if (clientRemapper != null) {
+                // Via rewrites the tag the same way it rewrites the block, so the block the client gets is in it too
+                final T clientValue = clientRemapper.apply(id);
+                if (clientValue != null) values.add(clientValue);
+            }
         }
     }
 
     public static final class Builder<T> {
         private final ResourceLocation location;
         private IntFunction<T> remapper;
+        private @Nullable IntFunction<T> clientRemapper;
         private Set<T> defaultValues;
         private boolean supported = true;
 
@@ -57,6 +66,11 @@ public final class SyncedTag<T> {
 
         public Builder<T> remapper(IntFunction<T> remapper) {
             this.remapper = remapper;
+            return this;
+        }
+
+        public Builder<T> clientRemapper(@Nullable IntFunction<T> clientRemapper) {
+            this.clientRemapper = clientRemapper;
             return this;
         }
 
@@ -71,7 +85,7 @@ public final class SyncedTag<T> {
         }
 
         public SyncedTag<T> build() {
-            return new SyncedTag<>(location, remapper, defaultValues, supported);
+            return new SyncedTag<>(location, remapper, clientRemapper, defaultValues, supported);
         }
     }
 }

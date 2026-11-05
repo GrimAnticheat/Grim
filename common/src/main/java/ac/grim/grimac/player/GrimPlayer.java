@@ -1083,13 +1083,22 @@ public class GrimPlayer implements GrimUser {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.yaw, this.pitch);
     }
 
+    // pollData only picks the connection up on a tick, and tags can come in during configuration before it does
+    public @Nullable UserConnection getViaUserConnection() {
+        if (this.viaUserConnection == null && ViaVersionUtil.isAvailable) {
+            this.viaUserConnection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
+        }
+        return this.viaUserConnection;
+    }
+
     public int getViaTranslatedClientBlockID(int blockStateId) {
-        if (this.viaUserConnection == null) {
+        final UserConnection connection = getViaUserConnection();
+        if (connection == null) {
             return blockStateId;
         }
 
-        final ProtocolVersion clientVersion = this.viaUserConnection.getProtocolInfo().protocolVersion();
-        final ProtocolVersion serverVersion = this.viaUserConnection.getProtocolInfo().serverProtocolVersion();
+        final ProtocolVersion clientVersion = connection.getProtocolInfo().protocolVersion();
+        final ProtocolVersion serverVersion = connection.getProtocolInfo().serverProtocolVersion();
 
         final List<ProtocolPathEntry> protocolPath = Via.getManager().getProtocolManager().getProtocolPath(clientVersion, serverVersion);
         if (protocolPath == null) {
