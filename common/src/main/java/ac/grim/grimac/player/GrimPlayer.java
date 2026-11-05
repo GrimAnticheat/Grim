@@ -577,9 +577,8 @@ public class GrimPlayer implements GrimUser {
         }
 
         if (viaPacketTracker == null && ViaVersionUtil.isAvailable) {
-            UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
+            final UserConnection connection = getViaUserConnection();
             viaPacketTracker = connection != null ? connection.getPacketTracker() : null;
-            this.viaUserConnection = connection;
         }
 
         if (this.platformPlayer == null) {
@@ -1083,7 +1082,7 @@ public class GrimPlayer implements GrimUser {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.yaw, this.pitch);
     }
 
-    // pollData only picks the connection up on a tick, and tags can come in during configuration before it does
+    // Looked up on first use, the server can send tags during configuration before pollData's first tick
     public @Nullable UserConnection getViaUserConnection() {
         if (this.viaUserConnection == null && ViaVersionUtil.isAvailable) {
             this.viaUserConnection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
