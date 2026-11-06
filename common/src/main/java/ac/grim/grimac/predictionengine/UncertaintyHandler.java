@@ -79,6 +79,7 @@ public class UncertaintyHandler {
 
     public final LastInstance lastFlyingTicks;
     public final LastInstance lastFlyingStatusChange;
+    public final LastInstance lastSprintingStatusChange;
     public final LastInstance lastUnderwaterFlyingHack;
     public final LastInstance lastStuckSpeedMultiplier;
     public final LastInstance lastHardCollidingLerpingEntity;
@@ -98,6 +99,7 @@ public class UncertaintyHandler {
         this.player = player;
         this.lastFlyingTicks = new LastInstance(player);
         this.lastFlyingStatusChange = new LastInstance(player);
+        this.lastSprintingStatusChange = new LastInstance(player);
         this.lastUnderwaterFlyingHack = new LastInstance(player);
         this.lastStuckSpeedMultiplier = new LastInstance(player);
         this.lastHardCollidingLerpingEntity = new LastInstance(player);
