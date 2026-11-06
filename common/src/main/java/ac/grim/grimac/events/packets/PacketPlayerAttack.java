@@ -103,8 +103,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         ItemStack heldItem = player.inventory.getHeldItem();
         PacketEntity entity = player.compensatedEntities.getEntity(entityId);
 
-        if (entity != null && (!entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER || entity.getType() == EntityTypes.PAINTING
-                || entity.getType() == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
+        if (shouldPredictAttackSlow(player, entity)) {
             int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
                     ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK)
                     : 0;
@@ -146,6 +145,17 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         if (player.gamemode != GameMode.SPECTATOR) {
             player.attackCooldown.reset();
         }
+    }
+
+    private boolean shouldPredictAttackSlow(GrimPlayer player, PacketEntity entity) {
+        if (entity == null) return false;
+
+        // Hanging entities (item frames, paintings, leash knots) handle the hit themselves
+        // and the client returns from the attack before it gets to the slowdown
+        if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.ABSTRACT_HANGING)) return false;
+
+        return !entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER
+                || entity.getType() == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2);
     }
 
     private boolean isInvalidEntity(PacketReceiveEvent event, GrimPlayer player, int entityId) {
