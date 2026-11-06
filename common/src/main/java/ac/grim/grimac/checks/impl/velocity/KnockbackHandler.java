@@ -4,7 +4,9 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.type.PreViaPacketSendListener;
+import ac.grim.grimac.utils.connection.ConnectionUtils;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBundle;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -24,7 +26,7 @@ import java.util.LinkedList;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB", stableKey = "grim.velocity.anti_knockback", alternativeName = "AntiKnockback", configName = "Knockback", description = "Did not take the expected entity knockback", setback = 10, decay = 0.025)
-public class KnockbackHandler extends Check implements PacketSendListener, PostPredictionListener {
+public class KnockbackHandler extends Check implements PreViaPacketSendListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("[ignored knockback|o: {offset}]");
 
     private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
@@ -44,7 +46,7 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    public void onPreViaPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
             WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
@@ -63,18 +65,37 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
             Vector3d playerVelocity = velocity.getVelocity();
 
             // Blacklist problemated vector until mojang fixes a client-sided bug
-            if (playerVelocity.getY() == -0.04) {
+            if (Math.abs(playerVelocity.getY() - (-0.04)) < 1e-7) {
                 velocity.setVelocity(playerVelocity.add(new Vector3d(0, 1 / 8000D, 0)));
                 playerVelocity = velocity.getVelocity();
                 event.markForReEncode(true);
             }
 
-            playerVelocity = VectorPrecisionConverter.convert(player.getClientVersion(), playerVelocity);
+            // At PreVia, the velocity vector has already been translated by ViaVersion to the client's version.
+            // VectorPrecisionConverter is omitted to avoid double conversion and precision loss.
+
+            boolean inBundle = player.packetStateData.sendingBundlePacket;
+            if (inBundle) {
+                ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
+            }
 
             // Wrap velocity between two transactions
-            player.sendTransaction();
+            player.sendTransactionPreVia();
             addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector3dm(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-            event.getTasksAfterSend().add(player::sendTransaction);
+
+            if (inBundle) {
+                ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
+            }
+
+            event.getTasksAfterSend().add(() -> {
+                if (inBundle) {
+                    ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
+                }
+                player.sendTransactionPreVia();
+                if (inBundle) {
+                    ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
+                }
+            });
         }
     }
 

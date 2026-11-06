@@ -26,6 +26,7 @@ import ac.grim.grimac.manager.AttackCooldownHandler;
 import ac.grim.grimac.predictionengine.blockeffects.CompensatedGeysers;
 import ac.grim.grimac.predictionengine.blockeffects.PotentSulfurGeyser;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.connection.ConnectionUtils;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.change.PlayerBlockHistory;
@@ -478,6 +479,40 @@ public class GrimPlayer implements GrimUser {
 
         // Pigs, horses, striders, and other vehicles all have 1 stepping height by default
         return value;
+    }
+
+    public void sendTransactionPreVia() {
+        sendTransactionPreVia(false);
+    }
+
+    public void sendTransactionPreVia(boolean async) {
+        if (user.getEncoderState() != ConnectionState.PLAY) return;
+
+        if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9) {
+            return;
+        }
+
+        lastTransSent = System.currentTimeMillis();
+        short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
+        try {
+            PacketWrapper<?> packet;
+            if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
+                packet = new WrapperPlayServerPing(transactionID);
+            } else {
+                packet = new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false);
+            }
+
+            if (async) {
+                runSafely(() -> {
+                    addTransactionSend(transactionID);
+                    ConnectionUtils.sendPacketPreVia(this, packet);
+                });
+            } else {
+                addTransactionSend(transactionID);
+                ConnectionUtils.sendPacketPreVia(this, packet);
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     public void sendTransaction() {
