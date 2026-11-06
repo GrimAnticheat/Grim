@@ -1,0 +1,53 @@
+# ===========================================================================
+#  Cài đặt backend Postgres.
+#
+#  Postgres hỗ trợ triển khai nhiều server (nhiều Grim
+#  cùng ghi vào một DB trung tâm). Cần Postgres JDBC driver
+#  khi chạy; nếu thiếu driver, backend tự tắt lúc
+#  khởi động và routing sẽ chuyển sang backend khác.
+# ===========================================================================
+
+# Mọi khóa nằm dưới `postgres:` để namespace không trùng
+# với các file backend khác khi Configuralize gộp tất cả vào
+# một namespace chung.
+postgres:
+  host: "localhost"
+  port: 5432
+  database: "grim"
+  user: "postgres"
+  password: ""
+
+  # Cài đặt connection pool HikariCP. Cài đặt này chỉ áp dụng cho các backend SQL
+  # sử dụng Hikari nội bộ.
+  pool-settings:
+    # Số kết nối CSDL vật lý tối đa mà phiên bản Grim này có thể giữ mở.
+    maximum-pool-size: 5
+    # Số kết nối nhàn rỗi tối thiểu được giữ ấm. Giữ bằng maximum-pool-size
+    # cho kích thước pool cố định, hoặc giảm xuống nếu CSDL có giới hạn chặt chẽ.
+    minimum-idle: 5
+    # Thu hồi kết nối sau số mili-giây này. 1800000 là mặc định 30 phút của Hikari;
+    # chỉ dùng 0 nếu CSDL/proxy của bạn tự quản lý thời gian tồn tại.
+    maximum-lifetime-ms: 1800000
+    # Định kỳ ping các kết nối nhàn rỗi. 0 để tắt keepalive.
+    keepalive-time-ms: 0
+    # Thời gian tối đa chờ kết nối từ pool trước khi báo lỗi.
+    connection-timeout-ms: 5000
+
+  # Tham số URL bổ sung nối sau `?`. Để trống trừ khi bạn biết
+  # mình cần tham số cụ thể.
+  extra-jdbc-params: ""
+
+  batch-flush-cap: 256
+
+  # Ghi đè tên bảng. Tên mặc định ở bên dưới.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 2

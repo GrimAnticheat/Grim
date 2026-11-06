@@ -1,0 +1,35 @@
+# ===========================================================================
+#  Cài đặt backend MongoDB.
+#
+#  Cần MongoDB sync driver khi chạy; nếu thiếu, backend sẽ
+#  tự tắt và routing sẽ chuyển sang backend khác.
+# ===========================================================================
+
+# Mọi khóa nằm dưới `mongo:` để namespace của file này không trùng
+# với các file backend khác khi Configuralize gộp tất cả vào
+# một namespace chung.
+mongo:
+  # Chuỗi kết nối MongoDB. Thông tin đăng nhập được mã hóa trong URL theo
+  # chuẩn của driver (mongodb://user:pass@host:port/?authSource=admin).
+  connection-string: "mongodb://localhost:27017"
+
+  # Database để ghi dữ liệu. Collection bên trong database lấy từ phần
+  # `tables:` bên dưới.
+  database: "grim"
+
+  # Kích thước bulkWrite() cho mỗi handler. Mongo driver tự quản lý pool
+  # kết nối, nên giá trị này điều khiển batch commit, không phải số kết nối.
+  batch-flush-cap: 256
+
+  # Ghi đè tên collection. Tên mặc định ở bên dưới.
+  tables:
+    meta: grim_meta
+    checks: grim_checks
+    players: grim_players
+    sessions: grim_sessions
+    violations: grim_violations
+    settings: grim_settings
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1
