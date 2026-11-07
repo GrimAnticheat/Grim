@@ -57,11 +57,13 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPlayer;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateAttributes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -96,7 +98,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(@NotNull PacketReceiveEvent event) {
         // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
         if (!isTickPacket(event.getPacketType())) return;
         player.compensatedEntities.entitiesRemovedThisTick.clear();
@@ -121,7 +123,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
+    public void onPacketSend(@NotNull PacketSendEvent event) {
         // ensure grim is the one that sent the transaction
         if ((event.getPacketType() == PacketType.Play.Server.PING || event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) && player.packetStateData.lastServerTransWasValid) {
             despawnedEntitiesThisTransaction.clear();
@@ -462,7 +464,9 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
         }
     }
 
-    private void handleMountVehicle(PacketSendEvent event, int vehicleID, int[] passengers) {
+    private void handleMountVehicle(PacketSendEvent event, int vehicleID, int @NotNull [] passengers) {
+        Objects.requireNonNull(passengers, "passengers");
+
         boolean wasInVehicle = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == vehicleID;
         boolean inThisVehicle = false;
 
@@ -650,7 +654,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
         });
     }
 
-    private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {
+    @Contract(pure = true)
+    private boolean isDirectlyAffectingPlayer(@NotNull GrimPlayer player, int entityID) {
         // The attributes for this entity is active, currently
         return (player.compensatedEntities.serverPlayerVehicle == null && entityID == player.entityID) ||
                 (player.compensatedEntities.serverPlayerVehicle != null && entityID == player.compensatedEntities.serverPlayerVehicle);

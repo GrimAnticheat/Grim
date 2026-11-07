@@ -91,6 +91,6 @@ public class PacketPingListener extends PacketListenerAbstract {
             player.getPlayerClockAtLeast(); // update clock
         }
         player.lastTransactionSent.getAndIncrement();
-        SEND_CHANNEL.fire(player, shortId, event.getTimestamp());
+        SEND_CHANNEL.fire(player, id, event.getTimestamp());
     }
 }

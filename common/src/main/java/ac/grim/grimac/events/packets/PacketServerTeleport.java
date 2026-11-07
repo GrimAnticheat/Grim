@@ -130,9 +130,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ(), teleport.getYaw(), teleport.getPitch());
             player.getSetbackTeleportUtil().addSentTeleport(target, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
-        }
-
-        if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
+        } else if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 

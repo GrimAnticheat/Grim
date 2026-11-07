@@ -9,6 +9,8 @@ import com.github.retrooper.packetevents.protocol.entity.pose.EntityPose;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -19,20 +21,24 @@ public class EntityMetadataPoseUtil {
     private static final boolean SERVER_HAS_POSE = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
     private static final int POSE_METADATA_INDEX = 6;
 
+    @Contract("null -> false")
     public static boolean usesPoseMetadata(@Nullable PacketEntity entity) {
         return entity != null && usesPoseMetadata(entity.getType());
     }
 
+    @Contract(value = "null -> false", pure = true)
     public static boolean usesPoseMetadata(@Nullable EntityType entityType) {
         return SERVER_HAS_POSE && (entityType == EntityTypes.PLAYER || entityType == EntityTypes.MANNEQUIN);
     }
 
+    @Contract(pure = true)
     public static @Nullable Pose getPoseFromMetadata(List<EntityData<?>> entityMetadata) {
-        EntityData<?> poseData = WatchableIndexUtil.getIndex(entityMetadata, POSE_METADATA_INDEX);
-        return poseData == null || !(poseData.getValue() instanceof EntityPose pose) ? null : mapEntityPose(pose);
+        Object poseData = WatchableIndexUtil.getIndexValue(entityMetadata, POSE_METADATA_INDEX);
+        return poseData instanceof EntityPose pose ? mapEntityPose(pose) : null;
     }
 
-    private static Pose mapEntityPose(EntityPose entityPose) {
+    @Contract(pure = true)
+    private static Pose mapEntityPose(@NotNull EntityPose entityPose) {
         return switch (entityPose) {
             case FALL_FLYING -> Pose.FALL_FLYING;
             case SLEEPING -> Pose.SLEEPING;
