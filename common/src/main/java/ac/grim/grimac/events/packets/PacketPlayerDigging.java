@@ -116,8 +116,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 boolean usingInMainHand = player.packetStateData.isSlowedByUsingItem() && player.packetStateData.itemInUseHand == InteractionHand.MAIN_HAND;
                 if (usingInMainHand && player.canSkipTicks() && !player.isTickingReliablyFor(3)) {
                     player.packetStateData.setSlowedByUsingItem(false);
-                    player.checkManager.getNoSlow().didSlotChangeLastTick = true;
                 }
+
+                player.checkManager.getNoSlow().didSlotChangeLastTick = true;
             }
             player.packetStateData.lastSlotSelected = slot;
         }
