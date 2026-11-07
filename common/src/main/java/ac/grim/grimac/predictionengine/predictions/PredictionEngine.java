@@ -486,6 +486,13 @@ public class PredictionEngine {
         return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
     }
 
+    private static Vector3dm carriedVelocity(VectorData data) {
+        for (VectorData d = data; d != null; d = d.lastVector) {
+            if (d.vectorType == VectorData.VectorType.InputResult) return d.lastVector == null ? null : d.lastVector.vector;
+        }
+        return null;
+    }
+
     public Vector3dm handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector, Vector3dm targetVec) {
         double avgColliding = Collections.max(player.uncertaintyHandler.collidingEntities);
 
@@ -641,6 +648,14 @@ public class PredictionEngine {
         if (player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(0) || player.uncertaintyHandler.influencedBySlime()) {
             // Avoid changing Y axis
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
+        }
+
+        // Slime only slows last tick's velocity, not the input, so turning around on it can end up past zero
+        if (player.uncertaintyHandler.influencedBySlime() && !vector.isKnockback() && !vector.isExplosion()) {
+            Vector3dm carried = carriedVelocity(vector);
+            if (carried != null) {
+                box.combineToMinimum(vector.vector.getX() - 0.6 * carried.getX(), box.minY, vector.vector.getZ() - 0.6 * carried.getZ());
+            }
         }
 
         // Alright, so hard lerping entities are a pain to support.
