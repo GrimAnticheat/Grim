@@ -11,14 +11,28 @@ import org.jetbrains.annotations.NotNull;
 @CheckData(name = "MultiActionsO", stableKey = "grim.multiactions.inventory_rotation", description = "Rotating while in an inventory", experimental = true)
 public class MultiActionsO extends Check implements RotationListener {
 
+    private boolean exempt;
+
     public MultiActionsO(GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void process(@NotNull RotationUpdate rotationUpdate) {
-        if (player.packetStateData.lastPacketWasTeleport) return;
+        if (player.packetStateData.lastPacketWasTeleport) {
+            // the client will send another update if the rotation changed
+            exempt |= rotationUpdate.newYaw() != rotationUpdate.oldYaw()
+                    || rotationUpdate.newPitch() != rotationUpdate.oldPitch();
+            return;
+        }
+
+        if (exempt) {
+            exempt = false;
+            return;
+        }
+
         if (!player.openWindow.mustBeOpen() || player.openWindow.getTicksOpen() == 0) return;
+
         if (flag() && shouldModifyPackets()) {
             player.closeInventory();
         }
