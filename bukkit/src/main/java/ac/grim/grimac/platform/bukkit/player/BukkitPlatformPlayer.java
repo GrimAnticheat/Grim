@@ -1,5 +1,6 @@
 package ac.grim.grimac.platform.bukkit.player;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
 import ac.grim.grimac.platform.api.player.BlockTranslator;
 import ac.grim.grimac.platform.api.player.PlatformInventory;
@@ -118,7 +119,12 @@ public class BukkitPlatformPlayer extends BukkitGrimEntity implements PlatformPl
 
     @Override
     public void closeInventory() {
-        bukkitPlayer.closeInventory();
+        GrimAPI.INSTANCE.getScheduler().getEntityScheduler().run(
+                this,
+                GrimAPI.INSTANCE.getGrimPlugin(),
+                bukkitPlayer::closeInventory,
+                null
+        );
     }
 
     @Override
