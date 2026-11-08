@@ -53,7 +53,8 @@ public class BlockPlaceCheck extends Check {
     @Override
     public void onReload(@NotNull ConfigManager config) {
         if (getConfigName() != null) {
-            this.cancelVL = config.getIntElse(getConfigName() + ".cancelVL", getDefaultCancelVL());
+            // config.yml spells it cancelvl and lookups are case-sensitive, cancelVL still read for configs written the old way
+            this.cancelVL = config.getIntElse(getConfigName() + ".cancelvl", config.getIntElse(getConfigName() + ".cancelVL", getDefaultCancelVL()));
         }
     }
 
