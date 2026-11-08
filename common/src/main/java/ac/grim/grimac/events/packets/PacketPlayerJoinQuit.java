@@ -18,19 +18,19 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Login.Server.LOGIN_SUCCESS) {
-            // Do this after send to avoid sending packets before the PLAY state
-            event.getTasksAfterSend().add(() -> {
-                GrimAPI.INSTANCE.getPlayerDataManager().addUser(event.getUser());
-                // Prefetch the player's persisted alerts/verbose/brands toggles so onUserLogin can apply them immediately instead of falling back to the permission-default when the read hasn't completed in time.
-                //
-                // Runs on the backend's reader executor: never blocks this Netty thread. By the time onUserLogin fires (after chunk load / resource pack / motd) the prefetch has typically settled, and onUserLogin reads from the in-memory cache. A slow DB or a brand-new player with no row yet falls through to the permission-default.
-                UUID uuid = event.getUser().getUUID();
-                if (uuid != null) {
-                    GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore().prefetch(uuid);
-                }
-            });
-        }
+        if (event.getPacketType() != PacketType.Login.Server.LOGIN_SUCCESS) return;
+
+        // Do this after send to avoid sending packets before the PLAY state
+        event.getTasksAfterSend().add(() -> {
+            GrimAPI.INSTANCE.getPlayerDataManager().addUser(event.getUser());
+            // Prefetch the player's persisted alerts/verbose/brands toggles so onUserLogin can apply them immediately instead of falling back to the permission-default when the read hasn't completed in time.
+            //
+            // Runs on the backend's reader executor: never blocks this Netty thread. By the time onUserLogin fires (after chunk load / resource pack / motd) the prefetch has typically settled, and onUserLogin reads from the in-memory cache. A slow DB or a brand-new player with no row yet falls through to the permission-default.
+            UUID uuid = event.getUser().getUUID();
+            if (uuid != null) {
+                GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore().prefetch(uuid);
+            }
+        });
     }
 
     @Override

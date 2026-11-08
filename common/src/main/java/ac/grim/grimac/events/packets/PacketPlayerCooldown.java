@@ -16,26 +16,25 @@ public class PacketPlayerCooldown extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.SET_COOLDOWN) {
-            WrapperPlayServerSetCooldown cooldown = new WrapperPlayServerSetCooldown(event);
+        if (event.getPacketType() != PacketType.Play.Server.SET_COOLDOWN) return;
+        WrapperPlayServerSetCooldown cooldown = new WrapperPlayServerSetCooldown(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+        if (player == null) return;
 
-            int lastTransactionSent = player.lastTransactionSent.get();
+        int lastTransactionSent = player.lastTransactionSent.get();
 
-            if (cooldown.getCooldownTicks() == 0) { // for removing the cooldown
-                player.latencyUtils.addRealTimeTask(lastTransactionSent + 1,
-                        () -> player.checkManager.getCompensatedCooldown().removeCooldown(cooldown.getCooldownGroup()));
-            } else { // Not for removing the cooldown
-                player.latencyUtils.addRealTimeTask(lastTransactionSent,
-                        () -> player.checkManager.getCompensatedCooldown().addCooldown(
-                                cooldown.getCooldownGroup(),
-                                cooldown.getCooldownTicks(),
-                                lastTransactionSent
-                        )
-                );
-            }
+        if (cooldown.getCooldownTicks() == 0) { // for removing the cooldown
+            player.latencyUtils.addRealTimeTask(lastTransactionSent + 1,
+                    () -> player.checkManager.getCompensatedCooldown().removeCooldown(cooldown.getCooldownGroup()));
+        } else { // Not for removing the cooldown
+            player.latencyUtils.addRealTimeTask(lastTransactionSent,
+                    () -> player.checkManager.getCompensatedCooldown().addCooldown(
+                            cooldown.getCooldownGroup(),
+                            cooldown.getCooldownTicks(),
+                            lastTransactionSent
+                    )
+            );
         }
     }
 }

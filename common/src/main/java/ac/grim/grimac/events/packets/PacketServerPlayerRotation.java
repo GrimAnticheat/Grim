@@ -24,35 +24,35 @@ public class PacketServerPlayerRotation extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ROTATION) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+        if (event.getPacketType() != PacketType.Play.Server.PLAYER_ROTATION) return;
 
-            WrapperPlayServerPlayerRotation packet = new WrapperPlayServerPlayerRotation(event);
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+        if (player == null) return;
 
-            // I don't want to deal with this, so we'll prevent it
-            if (!Float.isFinite(packet.getPitch())) {
-                packet.setPitch(0);
-                event.markForReEncode(true);
-            }
-            if (!Float.isFinite(packet.getYaw())) {
-                packet.setYaw(0);
-                event.markForReEncode(true);
-            }
+        WrapperPlayServerPlayerRotation packet = new WrapperPlayServerPlayerRotation(event);
 
-            if (!player.packetStateData.sendingBundlePacket) {
-                ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
-                event.getTasksAfterSend().add(() -> ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle()));
-            }
-            player.sendTransaction();
-            player.pendingRotations.add(RotationData.fromServer(
-                    player.getClientVersion(),
-                    packet.getYaw(),
-                    packet.getPitch(),
-                    packet.isRelativeYaw(),
-                    packet.isRelativePitch(),
-                    player.getLastTransactionSent()
-            ));
+        // I don't want to deal with this, so we'll prevent it
+        if (!Float.isFinite(packet.getPitch())) {
+            packet.setPitch(0);
+            event.markForReEncode(true);
         }
+        if (!Float.isFinite(packet.getYaw())) {
+            packet.setYaw(0);
+            event.markForReEncode(true);
+        }
+
+        if (!player.packetStateData.sendingBundlePacket) {
+            ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle());
+            event.getTasksAfterSend().add(() -> ConnectionUtils.sendPacketPreVia(player, new WrapperPlayServerBundle()));
+        }
+        player.sendTransaction();
+        player.pendingRotations.add(RotationData.fromServer(
+                player.getClientVersion(),
+                packet.getYaw(),
+                packet.getPitch(),
+                packet.isRelativeYaw(),
+                packet.isRelativePitch(),
+                player.getLastTransactionSent()
+        ));
     }
 }

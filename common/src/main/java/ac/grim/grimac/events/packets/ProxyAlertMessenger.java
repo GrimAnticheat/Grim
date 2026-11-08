@@ -87,7 +87,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() != PacketType.Play.Client.PLUGIN_MESSAGE || !ProxyAlertMessenger.canReceiveAlerts())
+        if (event.getPacketType() != PacketType.Play.Client.PLUGIN_MESSAGE || !canReceiveAlerts())
             return;
 
         WrapperPlayClientPluginMessage wrapper = new WrapperPlayClientPluginMessage(event);

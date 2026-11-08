@@ -71,6 +71,9 @@ public class TrigHandler {
             // Support diagonal inputs
             minFastMathHorizontal = Math.min(minFastMathHorizontal, Math.abs(fastMath.getX() - fastMath.getZ()));
 
+            // Both tables give the exact same sin and cos at some yaws, so a tie says nothing about which one the client uses
+            if (minCorrectHorizontal == minFastMathHorizontal) return;
+
             boolean newVanilla = minCorrectHorizontal < minFastMathHorizontal;
 
             buffer += newVanilla != this.isVanillaMath ? 1 : -0.25;

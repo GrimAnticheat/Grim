@@ -1,18 +1,23 @@
 package ac.grim.grimac.utils.data.tags;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.generation.fluids.Fluid;
 import com.github.retrooper.packetevents.protocol.world.generation.fluids.Fluids;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTags;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.IntFunction;
@@ -43,7 +48,7 @@ public final class SyncedTags {
     public SyncedTags(GrimPlayer player) {
         this.player = player;
         ClientVersion version = player.getClientVersion();
-        trackTags(BLOCK, id -> StateTypes.getById(VERSION.toClientVersion(), id),
+        trackTags(BLOCK, this::getBlocks,
                 SyncedTag.<StateType>builder(CLIMBABLE).defaults(BlockTags.CLIMBABLE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_16)),
                 SyncedTag.<StateType>builder(MINEABLE_AXE).defaults(BlockTags.MINEABLE_AXE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
                 SyncedTag.<StateType>builder(MINEABLE_PICKAXE).defaults(BlockTags.MINEABLE_PICKAXE.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
@@ -54,7 +59,7 @@ public final class SyncedTags {
                 SyncedTag.<StateType>builder(NEEDS_STONE_TOOL).defaults(BlockTags.NEEDS_STONE_TOOL.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_17)),
                 SyncedTag.<StateType>builder(SWORD_EFFICIENT).defaults(BlockTags.SWORD_EFFICIENT.getStates()).supported(version.isNewerThanOrEquals(ClientVersion.V_1_20))
         );
-        trackTags(FLUID, id -> Fluids.getRegistry().getById(VERSION.toClientVersion(), id),
+        trackTags(FLUID, id -> Collections.singletonList(Fluids.getRegistry().getById(VERSION.toClientVersion(), id)),
                 SyncedTag.<Fluid>builder(WATER).defaults(Set.of(Fluids.WATER, Fluids.FLOWING_WATER))
                         .supported(version.isNewerThanOrEquals(ClientVersion.V_26_3)),
                 SyncedTag.<Fluid>builder(LAVA).defaults(Set.of(Fluids.LAVA, Fluids.FLOWING_LAVA))
@@ -65,13 +70,27 @@ public final class SyncedTags {
     }
 
     @SafeVarargs
-    private <T> void trackTags(ResourceLocation location, IntFunction<T> remapper, SyncedTag.Builder<T>... syncedTags) {
+    private <T> void trackTags(ResourceLocation location, IntFunction<Collection<T>> remapper, SyncedTag.Builder<T>... syncedTags) {
         final Map<ResourceLocation, SyncedTag<?>> tags = new HashMap<>(syncedTags.length);
         for (SyncedTag.Builder<T> syncedTag : syncedTags) {
             final SyncedTag<T> built = syncedTag.remapper(remapper).build();
             tags.put(built.location(), built);
         }
         synced.put(location, tags);
+    }
+
+    // The servers block, plus the block Via shows a client older than the server in its place if that's a different one
+    // (copper chests are chests on 1.21.8). FastBreak checks the block the client sees, climbable gets checked with the servers
+    private Collection<StateType> getBlocks(int id) {
+        final StateType serverType = StateTypes.getById(VERSION.toClientVersion(), id);
+        if (serverType == null || !ViaVersionUtil.isAvailable || player.getClientVersion().isNewerThanOrEquals(VERSION.toClientVersion())
+                || player.getViaUserConnection() == null) {
+            return Collections.singletonList(serverType);
+        }
+
+        final int serverStateId = WrappedBlockState.getDefaultState(VERSION.toClientVersion(), serverType).getGlobalId();
+        final StateType clientType = WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(serverStateId)).getType();
+        return clientType == serverType || clientType == StateTypes.AIR ? Collections.singletonList(serverType) : List.of(serverType, clientType);
     }
 
     public SyncedTag<StateType> block(ResourceLocation tag) {

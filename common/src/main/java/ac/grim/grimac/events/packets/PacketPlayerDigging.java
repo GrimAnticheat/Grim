@@ -32,6 +32,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
     }
 
     private static final boolean SERVER_HAS_OFFHAND = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
+    private static final boolean SERVER_HAS_SPECTATOR = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8);
 
     public static void handleUseItem(@NotNull GrimPlayer player, @NotNull InteractionHand hand) {
         ItemStack item = player.inventory.getItemInHand(hand);
@@ -61,26 +62,23 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
+            if (dig.getAction() != DiggingAction.RELEASE_USE_ITEM) return;
 
-            if (dig.getAction() == DiggingAction.RELEASE_USE_ITEM) {
-                final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-                if (player == null) return;
+            final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
 
-                boolean wasUsingItem = player.packetStateData.isSlowedByUsingItem();
-                player.packetStateData.setSlowedByUsingItem(false);
-                player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
+            boolean wasUsingItem = player.packetStateData.isSlowedByUsingItem();
+            player.packetStateData.setSlowedByUsingItem(false);
+            player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
-                if (wasUsingItem && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                    ItemStack hand = player.inventory.getItemInHand(player.packetStateData.itemInUseHand);
+            if (wasUsingItem && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                ItemStack hand = player.inventory.getItemInHand(player.packetStateData.itemInUseHand);
 
-                    if (hand.getType() == ItemTypes.TRIDENT && hand.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) > 0) {
-                        player.packetStateData.tryingToRiptide = true;
-                    }
+                if (hand.getType() == ItemTypes.TRIDENT && hand.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) > 0) {
+                    player.packetStateData.tryingToRiptide = true;
                 }
             }
-        }
-
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null || !player.packetStateData.isSlowedByUsingItem()) return;
 
@@ -93,18 +91,16 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     player.checkManager.getNoSlow().didSlotChangeLastTick = true;
                 }
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+        } else if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
-            // Stop people from spamming the server with out of bounds exceptions
+            // Stop people from spamming the server with out-of-bounds exceptions
             if (slot > 8 || slot < 0) return;
 
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            // do we need to do this with block breaks too?
+            // TODO: do we need to do this with block breaks too?
             // Prevent issues if the player switches slots, while lagging, standing still, and is placing blocks
             CheckManagerListener.handleQueuedPlaces(player, false, 0, 0, System.currentTimeMillis());
 
@@ -120,15 +116,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 }
             }
             player.packetStateData.lastSlotSelected = slot;
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM || (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER)) {
+        } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM || (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT && new WrapperPlayClientPlayerBlockPlacement(event).getFace() == BlockFace.OTHER)) {
             final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
-
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8)
-                    && player.gamemode == GameMode.SPECTATOR)
-                return;
+            if (SERVER_HAS_SPECTATOR && player.gamemode == GameMode.SPECTATOR) return;
 
             final InteractionHand hand = SERVER_HAS_OFFHAND && event.getPacketType() == PacketType.Play.Client.USE_ITEM
                     ? new WrapperPlayClientUseItem(event).getHand()

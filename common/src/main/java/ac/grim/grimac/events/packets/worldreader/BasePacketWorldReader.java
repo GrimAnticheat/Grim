@@ -20,6 +20,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCh
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkDataBulk;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
+import org.jetbrains.annotations.NotNull;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
 
@@ -28,7 +29,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
+    public void onPacketSend(@NotNull PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.UNLOAD_CHUNK) {
             WrapperPlayServerUnloadChunk unloadChunk = new WrapperPlayServerUnloadChunk(event);
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
