@@ -19,18 +19,10 @@ public class MultiActionsO extends Check implements RotationListener {
 
     @Override
     public void process(@NotNull RotationUpdate rotationUpdate) {
-        if (player.packetStateData.lastPacketWasTeleport) {
-            // the client will send another update if the rotation changed
-            exempt |= rotationUpdate.newYaw() != rotationUpdate.oldYaw()
-                    || rotationUpdate.newPitch() != rotationUpdate.oldPitch();
-            return;
-        }
 
-        if (exempt) {
-            exempt = false;
-            return;
-        }
-
+        if (player.packetStateData.lastPacketWasTeleport) return;
+        // vehicles, teleport resend
+        if (rotationUpdate.newYaw() == rotationUpdate.oldYaw() && rotationUpdate.newPitch() == rotationUpdate.oldPitch()) return;
         if (!player.openWindow.mustBeOpen() || player.openWindow.getTicksOpen() == 0) return;
 
         if (flag() && shouldModifyPackets()) {
