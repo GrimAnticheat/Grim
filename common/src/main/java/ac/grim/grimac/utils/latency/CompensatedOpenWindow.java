@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.checks.type.PreViaPacketSendListener;
@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 // TODO: books, signs, etc
-public class CompensatedOpenWindow extends Check implements PreViaPacketReceiveListener, PreViaPacketSendListener, PacketReceiveListener {
+public class CompensatedOpenWindow extends GrimProcessor implements PreViaPacketReceiveListener, PreViaPacketSendListener, PacketReceiveListener {
 
     private static final Window PLAYER_INVENTORY = new Window(0, Long.MIN_VALUE, null);
 
