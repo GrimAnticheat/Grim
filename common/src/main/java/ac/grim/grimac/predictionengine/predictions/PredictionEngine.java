@@ -650,8 +650,10 @@ public class PredictionEngine {
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }
 
-        // Slime only slows last tick's velocity, not the input, so turning around on it can end up past zero
-        if (player.uncertaintyHandler.influencedBySlime() && !vector.isKnockback() && !vector.isExplosion()) {
+        // Slime only slows last tick's velocity, not the input, so turning around on it can end up past zero.
+        // 1.21.2+ only, it applies the block speed multiplier before the slime now (#2706)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)
+                && player.uncertaintyHandler.influencedBySlime() && !vector.isKnockback() && !vector.isExplosion()) {
             Vector3dm carried = carriedVelocity(vector);
             if (carried != null) {
                 box.combineToMinimum(vector.vector.getX() - 0.6 * carried.getX(), box.minY, vector.vector.getZ() - 0.6 * carried.getZ());
