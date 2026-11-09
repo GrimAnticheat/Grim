@@ -15,8 +15,9 @@ public class VehicleTimer extends Timer {
 
     @Override
     public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {
-        // Ignore teleports
-        if (player.packetStateData.lastPacketWasTeleport) return false;
+        // Ignore teleports, unless the client reported one in its regular tick move
+        if (player.packetStateData.lastPacketWasTeleport
+                && !(packetType == PacketType.Play.Client.VEHICLE_MOVE && player.vehicleData.teleportInTickMove)) return false;
 
         if (packetType == PacketType.Play.Client.VEHICLE_MOVE) {
             isDummy = false;

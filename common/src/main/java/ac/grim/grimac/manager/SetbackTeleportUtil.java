@@ -343,7 +343,13 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= yRoundingTolerance + threshold;
             boolean correctRotations = teleportPos.isValidRotation(player.getClientVersion(), yaw, pitch);
 
-            if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
+            // 1.21.2+ clients skip the teleport while they ride (ClientPacketListener#handleMovePlayer only moves a player that
+            // isn't a passenger) and accept it from their seat, so a server teleport has no position or rotation to match it by.
+            // Our own setbacks dismount first and always have to match. Older servers can send the dismount after the teleport
+            boolean ownSetback = requiredSetBack != null && !requiredSetBack.isPlugin() && requiredSetBack.getTeleportData().getTransaction() == teleportPos.getTransaction();
+            boolean skippedWhileRiding = player.supportsEndTick() && player.inVehicle() && !ownSetback;
+            if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && (skippedWhileRiding
+                    || Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations)) {
                 pendingTeleports.poll();
                 hasAcceptedSpawnTeleport = true;
                 blockOffsets = false;
@@ -356,7 +362,8 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
                 }
 
                 teleportData.setTeleportData(teleportPos);
-                teleportData.setTeleport(true);
+                // A teleport the client skipped didn't move it, so what it answered with gets checked like any other packet
+                teleportData.setTeleport(!skippedWhileRiding);
                 break;
             } else if (player.lastTransactionReceived.get() > teleportPos.getTransaction()) {
                 // The player ignored the teleport (and this teleport matters), resynchronize
@@ -383,21 +390,34 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
      */
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.lastTransactionReceived.get();
+        player.vehicleData.teleportInTickMove = false;
+        // Relative axes are from where the client had the vehicle, its last vehicle move or a teleport it took just before
+        double baseX = player.x, baseY = player.y, baseZ = player.z;
 
         while (true) {
-            IntToObjectPair<Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
+            VehicleData.Teleport teleportPos = player.vehicleData.vehicleTeleports.peek();
             if (teleportPos == null) break;
-            if (lastTransaction < teleportPos.first()) {
+            if (lastTransaction < teleportPos.transaction()) {
                 break;
             }
 
-            Vector3d position = teleportPos.second();
-            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
+            Vector3d position = teleportPos.position();
+            RelativeFlag relative = teleportPos.relative();
+            double teleportX = (relative.has(RelativeFlag.X) ? baseX : 0) + position.getX();
+            double teleportY = (relative.has(RelativeFlag.Y) ? baseY : 0) + position.getY();
+            double teleportZ = (relative.has(RelativeFlag.Z) ? baseZ : 0) + position.getZ();
+            if (teleportX == x && teleportY == y && teleportZ == z) {
                 player.vehicleData.vehicleTeleports.poll();
+                // An answer to the teleport comes before the transaction after it. A 1.21.2+ client gliding its vehicle
+                // there (under 64 blocks) reports it in its next tick move instead, and that move still takes a tick
+                player.vehicleData.teleportInTickMove = lastTransaction > teleportPos.transaction();
 
                 return true;
-            } else if (lastTransaction > teleportPos.first() + 1) {
+            } else if (lastTransaction > teleportPos.transaction() + 1) {
                 player.vehicleData.vehicleTeleports.poll();
+                baseX = teleportX;
+                baseY = teleportY;
+                baseZ = teleportZ;
 
                 // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back
                 // Players don't have to respond to vehicle teleports if they aren't controlling the entity anyways

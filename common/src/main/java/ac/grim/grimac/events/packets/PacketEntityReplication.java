@@ -9,6 +9,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.SprintingState;
 import ac.grim.grimac.utils.data.TrackerData;
+import ac.grim.grimac.utils.data.VehicleData;
 import ac.grim.grimac.utils.data.interpolation.EntityMovementTransaction;
 import ac.grim.grimac.utils.data.packetentity.DashableEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -29,6 +30,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
+import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.protocol.vector.positionpath.LinearPositionPath;
 import com.github.retrooper.packetevents.protocol.vector.positionpath.PositionPath;
 import com.github.retrooper.packetevents.protocol.vector.vecdelta.LinearVecDelta;
@@ -177,8 +179,21 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT) {
             WrapperPlayServerEntityTeleport move = new WrapperPlayServerEntityTeleport(event);
             Vector3d pos = move.getPosition();
-            LinearPositionPath path = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) ? new LinearPositionPath(pos) : null;
-            handleMoveEntity(event, move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false, true, null, path);
+            RelativeFlag relative = move.getRelativeFlags();
+            Vector3d absolute = pos;
+            float yaw = move.getYaw(), pitch = move.getPitch();
+            // 1.21.2+ servers send the driver its vehicle's teleport relative to where the vehicle was
+            TrackerData tracked = relative == null || relative == RelativeFlag.NONE ? null : player.compensatedEntities.getTrackedEntity(move.getEntityId());
+            if (tracked != null) {
+                absolute = new Vector3d(relative.has(RelativeFlag.X) ? tracked.getX() + pos.getX() : pos.getX(),
+                        relative.has(RelativeFlag.Y) ? tracked.getY() + pos.getY() : pos.getY(),
+                        relative.has(RelativeFlag.Z) ? tracked.getZ() + pos.getZ() : pos.getZ());
+                if (relative.has(RelativeFlag.YAW)) yaw += tracked.getXRot();
+                if (relative.has(RelativeFlag.PITCH)) pitch += tracked.getYRot();
+            }
+            LinearPositionPath path = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) ? new LinearPositionPath(absolute) : null;
+            handleMoveEntity(event, move.getEntityId(), absolute.getX(), absolute.getY(), absolute.getZ(), yaw, pitch, false, true, null, path);
+            queueOwnVehicleTeleport(event, move.getEntityId(), pos, relative);
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_POSITION_SYNC) {
             // ENTITY_TELEPORT but without relative flags
             WrapperPlayServerEntityPositionSync move = new WrapperPlayServerEntityPositionSync(event);
@@ -504,6 +519,18 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
                 passenger.mount(vehicle);
             }
         });
+    }
+
+    // 1.21.2+ clients put the vehicle they drive where the server teleports it (ClientPacketListener#handleTeleportEntity)
+    // and report it there in their next vehicle move. Queue it like a server VEHICLE_MOVE so that move is the teleport,
+    // instead of predicting the whole teleport as one tick of movement
+    private void queueOwnVehicleTeleport(PacketSendEvent event, int entityId, Vector3d position, RelativeFlag relative) {
+        Integer vehicle = player.compensatedEntities.serverPlayerVehicle;
+        if (vehicle == null || vehicle != entityId || !player.supportsEndTick()) return;
+        player.sendTransaction();
+        event.getTasksAfterSend().add(player::sendTransaction);
+        player.vehicleData.vehicleTeleports.add(new VehicleData.Teleport(player.lastTransactionSent.get(), position,
+                relative == null ? RelativeFlag.NONE : relative));
     }
 
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos, @Nullable VecDelta delta, @Nullable PositionPath path) {

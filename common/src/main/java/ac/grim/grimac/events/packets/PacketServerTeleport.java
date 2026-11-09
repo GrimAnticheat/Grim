@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.IntToObjectPair;
+import ac.grim.grimac.utils.data.VehicleData;
 import ac.grim.grimac.utils.math.Location;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -111,7 +111,8 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             }
 
             // 1.21.2+ client ignore teleports if player is inside vehicle, ABSOLUTE CINEMA MOJANG
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.compensatedEntities.serverPlayerVehicle != null) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.compensatedEntities.serverPlayerVehicle != null
+                    && player.getSetbackTeleportUtil().lastKnownGoodPosition != null) {
                 pos = player.getSetbackTeleportUtil().lastKnownGoodPosition.getPos();
             }
 
@@ -136,9 +137,10 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.sendTransaction();
             event.getTasksAfterSend().add(player::sendTransaction);
-            player.vehicleData.vehicleTeleports.add(new IntToObjectPair<>(
+            player.vehicleData.vehicleTeleports.add(new VehicleData.Teleport(
                     player.lastTransactionSent.get(),
-                    new WrapperPlayServerVehicleMove(event).getPosition()
+                    new WrapperPlayServerVehicleMove(event).getPosition(),
+                    RelativeFlag.NONE
             ));
         }
     }
