@@ -163,7 +163,7 @@ public class CompensatedWorld implements PacketWorld {
             WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
 
             // The player will teleport themselves if they get stuck in the reverted block
-            if (playerPosition != null && CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
+            if (playerPosition != null && isStuckInRevertedBlock(vector3i, state)) {
                 player.lastX = player.x;
                 player.lastY = player.y;
                 player.lastZ = player.z;
@@ -172,6 +172,21 @@ public class CompensatedWorld implements PacketWorld {
                 player.z = playerPosition.getZ();
                 player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
             }
+        }
+    }
+
+    // 1.16.2+ only goes back if the reverted block would leave it stuck, checked from where it is when the block comes back
+    // (Player.isColliding). Older clients always go back
+    private boolean isStuckInRevertedBlock(Vector3i pos, WrappedBlockState state) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16_2)) return true;
+
+        // Shapes like scaffolding pick their box from lastY, which is still where the player broke the block from
+        final double lastY = player.lastY;
+        player.lastY = player.y;
+        try {
+            return CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, pos.getX(), pos.getY(), pos.getZ()).isIntersected(player.boundingBox);
+        } finally {
+            player.lastY = lastY;
         }
     }
 
