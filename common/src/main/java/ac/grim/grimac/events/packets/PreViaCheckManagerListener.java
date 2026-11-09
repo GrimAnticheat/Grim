@@ -9,6 +9,10 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPong;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 import org.jetbrains.annotations.NotNull;
 
 public class PreViaCheckManagerListener extends PacketListenerAbstract {
@@ -35,6 +39,14 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
         final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
 
+        if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
+            WrapperPlayClientWindowConfirmation packet = new WrapperPlayClientWindowConfirmation(event);
+            PacketPingListener.onReceiveTransaction(player, event, packet.getActionId());
+        } else if (event.getPacketType() == PacketType.Play.Client.PONG) {
+            WrapperPlayClientPong packet = new WrapperPlayClientPong(event);
+            PacketPingListener.onReceiveTransaction(player, event, packet.getId());
+        }
+
         player.checkManager.onPreViaPacketReceive(event);
     }
 
@@ -50,6 +62,14 @@ public class PreViaCheckManagerListener extends PacketListenerAbstract {
         if (event.getConnectionState() != ConnectionState.PLAY) return;
         final GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
+
+        if (event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) {
+            WrapperPlayServerWindowConfirmation packet = new WrapperPlayServerWindowConfirmation(event);
+            PacketPingListener.onSendTransaction(player, event, packet.getActionId());
+        } else if (event.getPacketType() == PacketType.Play.Server.PING) {
+            WrapperPlayServerPing packet = new WrapperPlayServerPing(event);
+            PacketPingListener.onSendTransaction(player, event, packet.getId());
+        }
 
         final PacketTypeCommon packetType = event.getPacketType();
         if (packetType == PacketType.Play.Server.OPEN_WINDOW || packetType == PacketType.Play.Server.OPEN_HORSE_WINDOW) {

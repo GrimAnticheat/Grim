@@ -60,7 +60,7 @@ public class PacketPingListener extends PacketListenerAbstract {
         }
     }
 
-    private static void onReceiveTransaction(@NotNull GrimPlayer player, @NotNull PacketReceiveEvent event, int id) {
+    public static void onReceiveTransaction(@NotNull GrimPlayer player, @NotNull PacketReceiveEvent event, int id) {
         player.packetStateData.lastTransactionPacketWasValid = false;
 
         short shortId = (short) id;
@@ -77,7 +77,7 @@ public class PacketPingListener extends PacketListenerAbstract {
         RECEIVED_CHANNEL.fire(player, id, shouldCancel, event.getTimestamp());
     }
 
-    private static void onSendTransaction(@NotNull GrimPlayer player, @NotNull PacketSendEvent event, int id) {
+    public static void onSendTransaction(@NotNull GrimPlayer player, @NotNull PacketSendEvent event, int id) {
         player.packetStateData.lastServerTransWasValid = false;
 
         short shortId = (short) id;
