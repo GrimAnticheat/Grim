@@ -175,10 +175,10 @@ public class CompensatedWorld implements PacketWorld {
         }
     }
 
-    // 1.17+ only goes back if the reverted block would leave it stuck, checked from where it is when the block comes back
+    // 1.16.2+ only goes back if the reverted block would leave it stuck, checked from where it is when the block comes back
     // (Player.isColliding). Older clients always go back
     private boolean isStuckInRevertedBlock(Vector3i pos, WrappedBlockState state) {
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_17)) return true;
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16_2)) return true;
 
         // Shapes like scaffolding pick their box from lastY, which is still where the player broke the block from
         final double lastY = player.lastY;
