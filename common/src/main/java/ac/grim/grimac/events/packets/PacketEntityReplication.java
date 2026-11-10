@@ -46,7 +46,9 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEn
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityRelativeMoveAndRotation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityRotation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityStatus;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoRemove;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
@@ -193,7 +195,9 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
             }
             LinearPositionPath path = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) ? new LinearPositionPath(absolute) : null;
             handleMoveEntity(event, move.getEntityId(), absolute.getX(), absolute.getY(), absolute.getZ(), yaw, pitch, false, true, null, path);
-            queueOwnVehicleTeleport(event, move.getEntityId(), pos, relative);
+            if (!snapDrivenVehicle(event, move.getEntityId(), absolute, yaw, pitch)) {
+                queueOwnVehicleTeleport(event, move.getEntityId(), pos, relative);
+            }
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_POSITION_SYNC) {
             // ENTITY_TELEPORT but without relative flags
             WrapperPlayServerEntityPositionSync move = new WrapperPlayServerEntityPositionSync(event);
@@ -524,13 +528,27 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
     // 1.21.2+ clients put the vehicle they drive where the server teleports it (ClientPacketListener#handleTeleportEntity)
     // and report it there in their next vehicle move. Queue it like a server VEHICLE_MOVE so that move is the teleport,
     // instead of predicting the whole teleport as one tick of movement
+    // A 1.21.2+ client glides a vehicle it drives to a teleport over a few ticks and reports the target with its own movement
+    // folded in a tick late. The driver gets a VEHICLE_MOVE instead so it snaps there like before 1.21.2, then a zero
+    // velocity like the teleport would've given it (delta fields aren't worth handling)
+    private boolean snapDrivenVehicle(PacketSendEvent event, int entityId, Vector3d position, float yaw, float pitch) {
+        Integer vehicle = player.compensatedEntities.serverPlayerVehicle;
+        if (vehicle == null || vehicle != entityId || !player.supportsEndTick()) return false;
+        if (player.vehicleData.lastDriveVehicle != entityId || System.nanoTime() - player.vehicleData.lastDriveNanos > 250_000_000L) return false;
+        event.setCancelled(true);
+        player.vehicleData.pendingSnap = position;
+        player.user.writePacket(new WrapperPlayServerVehicleMove(position, yaw, pitch));
+        player.user.writePacket(new WrapperPlayServerEntityVelocity(entityId, Vector3d.zero()));
+        return true;
+    }
+
     private void queueOwnVehicleTeleport(PacketSendEvent event, int entityId, Vector3d position, RelativeFlag relative) {
         Integer vehicle = player.compensatedEntities.serverPlayerVehicle;
         if (vehicle == null || vehicle != entityId || !player.supportsEndTick()) return;
         player.sendTransaction();
         event.getTasksAfterSend().add(player::sendTransaction);
         player.vehicleData.vehicleTeleports.add(new VehicleData.Teleport(player.lastTransactionSent.get(), position,
-                relative == null ? RelativeFlag.NONE : relative));
+                relative == null ? RelativeFlag.NONE : relative, false));
     }
 
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos, @Nullable VecDelta delta, @Nullable PositionPath path) {

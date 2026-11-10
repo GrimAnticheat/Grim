@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTeleportConfirm;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 
@@ -31,6 +32,20 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             if (player == null) return;
 
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
+
+            // 1.21.2+ clients don't apply a teleport while they ride (ClientPacketListener#handleMovePlayer only moves a player
+            // that isn't a passenger) and just accept it. 1.21.2+ servers dismount first when the teleport should, so if the
+            // player still rides there's nothing for the client to do, accept it for them. Do it when the client would have,
+            // the server ignores the vehicle moves it sent before that while it waits. It only takes a passenger's rotation
+            if (player.supportsEndTick() && player.compensatedEntities.serverPlayerVehicle != null) {
+                event.setCancelled(true);
+                player.sendTransaction();
+                int teleportId = teleport.getTeleportId();
+                double x = teleport.getX(), y = teleport.getY(), z = teleport.getZ();
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.user.receivePacketSilently(
+                        new WrapperPlayClientTeleportConfirm(teleportId, x, y, z, player.yaw, player.pitch)));
+                return;
+            }
 
             Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
 
@@ -137,10 +152,14 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.sendTransaction();
             event.getTasksAfterSend().add(player::sendTransaction);
+            Vector3d position = new WrapperPlayServerVehicleMove(event).getPosition();
+            boolean snap = position.equals(player.vehicleData.pendingSnap);
+            if (snap) player.vehicleData.pendingSnap = null;
             player.vehicleData.vehicleTeleports.add(new VehicleData.Teleport(
                     player.lastTransactionSent.get(),
-                    new WrapperPlayServerVehicleMove(event).getPosition(),
-                    RelativeFlag.NONE
+                    position,
+                    RelativeFlag.NONE,
+                    snap
             ));
         }
     }

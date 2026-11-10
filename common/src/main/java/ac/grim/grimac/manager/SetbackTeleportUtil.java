@@ -343,13 +343,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= yRoundingTolerance + threshold;
             boolean correctRotations = teleportPos.isValidRotation(player.getClientVersion(), yaw, pitch);
 
-            // 1.21.2+ clients skip the teleport while they ride (ClientPacketListener#handleMovePlayer only moves a player that
-            // isn't a passenger) and accept it from their seat, so a server teleport has no position or rotation to match it by.
-            // Our own setbacks dismount first and always have to match. Older servers can send the dismount after the teleport
-            boolean ownSetback = requiredSetBack != null && !requiredSetBack.isPlugin() && requiredSetBack.getTeleportData().getTransaction() == teleportPos.getTransaction();
-            boolean skippedWhileRiding = player.supportsEndTick() && player.inVehicle() && !ownSetback;
-            if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && (skippedWhileRiding
-                    || Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations)) {
+            if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
                 pendingTeleports.poll();
                 hasAcceptedSpawnTeleport = true;
                 blockOffsets = false;
@@ -362,8 +356,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
                 }
 
                 teleportData.setTeleportData(teleportPos);
-                // A teleport the client skipped didn't move it, so what it answered with gets checked like any other packet
-                teleportData.setTeleport(!skippedWhileRiding);
+                teleportData.setTeleport(true);
                 break;
             } else if (player.lastTransactionReceived.get() > teleportPos.getTransaction()) {
                 // The player ignored the teleport (and this teleport matters), resynchronize
@@ -391,6 +384,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.lastTransactionReceived.get();
         player.vehicleData.teleportInTickMove = false;
+        player.vehicleData.swallowMove = false;
         // Relative axes are from where the client had the vehicle, its last vehicle move or a teleport it took just before
         double baseX = player.x, baseY = player.y, baseZ = player.z;
 
@@ -411,6 +405,9 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
                 // An answer to the teleport comes before the transaction after it. A 1.21.2+ client gliding its vehicle
                 // there (under 64 blocks) reports it in its next tick move instead, and that move still takes a tick
                 player.vehicleData.teleportInTickMove = lastTransaction > teleportPos.transaction();
+                // The answer to our own snap: the server already has the vehicle there, and it can beat the server's
+                // lastGood update, which makes vanilla log moved wrongly and send it back
+                player.vehicleData.swallowMove = teleportPos.snap() && !player.vehicleData.teleportInTickMove;
 
                 return true;
             } else if (lastTransaction > teleportPos.transaction() + 1) {
