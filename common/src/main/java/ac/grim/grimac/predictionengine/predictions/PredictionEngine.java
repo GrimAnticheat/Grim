@@ -488,7 +488,11 @@ public class PredictionEngine {
 
     private static Vector3dm carriedVelocity(VectorData data) {
         for (VectorData d = data; d != null; d = d.lastVector) {
-            if (d.vectorType == VectorData.VectorType.InputResult) return d.lastVector == null ? null : d.lastVector.vector;
+            if (d.vectorType != VectorData.VectorType.InputResult) continue;
+            // The jump and its sprint boost come after the slime, so they aren't slowed
+            VectorData carried = d.lastVector;
+            while (carried != null && carried.vectorType == VectorData.VectorType.Jump) carried = carried.lastVector;
+            return carried == null ? null : carried.vector;
         }
         return null;
     }
