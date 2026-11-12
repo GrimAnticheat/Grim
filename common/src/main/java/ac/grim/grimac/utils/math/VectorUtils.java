@@ -128,12 +128,12 @@ public class VectorUtils {
 
     @Contract(pure = true)
     public static double distance(double x1, double y1, double z1, @NotNull Vector3d vec2) {
-        return distanceSquared(x1, y1, z1, vec2.getX(), vec2.getY(), vec2.getZ());
+        return distance(x1, y1, z1, vec2.getX(), vec2.getY(), vec2.getZ());
     }
 
     @Contract(pure = true)
     public static double distance(@NotNull Vector3d vec1, double x2, double y2, double z2) {
-        return distanceSquared(vec1.getX(), vec1.getY(), vec1.getZ(), x2, y2, z2);
+        return distance(vec1.getX(), vec1.getY(), vec1.getZ(), x2, y2, z2);
     }
 
     @Contract(pure = true)
