@@ -158,7 +158,7 @@ public class UncertaintyHandler {
             entityBox.expand(-width / 2, 0, -width / 2);
 
             double minX = (entityBox.minX - player.lastX) * 0.1;
-            double minY = (entityBox.minX - (player.lastY + 0.8 * 1.8)) * 0.1;
+            double minY = (entityBox.minY - (player.lastY + 0.8 * 1.8)) * 0.1;
             double minZ = (entityBox.minZ - player.lastZ) * 0.1;
             fishingRodPullBox.minX = Math.min(0, minX);
             fishingRodPullBox.minY = Math.min(0, minY);
