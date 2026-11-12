@@ -454,12 +454,20 @@ public class GrimPlayer implements GrimUser {
         baseTickWaterPushing.add(vector);
     }
 
-    public void baseTickAddVector(Vector3dm vector) {
-        clientVelocity.add(vector);
+    public void baseTickAddVector(@NotNull Vector3dm vector) {
+        baseTickAddVector(vector.getX(), vector.getY(), vector.getZ());
     }
 
-    public void trackBaseTickAddition(Vector3dm vector) {
-        baseTickAddition.add(vector);
+    public void baseTickAddVector(double x, double y, double z) {
+        clientVelocity.add(x, y, z);
+    }
+
+    public void trackBaseTickAddition(@NotNull Vector3dm vector) {
+        trackBaseTickAddition(vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    public void trackBaseTickAddition(double x, double y, double z) {
+        baseTickAddition.add(x, y, z);
     }
 
     public float getMaxUpStep() {
@@ -776,7 +784,7 @@ public class GrimPlayer implements GrimUser {
                         EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_NAUTILUS)) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
-                    user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+                    user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, Vector3d.zero()));
                 }
             }
         }
@@ -809,7 +817,7 @@ public class GrimPlayer implements GrimUser {
                         // Yes, this is the new "entity teleport" on 1.21.2+!
                         // WrapperPlayServerEntityTeleport on 1.21.2+ still exists but has a different purpose!
                         // Using WrapperPlayServerEntityTeleport is wrong and will lead to weird behaviour!
-                        user.writePacket(new WrapperPlayServerEntityPositionSync(ridingId, new EntityPositionData(pos, new Vector3d(), data.getXRot(), data.getYRot()), false));
+                        user.writePacket(new WrapperPlayServerEntityPositionSync(ridingId, new EntityPositionData(pos, Vector3d.zero(), data.getXRot(), data.getYRot()), false));
                     } else {
                         user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, pos, data.getXRot(), data.getYRot(), false));
                     }
@@ -1034,16 +1042,28 @@ public class GrimPlayer implements GrimUser {
         if (platformPlayer != null) platformPlayer.sendMessage(message);
     }
 
-    public void resyncPosition(Vector3i pos) {
-        this.resyncHandler.resync(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    public void resyncPosition(@NotNull Vector3i pos) {
+        resyncPosition(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public void resyncPosition(Vector3i pos, int sequenceID) {
-        this.resyncHandler.resyncPosition(pos.x, pos.y, pos.z, sequenceID);
+    public void resyncPosition(int x, int y, int z) {
+        resyncPositions(x, y, z, x, y, z);
     }
 
-    public void resyncPositions(SimpleCollisionBox box) {
-        this.resyncHandler.resync(GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+    public void resyncPosition(@NotNull Vector3i pos, int sequenceID) {
+        resyncPosition(pos.x, pos.y, pos.z, sequenceID);
+    }
+
+    public void resyncPosition(int x, int y, int z, int sequenceID) {
+        this.resyncHandler.resyncPosition(x, y, z, sequenceID);
+    }
+
+    public void resyncPositions(int x1, int y1, int z1, int x2, int y2, int z2) {
+        this.resyncHandler.resync(x1, y1, z1, x2, y2, z2);
+    }
+
+    public void resyncPositions(@NotNull SimpleCollisionBox box) {
+        resyncPositions(GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
                 GrimMath.ceil(box.maxX), GrimMath.ceil(box.maxY), GrimMath.ceil(box.maxZ));
     }
 

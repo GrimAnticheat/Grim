@@ -159,7 +159,7 @@ public class CompensatedWorld implements PacketWorld {
                             BlockModification.Cause.HANDLE_NETTY_SYNC_TRANSACTION
                     )
             );
-            updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalBlockId);
+            updateBlock(vector3i, originalBlockId);
             WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
 
             // The player will teleport themselves if they get stuck in the reverted block
@@ -283,20 +283,23 @@ public class CompensatedWorld implements PacketWorld {
     }
 
     public void updateBlock(Vector3i pos, WrappedBlockState state) {
-        updateBlock(pos.getX(), pos.getY(), pos.getZ(), state.getGlobalId());
+        updateBlock(pos, state.getGlobalId());
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
-        Vector3i asVector = new Vector3i(x, y, z);
-        BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
+        updateBlock(new Vector3i(x, y, z), combinedID);
+    }
+
+    public void updateBlock(Vector3i pos, int combinedID) {
+        BlockPrediction prediction = originalServerBlocks.get(pos.getSerializedPosition());
 
         if (isCurrentlyPredicting) {
             if (prediction == null) {
-                originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+                originalServerBlocks.put(pos.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, pos, getBlock(pos).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
             } else {
                 prediction.setForBlockUpdate(currentlyChangedBlocks); // Block existing there was placed by client, mark block to have a new prediction
             }
-            currentlyChangedBlocks.add(asVector);
+            currentlyChangedBlocks.add(pos);
         }
 
         if (!isCurrentlyPredicting && prediction != null) {
@@ -304,6 +307,10 @@ public class CompensatedWorld implements PacketWorld {
             prediction.setOriginalBlockId(combinedID);
             return;
         }
+
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
 
         Column column = getChunk(x >> 4, z >> 4);
 

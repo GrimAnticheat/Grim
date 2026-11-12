@@ -32,11 +32,11 @@ public class DoubleInputTransformer implements InputTransformer<DoubleInput> { /
         inputVector.multiply(0.98F);
 
         // Simulate float rounding imprecision
-        inputVector = new Vector3dm((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+        inputVector.set((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
 
         if (inputVector.lengthSquared() > 1) {
             double d0 = VectorUtils.getVanillaLength(player.getClientVersion(), inputVector);
-            inputVector = new Vector3dm(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+            inputVector.set(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
         }
 
         return new DoubleInput(inputVector.getX(), inputVector.getY(), inputVector.getZ());

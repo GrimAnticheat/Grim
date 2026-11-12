@@ -146,7 +146,7 @@ public final class Collisions {
                         Vector3dm vec3d2 = collideBoundingBoxLegacy(new Vector3dm(desiredX, stepHeight, desiredZ), startingOffsetBox, stepCollisions, order);
                         if (getHorizontalDistanceSqr(vec3d2) > getHorizontalDistanceSqr(collisionResult)) {
                             final double d = player.boundingBox.minY - startingOffsetBox.minY;
-                            collisionResult = vec3d2.add(new Vector3dm(0.0, -d, 0.0));
+                            collisionResult = vec3d2.add(0.0, -d, 0.0);
                             break;
                         }
                     }

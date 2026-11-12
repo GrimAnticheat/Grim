@@ -82,7 +82,7 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
             for (Vector3i record : explosion.getRecords()) {
                 // Null OR not flip redstone blocks, then set to air
                 if (blockInteraction != WrapperPlayServerExplosion.BlockInteraction.TRIGGER_BLOCKS) {
-                    player.compensatedWorld.updateBlock(record.x, record.y, record.z, 0);
+                    player.compensatedWorld.updateBlock(record, 0);
                 } else {
                     // We need to flip redstone blocks, or do special things with other blocks
                     final WrappedBlockState state = player.compensatedWorld.getBlock(record);

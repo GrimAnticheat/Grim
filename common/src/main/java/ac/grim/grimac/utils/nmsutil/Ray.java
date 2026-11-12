@@ -7,23 +7,20 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 // Copied directly from Hawk
-public record Ray(@NotNull Vector3d origin, @NotNull Vector3d direction) implements Cloneable {
-    public Ray(@NotNull GrimPlayer player, double x, double y, double z, float xRot, float yRot) {
-        this(new Vector3d(x, y, z), calculateDirection(player, xRot, yRot));
-    }
+public record Ray(double originX, double originY, double originZ, double directionX, double directionY, double directionZ) implements Cloneable {
 
     // Account for FastMath by using player's trig handler
     // Copied from hawk which probably copied it from NMS
-    public static @NotNull Vector3d calculateDirection(@NotNull GrimPlayer player, float xRot, float yRot) {
-        float rotX = (float) Math.toRadians(xRot);
-        float rotY = (float) Math.toRadians(yRot);
+    @Contract(value = "_, _, _, _, _, _ -> new", pure = true)
+    public static @NotNull Ray from(@NotNull GrimPlayer player, double x, double y, double z, float yaw, float pitch) {
+        float rotX = (float) Math.toRadians(yaw);
+        float rotY = (float) Math.toRadians(pitch);
         double xz = player.trigHandler.cos(rotY);
 
-        return new Vector3d(
-                -xz * player.trigHandler.sin(rotX),
-                -player.trigHandler.sin(rotY),
-                xz * player.trigHandler.cos(rotX)
-        );
+        double dx = -xz * player.trigHandler.sin(rotX);
+        double dy = -player.trigHandler.sin(rotY);
+        double dz = xz * player.trigHandler.cos(rotX);
+        return new Ray(x, y, z, dx, dy, dz);
     }
 
     @Contract(" -> this")
@@ -33,18 +30,86 @@ public record Ray(@NotNull Vector3d origin, @NotNull Vector3d direction) impleme
         return this;
     }
 
+    @Contract(value = "_ -> new", pure = true)
     public @NotNull Vector3d getPointAtDistance(double distance) {
-        return origin.add(direction.multiply(distance));
+        double x = originX + directionX * distance;
+        double y = originY + directionY * distance;
+        double z = originZ + directionZ * distance;
+
+        return new Vector3d(x, y, z);
+    }
+
+    @Contract(pure = true)
+    public double getXPointAtDistance(double distance) {
+        return originX + directionX * distance;
+    }
+
+    @Contract(pure = true)
+    public double getYPointAtDistance(double distance) {
+        return originY + directionY * distance;
+    }
+
+    @Contract(pure = true)
+    public double getZPointAtDistance(double distance) {
+        return originZ + directionZ * distance;
     }
 
     // https://en.wikipedia.org/wiki/Skew_lines#Nearest_Points
+    @Contract("_ -> new")
     public @NotNull Pair<@NotNull Vector3d, @NotNull Vector3d> closestPointsBetweenLines(@NotNull Ray other) {
-        Vector3d n1 = direction.crossProduct(other.direction.crossProduct(direction));
-        Vector3d n2 = other.direction.crossProduct(direction.crossProduct(other.direction));
+        double directionX = this.directionX;
+        double directionY = this.directionY;
+        double directionZ = this.directionZ;
+        double originX = this.originX;
+        double originY = this.originY;
+        double originZ = this.originZ;
+        double otherDirectionX = other.directionX;
+        double otherDirectionY = other.directionY;
+        double otherDirectionZ = other.directionZ;
+        double otherOriginX = other.originX;
+        double otherOriginY = other.originY;
+        double otherOriginZ = other.originZ;
 
-        Vector3d c1 = origin.add(direction.multiply(other.origin.subtract(origin).dot(n2) / direction.dot(n2)));
-        Vector3d c2 = other.origin.add(other.direction.multiply(origin.subtract(other.origin).dot(n1) / other.direction.dot(n1)));
+        double crossX1 = directionY * otherDirectionZ - otherDirectionY * directionZ;
+        double crossY1 = directionZ * otherDirectionX - otherDirectionZ * directionX;
+        double crossZ1 = directionX * otherDirectionY - otherDirectionX * directionY;
+        double orthoX1 = otherDirectionY * crossZ1 - crossY1 * otherDirectionZ;
+        double orthoY1 = otherDirectionZ * crossX1 - crossZ1 * otherDirectionX;
+        double orthoZ1 = otherDirectionX * crossY1 - crossX1 * otherDirectionY;
 
-        return new Pair<>(c1, c2);
+        double numerator1 = (otherOriginX - originX) * orthoX1
+                + (otherOriginY - originY) * orthoY1
+                + (otherOriginZ - originZ) * orthoZ1;
+        double denominator1 = directionX * orthoX1
+                + directionY * orthoY1
+                + directionZ * orthoZ1;
+        double scale1 = numerator1 / denominator1;
+        Vector3d point1 = new Vector3d(
+                originX + directionX * scale1,
+                originY + directionY * scale1,
+                originZ + directionZ * scale1
+        );
+
+        double crossX2 = otherDirectionY * directionZ - directionY * otherDirectionZ;
+        double crossY2 = otherDirectionZ * directionX - directionZ * otherDirectionX;
+        double crossZ2 = otherDirectionX * directionY - directionX * otherDirectionY;
+        double orthoX2 = directionY * crossZ2 - crossY2 * directionZ;
+        double orthoY2 = directionZ * crossX2 - crossZ2 * directionX;
+        double orthoZ2 = directionX * crossY2 - crossX2 * directionY;
+
+        double numerator2 = (originX - otherOriginX) * orthoX2
+                + (originY - otherOriginY) * orthoY2
+                + (originZ - otherOriginZ) * orthoZ2;
+        double denominator2 = otherDirectionX * orthoX2
+                + otherDirectionY * orthoY2
+                + otherDirectionZ * orthoZ2;
+        double scale2 = numerator2 / denominator2;
+        Vector3d point2 = new Vector3d(
+                otherOriginX + otherDirectionX * scale2,
+                otherOriginY + otherDirectionY * scale2,
+                otherOriginZ + otherDirectionZ * scale2
+        );
+
+        return new Pair<>(point1, point2);
     }
 }

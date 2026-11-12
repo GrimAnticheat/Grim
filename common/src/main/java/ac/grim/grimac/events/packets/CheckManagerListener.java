@@ -432,7 +432,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
             }
 
-            Vector3d position = VectorUtils.clampVector(new Vector3d(teleportConfirm.getX(), teleportConfirm.getY(), teleportConfirm.getZ()));
+            Vector3d position = VectorUtils.clampVector(teleportConfirm.getX(), teleportConfirm.getY(), teleportConfirm.getZ());
             teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ(), teleportConfirm.getYaw(), teleportConfirm.getPitch());
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
         }
@@ -570,14 +570,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         player.onPacketCancel();
                     }
 
-                    Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
-
                     // Ends the client prediction introduced in 1.19+
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
                         player.user.sendPacket(new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
                     } else { // The client isn't smart enough to revert changes
                         player.resyncPosition(packet.getBlockPosition());
-                        player.resyncPosition(facePos);
+                        player.resyncPosition(
+                                packet.getBlockPosition().getX() + packet.getFace().getModX(),
+                                packet.getBlockPosition().getY() + packet.getFace().getModY(),
+                                packet.getBlockPosition().getZ() + packet.getFace().getModZ()
+                        );
                     }
 
                     // Stop inventory desync from cancelling place
@@ -863,7 +865,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (action == DiggingAction.FINISHED_DIGGING && isBreakable(blockBreak.block.getType())) {
             player.compensatedWorld.startPredicting();
-            player.compensatedWorld.updateBlock(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z, 0);
+            player.compensatedWorld.updateBlock(blockBreak.position, 0);
             player.compensatedWorld.stopPredicting(packet);
         }
 
@@ -888,7 +890,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // We can simply treat all waterlogged blocks or source blocks as source blocks
                     player.compensatedWorld.updateBlock(blockBreak.position, StateTypes.WATER.createBlockState(CompensatedWorld.blockVersion));
                 } else {
-                    player.compensatedWorld.updateBlock(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z, 0);
+                    player.compensatedWorld.updateBlock(blockBreak.position, 0);
                 }
                 player.compensatedWorld.stopPredicting(packet);
             }
