@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.util.Vector3d;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -9,18 +10,10 @@ import org.jetbrains.annotations.NotNull;
 // Copied directly from Hawk
 public record Ray(double originX, double originY, double originZ, double directionX, double directionY, double directionZ) implements Cloneable {
 
-    // Account for FastMath by using player's trig handler
-    // Copied from hawk which probably copied it from NMS
     @Contract(value = "_, _, _, _, _, _ -> new", pure = true)
     public static @NotNull Ray from(@NotNull GrimPlayer player, double x, double y, double z, float yaw, float pitch) {
-        float rotX = (float) Math.toRadians(yaw);
-        float rotY = (float) Math.toRadians(pitch);
-        double xz = player.trigHandler.cos(rotY);
-
-        double dx = -xz * player.trigHandler.sin(rotX);
-        double dy = -player.trigHandler.sin(rotY);
-        double dz = xz * player.trigHandler.cos(rotX);
-        return new Ray(x, y, z, dx, dy, dz);
+        Vector3dm direction = ReachUtils.getLook(player, yaw, pitch);
+        return new Ray(x, y, z, direction.getX(), direction.getY(), direction.getZ());
     }
 
     @Contract(" -> this")

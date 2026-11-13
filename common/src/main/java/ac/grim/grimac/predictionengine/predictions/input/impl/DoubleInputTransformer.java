@@ -52,9 +52,9 @@ public class DoubleInputTransformer implements InputTransformer<DoubleInput> { /
         float sin = player.trigHandler.sin(yawRadians);
         float cos = player.trigHandler.cos(yawRadians);
 
-        double xResult = input.sideways() * cos - input.forward() * sin;
-        double zResult = input.forward() * cos + input.sideways() * sin;
+        double sideways = input.sideways() * speed;
+        double forward = input.forward() * speed;
 
-        return new Vector3dm(xResult * speed, input.vertical() * speed, zResult * speed);
+        return new Vector3dm(sideways * cos - forward * sin, input.vertical() * speed, forward * cos + sideways * sin);
     }
 }

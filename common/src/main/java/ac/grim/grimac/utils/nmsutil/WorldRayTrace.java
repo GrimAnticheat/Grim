@@ -26,8 +26,12 @@ import java.util.List;
 public class WorldRayTrace {
     public static HitData getNearestBlockHitResult(GrimPlayer player, StateType heldItem, boolean sourcesHaveHitbox, boolean fluidPlacement, boolean itemUsePlacement) {
         Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
-        Ray trace = Ray.from(player, startingPos.getX(), startingPos.getY(), startingPos.getZ(), player.yaw, player.pitch);
-        final double distance = itemUsePlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 5 : player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+        boolean legacyItemRay = itemUsePlacement && player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5);
+        Vector3dm direction = legacyItemRay
+                ? ReachUtils.getLegacyLook(player, player.yaw, player.pitch)
+                : ReachUtils.getLook(player, player.yaw, player.pitch);
+        Ray trace = new Ray(startingPos.getX(), startingPos.getY(), startingPos.getZ(), direction.getX(), direction.getY(), direction.getZ());
+        final double distance = legacyItemRay ? 5.0 : player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
         Vector3d endPos = trace.getPointAtDistance(distance);
 
         return traverseBlocks(player, startingPos, endPos, (block, x, y, z) -> {
