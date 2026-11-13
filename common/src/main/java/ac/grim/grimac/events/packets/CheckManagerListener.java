@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.change.BlockModification;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -136,7 +137,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     && Float.isFinite(useItem.getYaw()) && Float.isFinite(useItem.getPitch())) {
                 packetRotation = true;
                 player.yaw = useItem.getYaw();
-                player.pitch = useItem.getPitch();
+                player.pitch = GrimMath.clamp(useItem.getPitch(), -90, 90);
             }
 
             player.compensatedWorld.startPredicting();
