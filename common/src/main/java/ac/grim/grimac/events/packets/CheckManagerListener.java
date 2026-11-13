@@ -126,9 +126,27 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.pitch = pitch;
             }
 
+            // 1.21 put the rotation the item is used with in the packet, and the server turns the player to it first
+            final float lookYaw = player.yaw;
+            final float lookPitch = player.pitch;
+            boolean packetRotation = false;
+            if (snapshot.wrapper() instanceof WrapperPlayClientUseItem useItem
+                    && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
+                    && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)
+                    && Float.isFinite(useItem.getYaw()) && Float.isFinite(useItem.getPitch())) {
+                packetRotation = true;
+                player.yaw = useItem.getYaw();
+                player.pitch = useItem.getPitch();
+            }
+
             player.compensatedWorld.startPredicting();
             handleBlockPlaceOrUseItem(player, snapshot.wrapper());
             player.compensatedWorld.stopPredicting(snapshot.wrapper());
+
+            if (packetRotation) {
+                player.yaw = lookYaw;
+                player.pitch = lookPitch;
+            }
 
             player.x = lastX;
             player.y = lastY;
