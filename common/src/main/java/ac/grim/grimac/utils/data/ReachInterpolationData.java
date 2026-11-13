@@ -63,9 +63,9 @@ public class ReachInterpolationData {
         }
 
         if (entity.isBoat) {
-            interpolationSteps = 10;
+            interpolationSteps = player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) ? 10 : 3;
         } else if (entity.isMinecart) {
-            interpolationSteps = 5;
+            interpolationSteps = player.getClientVersion().isOlderThan(ClientVersion.V_1_21_5) ? 5 : 3;
         } else if (entity.getType() == EntityTypes.SHULKER) {
             interpolationSteps = 1;
         } else if (entity.isLivingEntity) {

@@ -52,7 +52,7 @@ public class FloatInputTransformer implements InputTransformer<FloatInput> { // 
             vertical *= lengthSquared;
             forward *= lengthSquared;
 
-            float yawRadians = GrimMath.radians(yaw);
+            float yawRadians = GrimMath.movementInputYawRadians(yaw, player.getClientVersion());
             float sin = player.trigHandler.sin(yawRadians);
             float cos = player.trigHandler.cos(yawRadians);
             return new Vector3dm(sideways * cos - forward * sin, vertical, forward * cos + sideways * sin);

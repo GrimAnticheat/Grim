@@ -287,6 +287,13 @@ public class Vector3dm implements Cloneable, Serializable {
         return this.setX(x).setY(y);
     }
 
+    public @NotNull Vector3dm set(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
+    }
+
     public @NotNull Vector3dm setX(int x) {
         this.x = x;
         return this;

@@ -157,18 +157,19 @@ public class UncertaintyHandler {
             entityBox.maxY -= height;
             entityBox.expand(-width / 2, 0, -width / 2);
 
-            Vector3dm maxLocation = new Vector3dm(entityBox.maxX, entityBox.maxY, entityBox.maxZ);
-            Vector3dm minLocation = new Vector3dm(entityBox.minX, entityBox.minY, entityBox.minZ);
+            double minX = (entityBox.minX - player.lastX) * 0.1;
+            double minY = (entityBox.minY - (player.lastY + 0.8 * 1.8)) * 0.1;
+            double minZ = (entityBox.minZ - player.lastZ) * 0.1;
+            fishingRodPullBox.minX = Math.min(0, minX);
+            fishingRodPullBox.minY = Math.min(0, minY);
+            fishingRodPullBox.minZ = Math.min(0, minZ);
 
-            Vector3dm diff = minLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
-            fishingRodPullBox.minX = Math.min(0, diff.getX());
-            fishingRodPullBox.minY = Math.min(0, diff.getY());
-            fishingRodPullBox.minZ = Math.min(0, diff.getZ());
-
-            diff = maxLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
-            fishingRodPullBox.maxX = Math.max(0, diff.getX());
-            fishingRodPullBox.maxY = Math.max(0, diff.getY());
-            fishingRodPullBox.maxZ = Math.max(0, diff.getZ());
+            double maxX = (entityBox.maxX - player.lastX) * 0.1;
+            double maxY = (entityBox.maxY - (player.lastY + 0.8 * 1.8)) * 0.1;
+            double maxZ = (entityBox.maxZ - player.lastZ) * 0.1;
+            fishingRodPullBox.maxX = Math.max(0, maxX);
+            fishingRodPullBox.maxY = Math.max(0, maxY);
+            fishingRodPullBox.maxZ = Math.max(0, maxZ);
         }
 
         fishingRodPulls.clear();

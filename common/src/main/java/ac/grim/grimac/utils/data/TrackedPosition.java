@@ -12,7 +12,7 @@ public final class TrackedPosition {
 
     private final double scale;
     @Setter
-    private Vector3d pos = new Vector3d();
+    private Vector3d pos = Vector3d.zero();
 
     public TrackedPosition() {
 //        this.scale = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? MODERN_COORDINATE_SCALE : LEGACY_COORDINATE_SCALE;

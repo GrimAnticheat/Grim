@@ -121,10 +121,9 @@ public class RotationPlace extends BlockPlaceCheck implements BlockPlaceListener
         for (double d : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
                 // x, y, z are correct for the block placement even after post tick because of code elsewhere
-                Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
                 // xRot and yRot are a tick behind
-                Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
-                Pair<Vector3d, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.origin(), trace.getPointAtDistance(distance));
+                Ray trace = Ray.from(player, player.x, player.y + d, player.z, lookDir.getX(), lookDir.getY());
+                Pair<Vector3d, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace, distance);
 
                 if (intercept.first() != null) return true;
             }

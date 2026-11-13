@@ -115,8 +115,8 @@ public class RotationBreak extends Check implements BlockBreakListener, PostFlyi
         for (double d : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
                 Vector3d starting = new Vector3d(player.x, player.y + d, player.z);
-                Ray trace = new Ray(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
-                Pair<Vector3d, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.origin(), trace.getPointAtDistance(distance));
+                Ray trace = Ray.from(player, starting.getX(), starting.getY(), starting.getZ(), lookDir.getX(), lookDir.getY());
+                Pair<Vector3d, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace, distance);
 
                 if (intercept.first() != null) return true;
             }

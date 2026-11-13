@@ -23,7 +23,7 @@ public class PacketStateData {
     // This works on 1.21.2+ only
     public boolean didSendMovementBeforeTickEnd = false;
     public KnownInput knownInput = KnownInput.DEFAULT;
-    public Vector3d lastClaimedPosition = new Vector3d(0, 0, 0);
+    public Vector3d lastClaimedPosition = Vector3d.zero();
     public float lastHealth, lastSaturation;
     public int lastFood;
     public boolean lastServerTransWasValid = false;

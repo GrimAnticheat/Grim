@@ -81,9 +81,10 @@ public class PacketEntity extends TypedPacketEntity {
         this.uuid = uuid;
         initAttributes(player);
         this.trackedServerPosition = new TrackedPosition();
-        this.trackedServerPosition.setPos(new Vector3d(x, y, z));
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
             trackedServerPosition.setPos(new Vector3d(((int) (x * 32)) / 32d, ((int) (y * 32)) / 32d, ((int) (z * 32)) / 32d));
+        } else {
+            this.trackedServerPosition.setPos(new Vector3d(x, y, z));
         }
         final Vector3d pos = trackedServerPosition.getPos();
         this.interpolation = EntityInterpolations.create(player, this, new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, false));
@@ -168,12 +169,13 @@ public class PacketEntity extends TypedPacketEntity {
                 }
                 trackedServerPosition.setPos(vec3d);
             } else {
-                trackedServerPosition.setPos(new Vector3d(relX, relY, relZ));
                 // ViaVersion desync's here for teleports
                 // It simply teleports the entity with its position divided by 32... ignoring the offset this causes.
                 // Thanks a lot ViaVersion!  Please don't fix this, or it will be a pain to support.
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
                     trackedServerPosition.setPos(new Vector3d(((int) (relX * 32)) / 32d, ((int) (relY * 32)) / 32d, ((int) (relZ * 32)) / 32d));
+                } else {
+                    trackedServerPosition.setPos(new Vector3d(relX, relY, relZ));
                 }
             }
         }

@@ -910,7 +910,7 @@ public enum BlockPlaceResult {
             WrappedBlockState ccwState = place.getDirectionalState(ccw);
             CollisionBox ccwBox = CollisionData.getData(ccwState.getType()).getMovementCollisionBox(player, player.getClientVersion(), ccwState);
 
-            Vector3dm aboveCCWPos = place.getClickedLocation().add(new Vector3dm(ccw.getModX(), ccw.getModY(), ccw.getModZ())).add(new Vector3dm(0, 1, 0));
+            Vector3dm aboveCCWPos = place.getClickedLocation().add(ccw.getModX(), ccw.getModY(), ccw.getModZ()).add(0, 1, 0);
             WrappedBlockState aboveCCWState = player.compensatedWorld.getBlock(aboveCCWPos);
             CollisionBox aboveCCWBox = CollisionData.getData(aboveCCWState.getType()).getMovementCollisionBox(player, player.getClientVersion(), aboveCCWState);
 
@@ -918,7 +918,7 @@ public enum BlockPlaceResult {
             WrappedBlockState cwState = place.getDirectionalState(cw);
             CollisionBox cwBox = CollisionData.getData(cwState.getType()).getMovementCollisionBox(player, player.getClientVersion(), cwState);
 
-            Vector3dm aboveCWPos = place.getClickedLocation().add(new Vector3dm(cw.getModX(), cw.getModY(), cw.getModZ())).add(new Vector3dm(0, 1, 0));
+            Vector3dm aboveCWPos = place.getClickedLocation().add(cw.getModX(), cw.getModY(), cw.getModZ()).add(0, 1, 0);
             WrappedBlockState aboveCWState = player.compensatedWorld.getBlock(aboveCWPos);
             CollisionBox aboveCWBox = CollisionData.getData(aboveCWState.getType()).getMovementCollisionBox(player, player.getClientVersion(), aboveCWState);
 
@@ -995,18 +995,22 @@ public enum BlockPlaceResult {
             // Ghost blocks won't be fixed because of how it depends on the world state
             int i = 0;
 
-            Vector3i starting = new Vector3i(place.position.x + direction.getModX(), place.position.y + direction.getModY(), place.position.z + direction.getModZ());
+            int startingX = place.position.x + direction.getModX();
+            int startingY = place.position.y + direction.getModY();
+            int startingZ = place.position.z + direction.getModZ();
             while (i < 7) {
-                if (player.compensatedWorld.getBlock(starting).getType() != StateTypes.SCAFFOLDING) {
-                    if (player.compensatedWorld.getBlock(starting).getType().isReplaceable()) {
-                        place.position = starting;
+                if (player.compensatedWorld.getBlock(startingX, startingY, startingZ).getType() != StateTypes.SCAFFOLDING) {
+                    if (player.compensatedWorld.getBlock(startingX, startingY, startingZ).getType().isReplaceable()) {
+                        place.position = new Vector3i(startingX, startingY, startingZ);
                         place.replaceClicked = true;
                         break; // We found it!
                     }
                     return; // Cancel block place
                 }
 
-                starting = new Vector3i(starting.x + direction.getModX(), starting.y + direction.getModY(), starting.z + direction.getModZ());
+                startingX += direction.getModX();
+                startingY += direction.getModY();
+                startingZ += direction.getModZ();
                 if (BlockFaceHelper.isFaceHorizontal(direction)) {
                     i++;
                 }
@@ -1087,6 +1091,30 @@ public enum BlockPlaceResult {
         }
     }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
             ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
+
+    CONCRETE_POWDER((player, place) -> {
+        ClientVersion version = player.getClientVersion();
+        if (version.isOlderThan(ClientVersion.V_1_13)) {
+            place.set();
+            return;
+        }
+
+        boolean hardens = Materials.isWater(version, place.getExistingBlockData());
+        if (!hardens) {
+            for (BlockFace face : BlockFace.values()) {
+                // Water below the block alone does not harden placed powder.
+                if (face == BlockFace.DOWN || face == BlockFace.OTHER) continue;
+
+                WrappedBlockState neighbor = place.getDirectionalState(face);
+                if (Materials.isWater(version, neighbor) && !place.isFullFace(face)) {
+                    hardens = true;
+                    break;
+                }
+            }
+        }
+
+        place.set(hardens ? Materials.hardenedConcrete(place.material) : place.material);
+    }, ItemTags.CONCRETE_POWDERS),
 
     NO_DATA((player, place) -> place.set(place.material), ItemTypes.AIR);
 

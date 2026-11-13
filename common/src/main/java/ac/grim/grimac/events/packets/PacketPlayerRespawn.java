@@ -168,7 +168,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.isInBed = false;
                 player.packetStateData.setSlowedByUsingItem(false);
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
-                player.packetStateData.lastClaimedPosition = new Vector3d();
+                player.packetStateData.lastClaimedPosition = Vector3d.zero();
                 player.filterMojangStupidityOnMojangStupidity.zero();
 
                 player.checkManager.get(BadPacketsM.class).onRespawn();
