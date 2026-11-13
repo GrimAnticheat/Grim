@@ -1092,6 +1092,30 @@ public enum BlockPlaceResult {
     }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
             ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
 
+    CONCRETE_POWDER((player, place) -> {
+        ClientVersion version = player.getClientVersion();
+        if (version.isOlderThan(ClientVersion.V_1_13)) {
+            place.set();
+            return;
+        }
+
+        boolean hardens = Materials.isWater(version, place.getExistingBlockData());
+        if (!hardens) {
+            for (BlockFace face : BlockFace.values()) {
+                // Water below the block alone does not harden placed powder.
+                if (face == BlockFace.DOWN || face == BlockFace.OTHER) continue;
+
+                WrappedBlockState neighbor = place.getDirectionalState(face);
+                if (Materials.isWater(version, neighbor) && !place.isFullFace(face)) {
+                    hardens = true;
+                    break;
+                }
+            }
+        }
+
+        place.set(hardens ? Materials.hardenedConcrete(place.material) : place.material);
+    }, ItemTags.CONCRETE_POWDERS),
+
     NO_DATA((player, place) -> place.set(place.material), ItemTypes.AIR);
 
     // This should be an array... but a hashmap will do for now...
