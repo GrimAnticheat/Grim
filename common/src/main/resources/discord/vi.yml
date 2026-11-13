@@ -1,0 +1,25 @@
+# Trợ giúp về webhook: https://support.discord.com/hc/en-us/articles/228383668
+
+enabled: false
+webhook: ""
+# Đặt true để bỏ qua kiểm tra định dạng URL webhook Discord.
+# Cho phép dùng mọi URL HTTPS hợp lệ, hữu ích cho proxy hoặc Matrix forwarder.
+disable-webhook-validation: false
+embed-title: "**Cảnh báo Grim**"
+embed-color: "#00FFFF"
+include-timestamp: true
+# Thay thế backtick trong giá trị, chẳng hạn client brand, để không phá định dạng Discord.
+# Đặt thành "`" để tắt thay thế này.
+backtick-replacement-char: "ˋ" # Mặc định là U+02CB
+violation-content:
+    - "**Người chơi**: `%player%`"
+    - "**Check**: %check%"
+    - "**Vi phạm**: %violations%"
+    - "**Phiên bản client**: %version%"
+    - "**Brand**: `%brand%`"
+    - "**Ping**: %ping%"
+    - "**TPS**: %tps%"
+
+# Marker schema, xem chú thích đầu file config.yml.
+config-flavor: V2
+config-version: 1
