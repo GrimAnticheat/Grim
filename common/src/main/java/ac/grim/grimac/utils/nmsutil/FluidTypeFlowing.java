@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
+import ac.grim.grimac.utils.collisions.blocks.DynamicStair;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -203,7 +204,7 @@ public class FluidTypeFlowing {
             } else if (type == StateTypes.SNOW) {
                 return data.getLayers() == 8;
             } else if (Materials.isStairs(type)) {
-                return data.getFacing() == direction;
+                return DynamicStair.isSideFull(player, player.getClientVersion(), data, x, y, z, direction);
             } else if (type == StateTypes.COMPOSTER) {
                 return true;
             } else if (type == StateTypes.SOUL_SAND) {
