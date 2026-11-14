@@ -164,6 +164,9 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             // 1.21.5+ sprint desync
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5)) {
                 player.compensatedEntities.hasSprintingAttributeEnabled = false;
+                // The client stops sprinting here and sends nothing, so if it starts again by itself once it's off, the sync
+                // in MovementCheckRunner turns the speed back on
+                player.lastSprinting = false;
             }
         }
 
