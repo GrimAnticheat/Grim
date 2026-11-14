@@ -10,4 +10,9 @@ public record KnownInput(boolean forward, boolean backward, boolean left, boolea
     public boolean moving() {
         return forward || backward || left || right || jump;
     }
+
+    @Contract(pure = true)
+    public boolean movingNoJump() {
+        return forward || backward || left || right;
+    }
 }
