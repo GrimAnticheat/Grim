@@ -95,18 +95,25 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         if (!wrapper.getChannelName().equals("BungeeCord") && !wrapper.getChannelName().equals("bungeecord:main"))
             return;
 
-        ByteArrayDataInput in = ByteStreams.newDataInput(wrapper.getData());
-
-        if (!in.readUTF().equals("GRIMAC")) return;
-
+        // The payload is entirely client-controlled: any client can send a plugin
+        // message on the BungeeCord channel, so every read below may throw on a
+        // malformed (or maliciously truncated) payload. Never let a parse failure
+        // escape into the packet pipeline as a per-packet logged exception.
         final String alert;
-        byte[] messageBytes = new byte[in.readShort()];
-        in.readFully(messageBytes);
-
         try {
+            ByteArrayDataInput in = ByteStreams.newDataInput(wrapper.getData());
+
+            if (!in.readUTF().equals("GRIMAC")) return;
+
+            short length = in.readShort();
+            if (length < 0) return;
+
+            byte[] messageBytes = new byte[length];
+            in.readFully(messageBytes);
+
             alert = new DataInputStream(new ByteArrayInputStream(messageBytes)).readUTF();
-        } catch (IOException exception) {
-            LogUtil.error("Something went wrong whilst reading an alert forwarded from another server!", exception);
+        } catch (IOException | RuntimeException exception) {
+            LogUtil.error("Something went wrong whilst reading an alert from another server!", exception);
             return;
         }
         Component message = MessageUtil.miniMessage(alert);
