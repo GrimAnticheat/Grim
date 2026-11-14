@@ -146,6 +146,7 @@ public class CheckManager implements BasicReloadable {
                 .put(VehicleD.class, new VehicleD(player))
                 .put(VehicleE.class, new VehicleE(player))
                 .put(VehicleF.class, new VehicleF(player))
+                .put(VehicleG.class, new VehicleG(player))
                 .put(CrashB.class, new CrashB(player))
                 .put(CrashD.class, new CrashD(player))
                 .put(CrashE.class, new CrashE(player))
