@@ -487,6 +487,17 @@ public class PredictionEngine {
         return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
     }
 
+    private static Vector3dm carriedVelocity(VectorData data) {
+        for (VectorData d = data; d != null; d = d.lastVector) {
+            if (d.vectorType != VectorData.VectorType.InputResult) continue;
+            // The jump and its sprint boost come after the slime, so they aren't slowed
+            VectorData carried = d.lastVector;
+            while (carried != null && carried.vectorType == VectorData.VectorType.Jump) carried = carried.lastVector;
+            return carried == null ? null : carried.vector;
+        }
+        return null;
+    }
+
     public Vector3dm handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector, Vector3dm targetVec) {
         double avgColliding = Collections.max(player.uncertaintyHandler.collidingEntities);
 
@@ -642,6 +653,16 @@ public class PredictionEngine {
         if (player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(0) || player.uncertaintyHandler.influencedBySlime()) {
             // Avoid changing Y axis
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
+        }
+
+        // Slime only slows last tick's velocity, not the input, so turning around on it can end up past zero.
+        // 1.21.2+ only, it applies the block speed multiplier before the slime now (#2706)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)
+                && player.uncertaintyHandler.influencedBySlime() && !vector.isKnockback() && !vector.isExplosion()) {
+            Vector3dm carried = carriedVelocity(vector);
+            if (carried != null) {
+                box.combineToMinimum(vector.vector.getX() - 0.6 * carried.getX(), box.minY, vector.vector.getZ() - 0.6 * carried.getZ());
+            }
         }
 
         // Alright, so hard lerping entities are a pain to support.
