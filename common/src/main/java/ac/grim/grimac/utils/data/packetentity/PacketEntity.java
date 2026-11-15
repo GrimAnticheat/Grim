@@ -205,6 +205,13 @@ public class PacketEntity extends TypedPacketEntity {
         return passengers.contains(entity);
     }
 
+    // Vanilla's Entity#getRootVehicle, two entities share a vehicle stack when their roots match
+    public PacketEntity getRootVehicle() {
+        PacketEntity root = this;
+        while (root.riding != null) root = root.riding;
+        return root;
+    }
+
     public void mount(PacketEntity vehicle) {
         if (riding != null) eject();
         vehicle.passengers.add(this);
