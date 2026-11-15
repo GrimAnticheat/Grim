@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -20,7 +20,7 @@ public class PacketChangeGameState extends GrimProcessor implements PacketSendLi
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         registry.registerHandler(event -> {
             WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
 

@@ -4,7 +4,7 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -45,7 +45,7 @@ public class KnockbackHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         registry.registerHandler(event -> {
             WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();

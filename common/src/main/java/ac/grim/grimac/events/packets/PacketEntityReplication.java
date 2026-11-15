@@ -3,7 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -124,7 +124,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         registry.registerHandler(this::onTransaction, PacketType.Play.Server.PING, PacketType.Play.Server.WINDOW_CONFIRMATION);
         registry.registerHandler(this::onSpawnLivingEntity, PacketType.Play.Server.SPAWN_LIVING_ENTITY);
         registry.registerHandler(this::onSpawnEntity, PacketType.Play.Server.SPAWN_ENTITY);

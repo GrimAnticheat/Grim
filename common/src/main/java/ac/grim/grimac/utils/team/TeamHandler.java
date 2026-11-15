@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.team;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -44,7 +44,7 @@ public class TeamHandler extends GrimProcessor implements PacketSendListener {
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         registry.registerHandler(event -> {
             WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
             final String teamName = teams.getTeamName();

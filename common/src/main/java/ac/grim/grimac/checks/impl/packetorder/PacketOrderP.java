@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
@@ -41,7 +41,7 @@ public class PacketOrderP extends Check implements PacketReceiveListener, Packet
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         registry.registerHandler(event -> {
             boolean sendingBundlePacket = player.packetStateData.sendingBundlePacket;
             if (!sendingBundlePacket) player.user.sendPacket(new WrapperPlayServerBundle());

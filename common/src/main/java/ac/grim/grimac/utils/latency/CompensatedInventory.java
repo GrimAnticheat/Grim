@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -313,7 +313,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
         registry.registerHandler(this::onOpenHorseWindow, PacketType.Play.Server.OPEN_HORSE_WINDOW);
         registry.registerHandler(this::onCloseWindow, PacketType.Play.Server.CLOSE_WINDOW);

@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -49,7 +49,7 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
     }
 
     @Override
-    public void registerPreViaSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerPreViaSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
         }

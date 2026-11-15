@@ -6,6 +6,7 @@ import ac.grim.grimac.api.AbstractProcessor;
 import ac.grim.grimac.api.common.BasicReloadable;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -255,9 +256,9 @@ public class CheckManager implements BasicReloadable {
 
         ArrayList<AbstractCheck> checks = new ArrayList<>();
         ArrayList<PreViaPacketReceiveListener> preViaPacketReceiveListeners = new ArrayList<>();
-        this.preViaPacketSendRegistry = new PacketHandlerRegistry<>();
+        PacketHandlerRegistryBuilder<PacketSendEvent> preViaPacketSendRegistryBuilder = new PacketHandlerRegistryBuilder<>();
         ArrayList<PacketReceiveListener> packetReceiveListeners = new ArrayList<>();
-        this.packetSendRegistry = new PacketHandlerRegistry<>();
+        PacketHandlerRegistryBuilder<PacketSendEvent> packetSendRegistryBuilder = new PacketHandlerRegistryBuilder<>();
         ArrayList<PrePredictionPacketReceiveListener> prePredictionPacketReceiveListeners = new ArrayList<>();
         ArrayList<PositionListener> positionListeners = new ArrayList<>();
         ArrayList<RotationListener> rotationListeners = new ArrayList<>();
@@ -277,8 +278,8 @@ public class CheckManager implements BasicReloadable {
             if (processor instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
             if (processor instanceof PrePredictionPacketReceiveListener prePredictionPacketReceiveListener) prePredictionPacketReceiveListeners.add(prePredictionPacketReceiveListener);
             if (processor instanceof PreViaPacketReceiveListener preViaPacketReceiveListener) preViaPacketReceiveListeners.add(preViaPacketReceiveListener);
-            if (processor instanceof PacketSendListener packetSendListener) packetSendListener.registerSend(packetSendRegistry);
-            if (processor instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListener.registerPreViaSend(preViaPacketSendRegistry);
+            if (processor instanceof PacketSendListener packetSendListener) packetSendListener.registerSend(packetSendRegistryBuilder);
+            if (processor instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListener.registerPreViaSend(preViaPacketSendRegistryBuilder);
             if (processor instanceof PositionListener positionListener) positionListeners.add(positionListener);
             if (processor instanceof RotationListener rotationListener) rotationListeners.add(rotationListener);
             if (processor instanceof VehicleListener vehicleListener) vehicleListeners.add(vehicleListener);
@@ -292,9 +293,9 @@ public class CheckManager implements BasicReloadable {
         checks.trimToSize();
         this.checks = Collections.unmodifiableCollection(checks);
         this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
-        this.preViaPacketSendRegistry.trimToSize();
+        this.preViaPacketSendRegistry = preViaPacketSendRegistryBuilder.build();
         this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
-        this.packetSendRegistry.trimToSize();
+        this.packetSendRegistry = packetSendRegistryBuilder.build();
         this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);

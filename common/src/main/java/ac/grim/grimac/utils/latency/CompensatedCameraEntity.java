@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.PacketHandlerRegistry;
+import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -23,7 +23,7 @@ public class CompensatedCameraEntity extends GrimProcessor implements PreViaPack
     }
 
     @Override
-    public void registerPreViaSend(@NotNull PacketHandlerRegistry<PacketSendEvent> registry) {
+    public void registerPreViaSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
         registry.registerHandler(event -> {
             int camera = new WrapperPlayServerCamera(event).getCameraId();
             player.sendTransaction();
