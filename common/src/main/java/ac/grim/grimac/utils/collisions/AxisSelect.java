@@ -7,46 +7,53 @@ import org.jetbrains.annotations.NotNull;
 
 public enum AxisSelect {
     EAST {
-        public SimpleCollisionBox modify(SimpleCollisionBox box) {
+        @Contract("_ -> param1")
+        public @NotNull SimpleCollisionBox modify(@NotNull SimpleCollisionBox box) {
             box.maxX = 1;
             return box;
         }
     },
     WEST {
-        public SimpleCollisionBox modify(SimpleCollisionBox box) {
+        @Contract("_ -> param1")
+        public @NotNull SimpleCollisionBox modify(@NotNull SimpleCollisionBox box) {
             box.minX = 0;
             return box;
         }
     },
     NORTH {
-        public SimpleCollisionBox modify(SimpleCollisionBox box) {
+        @Contract("_ -> param1")
+        public @NotNull SimpleCollisionBox modify(@NotNull SimpleCollisionBox box) {
             box.minZ = 0;
             return box;
         }
     },
     SOUTH {
-        public SimpleCollisionBox modify(SimpleCollisionBox box) {
+        @Contract("_ -> param1")
+        public @NotNull SimpleCollisionBox modify(@NotNull SimpleCollisionBox box) {
             box.maxZ = 1;
             return box;
         }
     },
     UP {
-        public SimpleCollisionBox modify(SimpleCollisionBox box) {
+        @Contract("_ -> param1")
+        public @NotNull SimpleCollisionBox modify(@NotNull SimpleCollisionBox box) {
             box.minY = 0;
             return box;
         }
     },
     DOWN {
-        public SimpleCollisionBox modify(SimpleCollisionBox box) {
+        @Contract("_ -> param1")
+        public @NotNull SimpleCollisionBox modify(@NotNull SimpleCollisionBox box) {
             box.maxY = 1;
             return box;
         }
     };
 
-    public abstract SimpleCollisionBox modify(SimpleCollisionBox box);
+    @Contract("_ -> param1")
+    public abstract @NotNull SimpleCollisionBox modify(@NotNull SimpleCollisionBox box);
 
     @Contract(pure = true)
-    public static AxisSelect byFace(@NotNull BlockFace face) {
+    public static @NotNull AxisSelect byFace(@NotNull BlockFace face) {
         return switch (face) {
             case EAST -> EAST;
             case WEST -> WEST;

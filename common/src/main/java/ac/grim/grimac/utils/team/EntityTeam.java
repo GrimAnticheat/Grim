@@ -25,7 +25,7 @@ public final class EntityTeam {
     public void update(WrapperPlayServerTeams teams) {
         teams.getTeamInfo().ifPresent(info -> this.collisionRule = info.getCollisionRule());
 
-        final TeamHandler teamHandler = player.checkManager.getCheck(TeamHandler.class);
+        final TeamHandler teamHandler = player.checkManager.get(TeamHandler.class);
         final WrapperPlayServerTeams.TeamMode mode = teams.getTeamMode();
         if (mode == WrapperPlayServerTeams.TeamMode.ADD_ENTITIES || mode == WrapperPlayServerTeams.TeamMode.CREATE) {
             label:

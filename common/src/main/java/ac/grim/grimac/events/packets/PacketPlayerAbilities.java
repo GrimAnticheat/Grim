@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.api.config.ConfigManager;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.PacketHandlerRegistry;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 // The client can send ability packets out of order due to Mojang's excellent netcode design.
 // We must delay the second ability packet until the tick after the first is received
 // Else the player will fly for a tick, and we won't know about it, which is bad.
-public class PacketPlayerAbilities extends Check implements PacketReceiveListener, PacketSendListener {
+public class PacketPlayerAbilities extends GrimProcessor implements PacketReceiveListener, PacketSendListener {
 
     private boolean lastSentPlayerCanFly = false;
     private int maxFlyingPing = 1000;
@@ -39,11 +39,12 @@ public class PacketPlayerAbilities extends Check implements PacketReceiveListene
             WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
             player.sendTransaction();
 
+            int transaction = player.lastTransactionSent.get();
+
             if (lastSentPlayerCanFly && !abilities.isFlightAllowed()) {
-                int noFlying = player.lastTransactionSent.get();
                 if (maxFlyingPing != -1) {
                     player.runNettyTaskInMs(() -> {
-                        if (player.lastTransactionReceived.get() < noFlying) {
+                        if (player.lastTransactionReceived.get() < transaction) {
                             player.getSetbackTeleportUtil().executeViolationSetback();
                         }
                     }, maxFlyingPing);
@@ -52,7 +53,7 @@ public class PacketPlayerAbilities extends Check implements PacketReceiveListene
 
             lastSentPlayerCanFly = abilities.isFlightAllowed();
 
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            player.latencyUtils.addRealTimeTask(transaction, () -> {
                 player.canFly = abilities.isFlightAllowed();
                 player.isFlying = abilities.isFlying();
             });

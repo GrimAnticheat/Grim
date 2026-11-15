@@ -7,6 +7,7 @@ import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 
 @CheckData(name = "BadPacketsG", stableKey = "grim.badpackets.duplicate_sneak", description = "Sent duplicate sneaking status")
@@ -17,6 +18,12 @@ public class BadPacketsG extends Check implements PreViaPacketReceiveListener {
 
     public BadPacketsG(GrimPlayer player) {
         super(player);
+    }
+
+    @Override
+    public boolean isApplicable() {
+        // input packet determines sneaking state in 1.21.2+
+        return player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2);
     }
 
     @Override

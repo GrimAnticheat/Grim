@@ -27,7 +27,7 @@ public class ElytraA extends Check implements PostPredictionListener {
             if (shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
-                player.resyncPose();
+                player.resyncGlidingState();
             }
         }
     }

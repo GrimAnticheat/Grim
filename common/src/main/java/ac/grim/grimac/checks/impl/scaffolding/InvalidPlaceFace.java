@@ -9,11 +9,11 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
-@CheckData(name = "InvalidPlaceB", stableKey = "grim.scaffolding.invalid_place_b", description = "Sent impossible block face id")
-public class InvalidPlaceB extends BlockPlaceCheck implements BlockPlaceListener {
+@CheckData(name = "InvalidPlaceFace", stableKey = "grim.scaffolding.invalid_place_b", description = "Sent impossible block face id")
+public class InvalidPlaceFace extends BlockPlaceCheck implements BlockPlaceListener {
     private static final Verbose V = Verbose.of("direction={sint}");
 
-    public InvalidPlaceB(GrimPlayer player) {
+    public InvalidPlaceFace(GrimPlayer player) {
         super(player);
     }
 

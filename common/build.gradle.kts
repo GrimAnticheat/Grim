@@ -67,8 +67,9 @@ dependencies {
     api(libs.snakeyaml)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
-    api(libs.jetbrains.annotations)
+    compileOnly(libs.jetbrains.annotations)
     api(libs.hikaricp)
+    runtimeOnly(libs.slf4j.jdk14)
     api(libs.grim.api)
     api(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)
@@ -78,18 +79,27 @@ dependencies {
         isTransitive = false // messes with guava otherwise
     }
 
-    compileOnly(libs.floodgate.api)
+    // The self-contained API jar retains DeviceOs; its unshaded POM references a retired Geyser snapshot.
+    compileOnly(variantOf(libs.floodgate.api) { classifier("shaded") }) { isTransitive = false }
     compileOnly(libs.viaversion)
     compileOnly(libs.viabackwards)
     compileOnly(libs.netty)
     compileOnly(libs.luckperms)
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.xerial:sqlite-jdbc:3.46.1.3")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testRuntimeOnly(libs.packetevents.api)
+    testRuntimeOnly(libs.netty)
+    testRuntimeOnly(libs.grim.internal.shims)
+    testRuntimeOnly("com.google.guava:guava:31.0.1-jre")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.test {
     useJUnitPlatform()
+    // The live-write regression resolves Grim's version without a server loader.
+    systemProperty("GrimPlatformOverride", "bukkit")
 }
 
 publishing.publications.create<MavenPublication>("maven") {

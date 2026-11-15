@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CompensatedFireworks extends Check implements PostPredictionListener {
+public class CompensatedFireworks extends GrimProcessor implements PostPredictionListener {
 
     // As this is sync to one player, this does not have to be concurrent
     private final Set<Integer> activeFireworks = new HashSet<>();

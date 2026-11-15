@@ -26,6 +26,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
 import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragonPart;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -234,7 +235,7 @@ public class Reach extends Check implements PacketReceiveListener {
             CheckResult result = checkReach(reachEntity, interactionData.x, interactionData.y, interactionData.z, interactionData.hasAttackRange, interactionData.maxReach, interactionData.hitboxMargin, interactionData.attackRangeMovement, false);
             switch (result.type()) {
                 case REACH -> flag(
-                        V.write(verbose()).f64(result.minDistance()).uint(reachEntity.getType().getId(player.getClientVersion())),
+                        V.write(verbose()).f64(result.minDistance()).uint(Math.max(0, reachEntity.getType().getId(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()))),
                         () -> {
                             String added = ", type=" + reachEntity.getType().getName().getKey();
                             if (reachEntity instanceof PacketEntitySizeable sizeable) {
@@ -247,7 +248,7 @@ public class Reach extends Check implements PacketReceiveListener {
                     if (reachEntity instanceof PacketEntitySizeable sizeable) {
                         added += ", size=" + sizeable.size;
                     }
-                    player.checkManager.getCheck(Hitboxes.class).flag(result.verbose() + added);
+                    player.checkManager.get(Hitboxes.class).flag(result.verbose() + added);
                 }
             }
         }
@@ -287,18 +288,17 @@ public class Reach extends Check implements PacketReceiveListener {
             lookVec.multiply(distance);
 
             for (double eye : possibleEyeHeights) {
-                final Vector3d eyePos = new Vector3d(x, y + eye, z);
-                Vector3d endReachPos = eyePos.add(lookVec.getX(), lookVec.getY(), lookVec.getZ());
+                double eyeY = y + eye;
 
-                Vector3d intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).first();
+                Vector3d intercept = ReachUtils.calculateIntercept(targetBox, x, eyeY, z, x + lookVec.getX(), eyeY + lookVec.getY(), z + lookVec.getZ()).first();
 
-                if (ReachUtils.isVecInside(targetBox, eyePos)) {
+                if (ReachUtils.isVecInside(targetBox, x, eyeY, z)) {
                     minDistance = 0;
                     break;
                 }
 
                 if (intercept != null) {
-                    minDistance = Math.min(eyePos.distance(intercept), minDistance);
+                    minDistance = Math.min(VectorUtils.distance(x, eyeY, z, intercept), minDistance);
                 }
             }
         }

@@ -26,7 +26,7 @@ public class AimDuplicateLook extends Check implements RotationListener {
             return;
         }
 
-        if (rotationUpdate.getFrom().equals(rotationUpdate.getTo())) {
+        if (rotationUpdate.oldYaw() == rotationUpdate.newYaw() && rotationUpdate.oldPitch() == rotationUpdate.newPitch()) {
             flag();
         }
     }

@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.impl.aim.processor;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.RotationListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
@@ -8,20 +8,20 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
 
-public class AimProcessor extends Check implements RotationListener {
+public class AimProcessor extends GrimProcessor implements RotationListener {
 
     private static final int SIGNIFICANT_SAMPLES_THRESHOLD = 15;
     private static final int TOTAL_SAMPLES_THRESHOLD = 80;
-    public double sensitivityX;
-    public double sensitivityY;
-    public double divisorX;
-    public double divisorY;
-    public double modeX, modeY;
-    public double deltaDotsX, deltaDotsY;
-    private final RunningMode xRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
-    private final RunningMode yRotMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
-    private float lastXRot;
-    private float lastYRot;
+    public double sensitivityYaw;
+    public double sensitivityPitch;
+    public double divisorYaw;
+    public double divisorPitch;
+    public double modeYaw, modePitch;
+    public double deltaDotsYaw, deltaDotsPitch;
+    private final RunningMode yawMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
+    private final RunningMode pitchMode = new RunningMode(TOTAL_SAMPLES_THRESHOLD);
+    private float lastYaw;
+    private float lastPitch;
 
     public AimProcessor(GrimPlayer player) {
         super(player);
@@ -35,41 +35,39 @@ public class AimProcessor extends Check implements RotationListener {
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
-        rotationUpdate.setProcessor(this);
+        float deltaYaw = rotationUpdate.deltaYawABS();
 
-        float deltaXRot = rotationUpdate.getDeltaXRotABS();
-
-        this.divisorX = GrimMath.gcd(deltaXRot, lastXRot);
-        if (deltaXRot > 0 && deltaXRot < 5 && divisorX > GrimMath.MINIMUM_DIVISOR) {
-            this.xRotMode.add(divisorX);
-            this.lastXRot = deltaXRot;
+        this.divisorYaw = GrimMath.gcd(deltaYaw, lastYaw);
+        if (deltaYaw > 0 && deltaYaw < 5 && divisorYaw > GrimMath.MINIMUM_DIVISOR) {
+            this.yawMode.add(divisorYaw);
+            this.lastYaw = deltaYaw;
         }
 
-        float deltaYRot = rotationUpdate.getDeltaYRotABS();
+        float deltaPitch = rotationUpdate.deltaPitchABS();
 
-        this.divisorY = GrimMath.gcd(deltaYRot, lastYRot);
+        this.divisorPitch = GrimMath.gcd(deltaPitch, lastPitch);
 
-        if (deltaYRot > 0 && deltaYRot < 5 && divisorY > GrimMath.MINIMUM_DIVISOR) {
-            this.yRotMode.add(divisorY);
-            this.lastYRot = deltaYRot;
+        if (deltaPitch > 0 && deltaPitch < 5 && divisorPitch > GrimMath.MINIMUM_DIVISOR) {
+            this.pitchMode.add(divisorPitch);
+            this.lastPitch = deltaPitch;
         }
 
-        if (this.xRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-            Pair<Double, Integer> modeX = this.xRotMode.getMode();
-            if (modeX.second() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.modeX = modeX.first();
-                this.sensitivityX = convertToSensitivity(this.modeX);
+        if (this.yawMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+            Pair<Double, Integer> modeYaw = this.yawMode.getMode();
+            if (modeYaw.second() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+                this.modeYaw = modeYaw.first();
+                this.sensitivityYaw = convertToSensitivity(this.modeYaw);
             }
         }
-        if (this.yRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-            Pair<Double, Integer> modeY = this.yRotMode.getMode();
-            if (modeY.second() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.modeY = modeY.first();
-                this.sensitivityY = convertToSensitivity(this.modeY);
+        if (this.pitchMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+            Pair<Double, Integer> modePitch = this.pitchMode.getMode();
+            if (modePitch.second() > SIGNIFICANT_SAMPLES_THRESHOLD) {
+                this.modePitch = modePitch.first();
+                this.sensitivityPitch = convertToSensitivity(this.modePitch);
             }
         }
 
-        this.deltaDotsX = deltaXRot / modeX;
-        this.deltaDotsY = deltaYRot / modeY;
+        this.deltaDotsYaw = deltaYaw / modeYaw;
+        this.deltaDotsPitch = deltaPitch / modePitch;
     }
 }

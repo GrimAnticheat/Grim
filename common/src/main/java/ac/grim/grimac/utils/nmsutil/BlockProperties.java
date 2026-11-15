@@ -139,10 +139,19 @@ public class BlockProperties {
      * On soul speed block (server-sided only)
      */
     private static StateType getBlockPosBelowThatAffectsMyMovement(GrimPlayer player, MainSupportingBlockData mainSupportingBlockData, Vector3d playerPos) {
-        Vector3i pos = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_4)
-                ? new Vector3i(GrimMath.floor(playerPos.getX()), GrimMath.floor(playerPos.getY() - 0.5000001), GrimMath.floor(playerPos.getZ()))
-                : getOnPos(player, playerPos, mainSupportingBlockData, 0.500001F);
-        return player.compensatedWorld.getBlockType(pos.x, pos.y, pos.z);
+        int x, y, z;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_19_4)) {
+            x = GrimMath.floor(playerPos.getX());
+            y = GrimMath.floor(playerPos.getY() - 0.5000001);
+            z = GrimMath.floor(playerPos.getZ());
+        } else {
+            Vector3i pos = getOnPos(player, playerPos, mainSupportingBlockData, 0.500001F);
+            x = pos.getX();
+            y = pos.getY();
+            z = pos.getZ();
+        }
+
+        return player.compensatedWorld.getBlockType(x, y, z);
     }
 
     private static Vector3i getOnPos(GrimPlayer player, Vector3d playerPos, MainSupportingBlockData mainSupportingBlockData, float searchBelowPlayer) {
@@ -282,7 +291,8 @@ public class BlockProperties {
 
     public static double getVelocityAfterVerticalCollision(GrimPlayer player, double velocity, double movementY, double restitution) {
         double gravity = getEffectiveGravity(player, velocity);
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_26_2) || velocity < 0.0 && -velocity < gravity) {
+        boolean correctGravity = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) ? -velocity <= gravity : -velocity < gravity;
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_26_2) || velocity < 0.0 && correctGravity) {
             return 0.0;
         }
 
@@ -308,11 +318,19 @@ public class BlockProperties {
     }
 
     public static float getBlockBounceRestitution(StateType type, GrimPlayer player) {
+        if (type == StateTypes.STRAW_BED && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3)) {
+            return 0.0F;
+        }
+
+        if (type == StateTypes.SHELF_MUSHROOM && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3)) {
+            return 0.75F;
+        }
+
         if (type == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
             return 1.0F;
         }
 
-        if (BlockTags.BEDS.contains(type) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+        if ((BlockTags.BEDS.contains(type) || (type == StateTypes.STRAW_BED && player.getClientVersion().isOlderThan(ClientVersion.V_26_3))) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) ? 0.75F : 0.66F;
         }
 

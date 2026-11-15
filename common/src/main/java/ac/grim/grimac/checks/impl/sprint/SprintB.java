@@ -17,14 +17,15 @@ public class SprintB extends Check implements PostPredictionListener {
     }
 
     @Override
+    public boolean isApplicable() {
+        // https://bugs.mojang.com/browse/MC-152728
+        return player.getClientVersion().isOlderThan(ClientVersion.V_1_14_2) || player.getClientVersion() == ClientVersion.V_1_21_4;
+    }
+
+    @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (player.isSlowMovement && player.sneakingSpeedMultiplier < 0.8f && predictionComplete.isChecked()) {
             ClientVersion version = player.getClientVersion();
-
-            // https://bugs.mojang.com/browse/MC-152728
-            if (version.isNewerThanOrEquals(ClientVersion.V_1_14_2) && version != ClientVersion.V_1_21_4) {
-                return;
-            }
 
             // https://github.com/GrimAnticheat/Grim/issues/1932
             if (version.isNewerThanOrEquals(ClientVersion.V_1_14) && player.wasFlying && player.lastPose == Pose.FALL_FLYING && !player.isGliding) {

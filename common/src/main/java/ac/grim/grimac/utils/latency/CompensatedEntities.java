@@ -162,9 +162,11 @@ public class CompensatedEntities {
             return;
         }
 
-        passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
+        // TODO: is this correct?
+        double offset = BoundingBoxSize.getMyRidingOffset(passenger) + BoundingBoxSize.getPassengerRidingOffset(player, riding);
+        passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, offset, 0));
 
-        for (PacketEntity passengerPassenger : riding.passengers) {
+        for (PacketEntity passengerPassenger : passenger.passengers) {
             tickPassenger(passenger, passengerPassenger);
         }
     }
@@ -292,8 +294,17 @@ public class CompensatedEntities {
                 id = 14;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
-            } else {
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_26_2)) {
                 id = 16;
+            } else {
+                final EntityType type = sizeable.getType();
+                // 26.2 cube mobs have different index (phantoms and others still retain old index)
+                final boolean cubeMob = type == EntityTypes.SLIME || type == EntityTypes.MAGMA_CUBE || type == EntityTypes.SULFUR_CUBE;
+                if (cubeMob) {
+                    id = 18;
+                } else {
+                    id = 16;
+                }
             }
 
             EntityData<?> sizeObject = WatchableIndexUtil.getIndex(watchableObjects, id);

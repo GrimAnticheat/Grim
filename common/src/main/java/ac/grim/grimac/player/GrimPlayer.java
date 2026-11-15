@@ -25,6 +25,7 @@ import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.manager.AttackCooldownHandler;
 import ac.grim.grimac.predictionengine.blockeffects.CompensatedGeysers;
 import ac.grim.grimac.predictionengine.blockeffects.PotentSulfurGeyser;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
@@ -133,7 +134,6 @@ public class GrimPlayer implements GrimUser {
     private long transactionPing;
     public long lastTransSent;
     public long lastTransReceived;
-    @Getter
     private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing;
     public boolean canSwimHop;
@@ -285,7 +285,7 @@ public class GrimPlayer implements GrimUser {
     public boolean wasLastPredictionCompleteChecked;
     public boolean isJumping;
     public boolean lastJumping;
-    public final @NotNull EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(FluidTag.WATER, FluidTag.LAVA);
+    public final @NotNull EntityFluidInteraction fluidInteraction = new EntityFluidInteraction(this, FluidTag.WATER, FluidTag.LAVA);
     public boolean canFloatWhileRidden;
 
     public GrimPlayer(@NotNull User user) {
@@ -428,7 +428,7 @@ public class GrimPlayer implements GrimUser {
             if (viaPacketTracker != null) viaPacketTracker.setIntervalPackets(viaPacketTracker.getIntervalPackets() - 1);
 
             if (skipped > 0 && System.currentTimeMillis() - joinTime > 5000)
-                checkManager.getCheck(TransactionOrder.class).flag("skipped=" + skipped);
+                checkManager.get(TransactionOrder.class).flag("skipped=" + skipped);
 
             do {
                 data = transactionsSent.poll();
@@ -455,12 +455,20 @@ public class GrimPlayer implements GrimUser {
         baseTickWaterPushing.add(vector);
     }
 
-    public void baseTickAddVector(Vector3dm vector) {
-        clientVelocity.add(vector);
+    public void baseTickAddVector(@NotNull Vector3dm vector) {
+        baseTickAddVector(vector.getX(), vector.getY(), vector.getZ());
     }
 
-    public void trackBaseTickAddition(Vector3dm vector) {
-        baseTickAddition.add(vector);
+    public void baseTickAddVector(double x, double y, double z) {
+        clientVelocity.add(x, y, z);
+    }
+
+    public void trackBaseTickAddition(@NotNull Vector3dm vector) {
+        trackBaseTickAddition(vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    public void trackBaseTickAddition(double x, double y, double z) {
+        baseTickAddition.add(x, y, z);
     }
 
     public float getMaxUpStep() {
@@ -578,9 +586,8 @@ public class GrimPlayer implements GrimUser {
         }
 
         if (viaPacketTracker == null && ViaVersionUtil.isAvailable) {
-            UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
+            final UserConnection connection = getViaUserConnection();
             viaPacketTracker = connection != null ? connection.getPacketTracker() : null;
-            this.viaUserConnection = connection;
         }
 
         if (this.platformPlayer == null) {
@@ -602,8 +609,20 @@ public class GrimPlayer implements GrimUser {
         }
 
         Set<VectorData> knockback = new HashSet<>();
-        if (firstBreadKB != null) knockback.add(new VectorData(firstBreadKB.vector, VectorData.VectorType.Knockback));
-        if (likelyKB != null) knockback.add(new VectorData(likelyKB.vector, VectorData.VectorType.Knockback));
+        if (firstBreadKB != null) knockback.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback));
+        if (likelyKB != null) knockback.add(new VectorData(likelyKB.vector.clone(), VectorData.VectorType.Knockback));
+
+        // 1. handleSetEntityMotion replaces deltaMovement with the decoded vector
+        // 2. LivingEntity.aiStep zeros small velocities (abs(Y) < 0.003)
+        // 3. Normal air travel moves the player, then applies gravity and drag for the next tick
+        // 4. LocalPlayer.sendPosition checks <= 0.0002
+        //
+        // For example, LP rounds Y = 0.00301626 to 0.00299091, which aiStep then zeros
+        // With no input or jump, the player does not move and can send no movement packet that tick,
+        // but gravity and drag still leave Y = -0.07840000 for the next tick
+        //
+        // Without this threshold, we test 0.00299091 against 0.0002 and think the knockback cannot hide a tick
+        new PredictionEngine().applyMovementThreshold(this, knockback);
 
         boolean kbPointThree = pointThreeEstimator.determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (speed * (isSprinting ? 1.3 : 1)), this), knockback);
         checkManager.getKnockbackHandler().setPointThree(kbPointThree);
@@ -728,6 +747,13 @@ public class GrimPlayer implements GrimUser {
         return PacketEvents.getAPI().getPlayerManager().getPing(platformPlayer.getNative());
     }
 
+    public long getPlayerClockAtLeast() {
+        if (lastTransactionSent.get() == 0) {
+            playerClockAtLeast = System.nanoTime();
+        }
+        return playerClockAtLeast;
+    }
+
     public SetbackTeleportUtil getSetbackTeleportUtil() {
         return checkManager.getSetbackUtil();
     }
@@ -771,7 +797,7 @@ public class GrimPlayer implements GrimUser {
                         EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_NAUTILUS)) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
-                    user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+                    user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, Vector3d.zero()));
                 }
             }
         }
@@ -804,7 +830,7 @@ public class GrimPlayer implements GrimUser {
                         // Yes, this is the new "entity teleport" on 1.21.2+!
                         // WrapperPlayServerEntityTeleport on 1.21.2+ still exists but has a different purpose!
                         // Using WrapperPlayServerEntityTeleport is wrong and will lead to weird behaviour!
-                        user.writePacket(new WrapperPlayServerEntityPositionSync(ridingId, new EntityPositionData(pos, new Vector3d(), data.getXRot(), data.getYRot()), false));
+                        user.writePacket(new WrapperPlayServerEntityPositionSync(ridingId, new EntityPositionData(pos, Vector3d.zero(), data.getXRot(), data.getYRot()), false));
                     } else {
                         user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, pos, data.getXRot(), data.getYRot(), false));
                     }
@@ -815,9 +841,8 @@ public class GrimPlayer implements GrimUser {
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
-            // 1.21.5 introduced this again! (only in minecarts?)
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14) ||
-                    (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) && EntityTypes.MINECART == entityType)) {
+            // 1.21.5 introduced this again! (only in dummy vehicles?)
+            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)) {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
@@ -833,12 +858,11 @@ public class GrimPlayer implements GrimUser {
         if (getClientVersion().isOlderThan(ClientVersion.V_1_21_2)
                 || PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2)) return false;
 
-        // PacketEvents mappings are wrong
-        return isGlider(inventory.getHelmet(), EquipmentSlot.CHEST_PLATE)
-                || isGlider(inventory.getChestplate(), EquipmentSlot.LEGGINGS)
-                || isGlider(inventory.getLeggings(), EquipmentSlot.BOOTS)
-                || isGlider(inventory.getBoots(), EquipmentSlot.OFF_HAND)
-                || isGlider(inventory.getOffHand(), EquipmentSlot.HELMET);
+        return isGlider(inventory.getHelmet(), EquipmentSlot.HELMET)
+                || isGlider(inventory.getChestplate(), EquipmentSlot.CHEST_PLATE)
+                || isGlider(inventory.getLeggings(), EquipmentSlot.LEGGINGS)
+                || isGlider(inventory.getBoots(), EquipmentSlot.BOOTS)
+                || isGlider(inventory.getOffHand(), EquipmentSlot.OFF_HAND);
     }
 
     private static boolean isGlider(ItemStack stack, EquipmentSlot slot) {
@@ -850,10 +874,8 @@ public class GrimPlayer implements GrimUser {
         return equippable.isPresent() && equippable.get().getSlot() == slot;
     }
 
-    public void resyncPose() {
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && platformPlayer != null) {
-            platformPlayer.setSneaking(!platformPlayer.isSneaking());
-        }
+    public void resyncGlidingState() {
+        if (platformPlayer != null) platformPlayer.resyncSharedFlags();
     }
 
     public boolean canPlaceGameMasterBlocks() {
@@ -923,7 +945,7 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public String getBrand() {
-        return checkManager.getCheck(ClientBrand.class).getBrand();
+        return checkManager.get(ClientBrand.class).getBrand();
     }
 
     @Override
@@ -943,12 +965,12 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public double getHorizontalSensitivity() {
-        return checkManager.getCheck(AimProcessor.class).sensitivityX;
+        return checkManager.get(AimProcessor.class).sensitivityYaw;
     }
 
     @Override
     public double getVerticalSensitivity() {
-        return checkManager.getCheck(AimProcessor.class).sensitivityY;
+        return checkManager.get(AimProcessor.class).sensitivityPitch;
     }
 
     @Override
@@ -958,7 +980,7 @@ public class GrimPlayer implements GrimUser {
 
     @Override
     public Collection<? extends AbstractCheck> getChecks() {
-        return checkManager.checks.values();
+        return checkManager.checks;
     }
 
     public void runNettyTaskInMs(@NotNull Runnable runnable, int ms) {
@@ -1004,7 +1026,7 @@ public class GrimPlayer implements GrimUser {
         resetItemUsageOnSlotChange = config.getBooleanElse("reset-item-usage-on-slot-change", true);
         resetItemUsageOnItemUse = config.getBooleanElse("reset-item-usage-on-item-use", true);
         // reload all checks
-        for (AbstractCheck value : getChecks()) value.reload();
+        checkManager.reload();
         // reload punishment manager
         punishmentManager.reload(config);
         this.movementCheckRunner.reload(config);
@@ -1033,16 +1055,28 @@ public class GrimPlayer implements GrimUser {
         if (platformPlayer != null) platformPlayer.sendMessage(message);
     }
 
-    public void resyncPosition(Vector3i pos) {
-        this.resyncHandler.resync(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
+    public void resyncPosition(@NotNull Vector3i pos) {
+        resyncPosition(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public void resyncPosition(Vector3i pos, int sequenceID) {
-        this.resyncHandler.resyncPosition(pos.x, pos.y, pos.z, sequenceID);
+    public void resyncPosition(int x, int y, int z) {
+        resyncPositions(x, y, z, x, y, z);
     }
 
-    public void resyncPositions(SimpleCollisionBox box) {
-        this.resyncHandler.resync(GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+    public void resyncPosition(@NotNull Vector3i pos, int sequenceID) {
+        resyncPosition(pos.x, pos.y, pos.z, sequenceID);
+    }
+
+    public void resyncPosition(int x, int y, int z, int sequenceID) {
+        this.resyncHandler.resyncPosition(x, y, z, sequenceID);
+    }
+
+    public void resyncPositions(int x1, int y1, int z1, int x2, int y2, int z2) {
+        this.resyncHandler.resync(x1, y1, z1, x2, y2, z2);
+    }
+
+    public void resyncPositions(@NotNull SimpleCollisionBox box) {
+        resyncPositions(GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
                 GrimMath.ceil(box.maxX), GrimMath.ceil(box.maxY), GrimMath.ceil(box.maxZ));
     }
 
@@ -1081,13 +1115,22 @@ public class GrimPlayer implements GrimUser {
         return new Location(platformPlayer.getWorld(), this.x, this.y, this.z, this.yaw, this.pitch);
     }
 
+    // Looked up on first use, the server can send tags during configuration before pollData's first tick
+    public @Nullable UserConnection getViaUserConnection() {
+        if (this.viaUserConnection == null && ViaVersionUtil.isAvailable) {
+            this.viaUserConnection = Via.getManager().getConnectionManager().getConnectedClient(uuid);
+        }
+        return this.viaUserConnection;
+    }
+
     public int getViaTranslatedClientBlockID(int blockStateId) {
-        if (this.viaUserConnection == null) {
+        final UserConnection connection = getViaUserConnection();
+        if (connection == null) {
             return blockStateId;
         }
 
-        final ProtocolVersion clientVersion = this.viaUserConnection.getProtocolInfo().protocolVersion();
-        final ProtocolVersion serverVersion = this.viaUserConnection.getProtocolInfo().serverProtocolVersion();
+        final ProtocolVersion clientVersion = connection.getProtocolInfo().protocolVersion();
+        final ProtocolVersion serverVersion = connection.getProtocolInfo().serverProtocolVersion();
 
         final List<ProtocolPathEntry> protocolPath = Via.getManager().getProtocolManager().getProtocolPath(clientVersion, serverVersion);
         if (protocolPath == null) {

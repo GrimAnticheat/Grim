@@ -32,6 +32,11 @@ public class MultiActionsG extends BlockPlaceCheck implements PacketReceiveListe
         super(player);
     }
 
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+    }
+
     private Verbose.Writer writeAction(int action) {
         return V.write(verbose(), action);
     }
@@ -72,7 +77,7 @@ public class MultiActionsG extends BlockPlaceCheck implements PacketReceiveListe
     }
 
     public boolean isCheckActive() {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && !player.vehicleData.wasVehicleSwitch // one tick off?
+        return !player.vehicleData.wasVehicleSwitch // one tick off?
                 && player.inVehicle() && player.compensatedEntities.self.getRiding().getType().isInstanceOf(EntityTypes.BOAT)
                 && (player.vehicleData.nextVehicleForward != 0 || player.vehicleData.nextVehicleHorizontal != 0);
     }

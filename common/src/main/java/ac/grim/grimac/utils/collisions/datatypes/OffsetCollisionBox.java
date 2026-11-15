@@ -47,7 +47,7 @@ public class OffsetCollisionBox extends SimpleCollisionBox {
 
     public OffsetCollisionBox(StateType block, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         super(minX, minY, minZ, maxX, maxY, maxZ);
-        if (block.equals(StateTypes.POINTED_DRIPSTONE)) {
+        if (block.equals(StateTypes.POINTED_DRIPSTONE) || block.equals(StateTypes.SULFUR_SPIKE)) {
             maxHorizontalModelOffset = 0.125F;
         }
 //        else if (block.equals(StateTypes.SMALL_DRIPLEAF)) {

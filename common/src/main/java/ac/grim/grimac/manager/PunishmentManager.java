@@ -11,13 +11,12 @@ import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class PunishmentManager implements ConfigReloadable {
@@ -76,9 +75,8 @@ public class PunishmentManager implements ConfigReloadable {
                         command = command.substring(1);
                     }
                     for (AbstractCheck check : player.getChecks()) { // o(n) * o(n)?
-                        if (check.getCheckName() != null &&
-                                (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
-                                        || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
+                        if (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
+                                || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command)) { // Some checks have equivalent names like AntiKB and AntiKnockback
                             if (exclude) {
                                 excluded.add(check);
                             } else {
@@ -164,12 +162,7 @@ public class PunishmentManager implements ConfigReloadable {
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, renderedVerbose, check.getDisplayName(), vl);
                                 case "[log]" -> {
-                                    // Binary flags already stored a row; avoid an extra legacy text row.
-                                    if (!check.isLastFlagStoredBinaryVerbose()) {
-                                        String verboseWithoutGl = renderedVerbose.replaceAll(" /gl .*", "");
-                                        GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks()
-                                                .recordFlagFromCheck(player, check, vl, verboseWithoutGl);
-                                    }
+                                    // handled on flag
                                 }
                                 case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {
@@ -209,7 +202,7 @@ public class PunishmentManager implements ConfigReloadable {
         try {
             String value = supplier.get();
             return value == null ? "" : value;
-        } catch (Throwable ignored) {
+        } catch (RuntimeException ignored) {
             return "";
         }
     }
@@ -221,21 +214,15 @@ public class PunishmentManager implements ConfigReloadable {
     public void handleViolation(Check check) {
         for (PunishGroup group : groups) {
             if (group.checks.contains(check)) {
-                long currentTime = System.currentTimeMillis();
+                long currentTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
 
-                group.violations.put(currentTime, check);
-                // Remove violations older than the defined time in the config
-                group.violations.long2ObjectEntrySet().removeIf(time -> currentTime - time.getLongKey() > group.removeViolationsAfter);
+                group.violations.record(currentTime, check, group.removeViolationsAfter);
             }
         }
     }
 
     private int getViolations(PunishGroup group, Check check) {
-        int vl = 0;
-        for (Check value : group.violations.values()) {
-            if (value == check) vl++;
-        }
-        return vl;
+        return group.violations.count(check);
     }
 }
 
@@ -243,7 +230,7 @@ public class PunishmentManager implements ConfigReloadable {
 class PunishGroup {
     public final List<AbstractCheck> checks;
     public final List<ParsedCommand> commands;
-    public final Long2ObjectMap<Check> violations = new Long2ObjectOpenHashMap<>();
+    public final ViolationHistory<AbstractCheck> violations = new ViolationHistory<>();
     public final int removeViolationsAfter; // time to remove violations after in milliseconds
 }
 

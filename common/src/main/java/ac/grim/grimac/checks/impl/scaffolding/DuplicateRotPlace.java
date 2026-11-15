@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.impl.scaffolding;
 
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.checks.type.PostFlyingBlockPlaceListener;
 import ac.grim.grimac.checks.type.RotationListener;
@@ -25,9 +26,9 @@ public class DuplicateRotPlace extends BlockPlaceCheck implements RotationListen
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
-        deltaX = rotationUpdate.getDeltaXRotABS();
-        deltaY = rotationUpdate.getDeltaYRotABS();
-        deltaDotsX = rotationUpdate.getProcessor().deltaDotsX;
+        deltaX = rotationUpdate.deltaYawABS();
+        deltaY = rotationUpdate.deltaPitchABS();
+        deltaDotsX = player.checkManager.get(AimProcessor.class).deltaDotsYaw;
         rotated = true;
     }
 

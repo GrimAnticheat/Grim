@@ -108,7 +108,7 @@ public final class DataStoreConfigBuilder {
                 config.getLongElse(NS + "ownership.startup-wait-ms", 20_000L),
                 config.getLongElse(NS + "ownership.safety-margin-ms", 5_000L),
                 config.getLongElse(NS + "ownership.stale-startup-ttl-ms", 30_000L),
-                config.getLongElse(NS + "ownership.recovery-sweep-interval-ms", 10_000L),
+                config.getLongElse(NS + "ownership.recovery-sweep-interval-ms", 60_000L),
                 config.getBooleanElse(NS + "ownership.cleanup-other-servers", true));
     }
 

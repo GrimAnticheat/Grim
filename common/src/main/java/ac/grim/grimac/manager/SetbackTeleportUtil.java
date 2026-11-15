@@ -3,7 +3,7 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.event.events.GrimPlayerSetbackEvent;
 import ac.grim.grimac.api.event.events.GrimTeleportEvent;
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsN;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.platform.api.entity.GrimEntity;
@@ -30,6 +30,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAttachEntity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
@@ -40,12 +41,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class SetbackTeleportUtil extends Check implements PostPredictionListener {
+public class SetbackTeleportUtil extends GrimProcessor implements PostPredictionListener {
     // Sync to netty
     public final ConcurrentLinkedQueue<TeleportData> pendingTeleports = new ConcurrentLinkedQueue<>();
     private final Random random = new Random();
@@ -230,6 +233,21 @@ public class SetbackTeleportUtil extends Check implements PostPredictionListener
         sendSetback(data);
     }
 
+    private boolean isOnGround(Vector3d position) {
+        SimpleCollisionBox feet = GetBoundingBox.getBoundingBoxFromPosAndSize(player, position.getX(), position.getY(), position.getZ(), player.pose.width, 0);
+
+        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        Collisions.getCollisionBoxes(player, feet.copy().expandMin(0, -Collisions.COLLISION_EPSILON, 0), boxes, false);
+
+        for (SimpleCollisionBox box : boxes) {
+            if (box.collideY(feet, -Collisions.COLLISION_EPSILON) != -Collisions.COLLISION_EPSILON) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void sendSetback(SetBackData data) {
         isSendingSetback = true;
         Vector3d position = data.getTeleportData().getLocation();
@@ -274,6 +292,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionListener
             // Min value is 10000000000000000000000000000000 in binary, this makes sure the number is always < 0
             int teleportId = random.nextInt() | Integer.MIN_VALUE;
             data.setPlugin(false);
+            data.setOnGround(isOnGround(position));
             data.getTeleportData().setTeleportId(teleportId);
             data.getTeleportData().setTransaction(player.lastTransactionSent.get());
 
@@ -283,6 +302,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionListener
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
+            PacketEvents.getAPI().getProtocolManager().receivePacketSilently(player.user.getChannel(), new WrapperPlayClientPlayerPosition(new Vector3d(position.getX(), y, position.getZ()), data.isOnGround()));
             PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), teleportId, false));
             // Dual fire: packet-level signal for anticheat compat (GrimTeleportEvent),
             // semantic signal for admin/observability consumers (GrimPlayerSetbackEvent).
@@ -317,12 +337,11 @@ public class SetbackTeleportUtil extends Check implements PostPredictionListener
             double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocation().getZ();
 
             // There seems to be a version difference in teleports past 30 million... just clamp the vector
-            Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
+            Vector3d clamped = VectorUtils.clampVector(trueTeleportX, trueTeleportY, trueTeleportZ);
             double threshold = teleportPos.isRelativePos() ? player.getMovementThreshold() : 0;
-            boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
-            // rotations are updated every frame, we can't accurately check them if they're relative
-            boolean correctRotations = (yaw == teleportPos.getYaw() || teleportPos.isRelativeYaw())
-                    && (pitch == teleportPos.getPitch() || teleportPos.isRelativePitch());
+            double yRoundingTolerance = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 1e-7 : 0; // 1.7 rounding
+            boolean closeEnoughY = Math.abs(clamped.getY() - y) <= yRoundingTolerance + threshold;
+            boolean correctRotations = teleportPos.isValidRotation(player.getClientVersion(), yaw, pitch);
 
             if (player.lastTransactionReceived.get() == teleportPos.getTransaction() && Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold && correctRotations) {
                 pendingTeleports.poll();
@@ -341,7 +360,7 @@ public class SetbackTeleportUtil extends Check implements PostPredictionListener
                 break;
             } else if (player.lastTransactionReceived.get() > teleportPos.getTransaction()) {
                 // The player ignored the teleport (and this teleport matters), resynchronize
-                player.checkManager.getCheck(BadPacketsN.class).flag();
+                player.checkManager.get(BadPacketsN.class).flag();
                 pendingTeleports.poll();
                 requiredSetBack.setPlugin(false);
                 if (pendingTeleports.isEmpty()) {

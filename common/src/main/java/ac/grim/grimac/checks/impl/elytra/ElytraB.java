@@ -24,7 +24,7 @@ public class ElytraB extends Check implements PacketReceiveListener, PostPredict
 
     @Override
     public boolean isApplicable() {
-        return player.supportsEndTick();
+        return player.supportsEndTickPreVia();
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ElytraB extends Check implements PacketReceiveListener, PostPredict
                     if (shouldModifyPackets()) {
                         event.setCancelled(true);
                         player.onPacketCancel();
-                        player.resyncPose();
+                        player.resyncGlidingState();
                     }
                 }
             } else {

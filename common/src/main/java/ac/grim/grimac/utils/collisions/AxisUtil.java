@@ -6,6 +6,8 @@ import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 @UtilityClass
 public class AxisUtil {
     // I couldn't figure out what Mojang was doing, but I think this looks nice
@@ -27,7 +29,9 @@ public class AxisUtil {
     }
 
     @Contract(pure = true)
-    public static boolean isSameAxis(BlockFace one, BlockFace two) {
+    public static boolean isSameAxis(@NotNull BlockFace one, @NotNull BlockFace two) {
+        Objects.requireNonNull(one, "one");
+        Objects.requireNonNull(two, "two");
         return one == two || one == two.getOppositeFace();
     }
 }

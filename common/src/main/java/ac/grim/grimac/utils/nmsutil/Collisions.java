@@ -146,7 +146,7 @@ public final class Collisions {
                         Vector3dm vec3d2 = collideBoundingBoxLegacy(new Vector3dm(desiredX, stepHeight, desiredZ), startingOffsetBox, stepCollisions, order);
                         if (getHorizontalDistanceSqr(vec3d2) > getHorizontalDistanceSqr(collisionResult)) {
                             final double d = player.boundingBox.minY - startingOffsetBox.minY;
-                            collisionResult = vec3d2.add(new Vector3dm(0.0, -d, 0.0));
+                            collisionResult = vec3d2.add(0.0, -d, 0.0);
                             break;
                         }
                     }
@@ -213,7 +213,7 @@ public final class Collisions {
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-            PacketWorldBorder border = player.checkManager.getCheck(PacketWorldBorder.class);
+            PacketWorldBorder border = player.checkManager.get(PacketWorldBorder.class);
 
             double minX = Math.floor(border.getMinX());
             double minZ = Math.floor(border.getMinZ());
@@ -642,8 +642,9 @@ public final class Collisions {
         } else if (getOldDeltaY(player, vector.getY()) >= -0.08D) {
             return false;
         } else {
-            double d0 = Math.abs(locationX + 0.5D - player.lastX);
-            double d1 = Math.abs(locationZ + 0.5D - player.lastZ);
+            // Vanilla reads x/y/z from the same (post-move) position, so this has to match the y check above
+            double d0 = Math.abs(locationX + 0.5D - player.x);
+            double d1 = Math.abs(locationZ + 0.5D - player.z);
             // Calculate player width using bounding box, which will change while swimming or gliding
             double d2 = 0.4375D + ((player.pose.width) / 2.0F);
             return d0 + COLLISION_EPSILON > d2 || d1 + COLLISION_EPSILON > d2;

@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.KnownInput;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerBoat;
 
 @CheckData(name = "VehicleF", stableKey = "grim.vehicle.boat_input_mismatch", experimental = true, description = "Sent incorrect boat paddle states")
@@ -18,6 +19,11 @@ public class VehicleF extends Check implements PacketReceiveListener {
 
     public VehicleF(GrimPlayer player) {
         super(player);
+    }
+
+    @Override
+    public boolean isApplicable() {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
     }
 
     private PacketEntity lastTickVehicle;
@@ -33,7 +39,7 @@ public class VehicleF extends Check implements PacketReceiveListener {
             boolean expectedLeft;
             boolean expectedRight;
 
-            if (player.supportsEndTick()) {
+            if (player.supportsEndTickPreVia()) {
                 KnownInput input = player.packetStateData.knownInput;
                 expectedLeft = input.forward() || !input.left() && input.right();
                 expectedRight = input.forward() || input.left() && !input.right();
