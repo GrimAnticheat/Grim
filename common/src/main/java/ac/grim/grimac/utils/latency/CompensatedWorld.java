@@ -123,7 +123,12 @@ public class CompensatedWorld implements PacketWorld {
             player.sendTransaction(); // This packet actually matters
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 Vector3d playerPos = unackedActions.remove(key);
-                handleAck(blockPos, blockState, playerPos.getX(), playerPos.getY(), playerPos.getZ());
+                // No entry for clients outside 1.14.4 - 1.18.2, or when an earlier ack for the same block and action took it
+                if (playerPos == null) {
+                    revertBlock(blockPos, blockState);
+                } else {
+                    handleAck(blockPos, blockState, playerPos.getX(), playerPos.getY(), playerPos.getZ());
+                }
             });
         } else {
             unackedActions.remove(key);
@@ -150,9 +155,10 @@ public class CompensatedWorld implements PacketWorld {
         }));
     }
 
-    private void handleAck(@NotNull Vector3i blockPos, int originalBlockId, double playerX, double playerY, double playerZ) {
+    // Puts the server's block back, false if grim already had it
+    private boolean revertBlock(@NotNull Vector3i blockPos, int originalBlockId) {
         // If we need to change the world block state
-        if (getBlock(blockPos).getGlobalId() == originalBlockId) return;
+        if (getBlock(blockPos).getGlobalId() == originalBlockId) return false;
 
         player.blockHistory.add(
                 new BlockModification(
@@ -165,6 +171,12 @@ public class CompensatedWorld implements PacketWorld {
         );
 
         updateBlock(blockPos, originalBlockId);
+        return true;
+    }
+
+    private void handleAck(@NotNull Vector3i blockPos, int originalBlockId, double playerX, double playerY, double playerZ) {
+        if (!revertBlock(blockPos, originalBlockId)) return;
+
         WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
 
         // The player will teleport themselves if they get stuck in the reverted block
