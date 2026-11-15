@@ -162,12 +162,7 @@ public class PunishmentManager implements ConfigReloadable {
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, renderedVerbose, check.getDisplayName(), vl);
                                 case "[log]" -> {
-                                    // Binary flags already stored a row; avoid an extra legacy text row.
-                                    if (!check.isLastFlagStoredBinaryVerbose()) {
-                                        String verboseWithoutGl = renderedVerbose.replaceAll(" /gl .*", "");
-                                        GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks()
-                                                .recordFlagFromCheck(player, check, vl, verboseWithoutGl);
-                                    }
+                                    // handled on flag
                                 }
                                 case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {
