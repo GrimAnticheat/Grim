@@ -35,7 +35,7 @@ public class MultiInteractB extends Check implements PacketReceiveListener, Post
             Vector3d pos = packet.getLocation();
             if (pos == null) return; // shouldn't ever happen, but whatever
 
-            if (!pos.equals(lastPos)) {
+            if (lastPos != null && !pos.equals(lastPos)) {
                 if (!player.canSkipTicks()) {
                     if (flag(V.write(verbose()).f64(pos.x).f64(pos.y).f64(pos.z).f64(lastPos.x).f64(lastPos.y).f64(lastPos.z))
                             && shouldModifyPackets()) {
