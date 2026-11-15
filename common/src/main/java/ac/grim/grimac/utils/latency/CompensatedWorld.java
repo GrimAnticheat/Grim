@@ -108,13 +108,23 @@ public class CompensatedWorld implements PacketWorld {
     }
 
     public void handlePredictionConfirmation(int prediction) {
-        for (Iterator<Int2ObjectMap.Entry<List<Vector3i>>> it = serverIsCurrentlyProcessingThesePredictions.int2ObjectEntrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Integer, List<Vector3i>> iter = it.next();
-            if (iter.getKey() <= prediction) {
-                applyBlockChanges(iter.getValue());
-                it.remove();
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        // Nothing predicted and nothing waiting to be
+        if (serverIsCurrentlyProcessingThesePredictions.isEmpty() && player.placeUseItemPackets.isEmpty()) return;
+
+        // A place or use item is only replayed at the client's next movement packet or transaction, so the server can
+        // acknowledge it before we have predicted it. Look the predictions up once the client has this packet,
+        // by then anything it acknowledges has been replayed
+        player.sendTransaction();
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            for (Iterator<Int2ObjectMap.Entry<List<Vector3i>>> it = serverIsCurrentlyProcessingThesePredictions.int2ObjectEntrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<Integer, List<Vector3i>> iter = it.next();
+                if (iter.getKey() <= prediction) {
+                    revertPredictions(iter.getValue());
+                    it.remove();
+                }
             }
-        }
+        });
     }
 
     public void handleBlockBreakAck(@NotNull Vector3i blockPos, int blockState, DiggingAction action, boolean accepted) {
@@ -143,7 +153,11 @@ public class CompensatedWorld implements PacketWorld {
 
     private void applyBlockChanges(@NotNull List<@NotNull Vector3i> toApplyBlocks) {
         player.sendTransaction();
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(blockPos -> {
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> revertPredictions(toApplyBlocks));
+    }
+
+    private void revertPredictions(@NotNull List<@NotNull Vector3i> toApplyBlocks) {
+        toApplyBlocks.forEach(blockPos -> {
             BlockPrediction predictionData = originalServerBlocks.get(blockPos.getSerializedPosition());
 
             // We are the last to care about this prediction, remove it to stop memory leak
@@ -152,7 +166,7 @@ public class CompensatedWorld implements PacketWorld {
                 originalServerBlocks.remove(blockPos.getSerializedPosition());
                 handleAck(blockPos, predictionData.getOriginalBlockId(), predictionData.getPlayerX(), predictionData.getPlayerY(), predictionData.getPlayerZ());
             }
-        }));
+        });
     }
 
     // Puts the server's block back, false if grim already had it
