@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks;
+package ac.grim.grimac.checks.packethandler;
 
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;

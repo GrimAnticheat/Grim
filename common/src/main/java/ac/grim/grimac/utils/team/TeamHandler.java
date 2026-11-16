@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.team;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;

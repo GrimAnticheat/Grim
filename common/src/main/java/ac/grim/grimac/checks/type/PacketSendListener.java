@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.type;
 
-import ac.grim.grimac.checks.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import org.jetbrains.annotations.NotNull;
 
