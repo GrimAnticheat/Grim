@@ -11,6 +11,7 @@ public class PacketStateData {
     public boolean lastPacketWasTeleport = false;
     public boolean cancelDuplicatePacket, lastPacketWasOnePointSeventeenDuplicate, isReceivingQueuedDuplicate;
     public QueuedDuplicate queuedDuplicate;
+    public boolean queuedDuplicateIsDuplicate;
     public boolean lastTransactionPacketWasValid = false;
     public int lastSlotSelected;
     public InteractionHand itemInUseHand = InteractionHand.MAIN_HAND;
