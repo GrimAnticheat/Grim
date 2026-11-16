@@ -91,6 +91,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.14.2")
     testImplementation(libs.packetevents.api)
     testRuntimeOnly(libs.netty)
+    testRuntimeOnly(libs.viaversion)
     testRuntimeOnly(libs.grim.internal.shims)
     testRuntimeOnly("com.google.guava:guava:31.0.1-jre")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
