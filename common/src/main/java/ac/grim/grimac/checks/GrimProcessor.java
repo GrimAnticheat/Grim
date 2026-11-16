@@ -28,6 +28,7 @@ public class GrimProcessor implements AbstractProcessor, ConfigReloadable, Confi
             PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION
     };
 
+    // please don't mutate this
     public static final PacketTypeCommon[] FLYING_PACKETS = {
             PacketType.Play.Client.PLAYER_FLYING,
             PacketType.Play.Client.PLAYER_POSITION,
