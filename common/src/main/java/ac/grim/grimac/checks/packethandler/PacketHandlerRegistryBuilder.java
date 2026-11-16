@@ -14,50 +14,82 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistryBuilder {
-    private final PacketMap<ArrayList<Consumer<PacketSendEvent>>> sendHandlers = new PacketMap<>(PacketSide.SERVER);
-    private final PacketMap<ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers = new PacketMap<>(PacketSide.SERVER);
-    private final PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers = new PacketMap<>(PacketSide.CLIENT);
-    private final PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
-    private final ArrayList<Consumer<PacketSendEvent>> sendCatchAll = new ArrayList<>();
-    private final ArrayList<Consumer<PacketSendEvent>> preViaSendCatchAll = new ArrayList<>();
-    private final ArrayList<Consumer<PacketReceiveEvent>> receiveCatchAll = new ArrayList<>();
-    private final ArrayList<Consumer<PacketReceiveEvent>> preViaReceiveCatchAll = new ArrayList<>();
+    private final PacketMap<ArrayList<PacketHandler<PacketSendEvent>>> sendHandlers = new PacketMap<>(PacketSide.SERVER);
+    private final PacketMap<ArrayList<PacketHandler<PacketSendEvent>>> preViaSendHandlers = new PacketMap<>(PacketSide.SERVER);
+    private final PacketMap<ArrayList<PacketHandler<PacketReceiveEvent>>> receiveHandlers = new PacketMap<>(PacketSide.CLIENT);
+    private final PacketMap<ArrayList<PacketHandler<PacketReceiveEvent>>> preViaReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
+    private final ArrayList<PacketHandler<PacketSendEvent>> sendCatchAll = new ArrayList<>();
+    private final ArrayList<PacketHandler<PacketSendEvent>> preViaSendCatchAll = new ArrayList<>();
+    private final ArrayList<PacketHandler<PacketReceiveEvent>> receiveCatchAll = new ArrayList<>();
+    private final ArrayList<PacketHandler<PacketReceiveEvent>> preViaReceiveCatchAll = new ArrayList<>();
 
-    public void registerSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull ClientBoundPacket @NotNull ... types) {
-        register(consumer, types, sendHandlers, sendCatchAll);
+    public void registerSendHandler(
+            @NotNull PacketHandler<@NotNull PacketSendEvent> handler,
+            @NotNull ClientBoundPacket @NotNull ... types) {
+        register(handler, types, sendHandlers, sendCatchAll);
     }
 
-    public void registerPreViaSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull ClientBoundPacket @NotNull ... types) {
-        register(consumer, types, preViaSendHandlers, preViaSendCatchAll);
+    public void registerSendHandler(
+            @NotNull Consumer<@NotNull PacketSendEvent> handler,
+            @NotNull ClientBoundPacket @NotNull ... types) {
+        registerSendHandler((event, wrapper) -> handler.accept(event), types);
     }
 
-    public void registerReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull ServerBoundPacket @NotNull ... types) {
-        register(consumer, types, receiveHandlers, receiveCatchAll);
+    public void registerPreViaSendHandler(
+            @NotNull PacketHandler<@NotNull PacketSendEvent> handler,
+            @NotNull ClientBoundPacket @NotNull ... types) {
+        register(handler, types, preViaSendHandlers, preViaSendCatchAll);
     }
 
-    public void registerPreViaReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull ServerBoundPacket @NotNull ... types) {
-        register(consumer, types, preViaReceiveHandlers, preViaReceiveCatchAll);
+    public void registerPreViaSendHandler(
+            @NotNull Consumer<@NotNull PacketSendEvent> handler,
+            @NotNull ClientBoundPacket @NotNull ... types) {
+        registerPreViaSendHandler((event, wrapper) -> handler.accept(event), types);
     }
 
-    private static <T extends @NotNull ProtocolPacketEvent, P> void register(
-            @NotNull Consumer<T> consumer,
+    public void registerReceiveHandler(
+            @NotNull PacketHandler<@NotNull PacketReceiveEvent> handler,
+            @NotNull ServerBoundPacket @NotNull ... types) {
+        register(handler, types, receiveHandlers, receiveCatchAll);
+    }
+
+    public void registerReceiveHandler(
+            @NotNull Consumer<@NotNull PacketReceiveEvent> handler,
+            @NotNull ServerBoundPacket @NotNull ... types) {
+        registerReceiveHandler((event, wrapper) -> handler.accept(event), types);
+    }
+
+    public void registerPreViaReceiveHandler(
+            @NotNull PacketHandler<@NotNull PacketReceiveEvent> handler,
+            @NotNull ServerBoundPacket @NotNull ... types) {
+        register(handler, types, preViaReceiveHandlers, preViaReceiveCatchAll);
+    }
+
+    public void registerPreViaReceiveHandler(
+            @NotNull Consumer<@NotNull PacketReceiveEvent> handler,
+            @NotNull ServerBoundPacket @NotNull ... types) {
+        registerPreViaReceiveHandler((event, wrapper) -> handler.accept(event), types);
+    }
+
+    private static <E extends @NotNull ProtocolPacketEvent, P> void register(
+            @NotNull PacketHandler<E> handler,
             @NotNull P @NotNull [] types,
-            PacketMap<ArrayList<Consumer<T>>> handlers,
-            ArrayList<Consumer<T>> catchAll
+            PacketMap<ArrayList<PacketHandler<E>>> handlers,
+            ArrayList<PacketHandler<E>> catchAll
     ) {
         if (types.length == 0) {
-            catchAll.add(consumer);
+            catchAll.add(handler);
             // A catchAll registered before a typed handler has to run before it.
             handlers.forEachValue(value -> {
                 if (value != null) {
-                    value.add(consumer);
+                    value.add(handler);
                 }
             });
             return;
         }
 
         for (@NotNull P type : types) {
-            handlers.putIfNull((PacketTypeCommon) type, () -> new ArrayList<>(catchAll)).add(consumer);
+            handlers.putIfNull((PacketTypeCommon) type, () -> new ArrayList<>(catchAll)).add(handler);
         }
     }
 
