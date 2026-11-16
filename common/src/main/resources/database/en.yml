@@ -83,6 +83,9 @@ database:
     wait-strategy: BLOCKING
 
   retention:
+    # Deletion is opt-in. Category ages below do nothing until this is true.
+    # Expired sessions and violations are removed in batches every six hours.
+    enabled: false
     session:
       enabled: true
       max-age-days: 90
@@ -117,4 +120,4 @@ database:
 
 # Schema markers — see header comment in config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2
