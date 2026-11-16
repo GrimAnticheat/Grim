@@ -33,7 +33,7 @@ public class AttackCooldownHandler extends GrimProcessor implements PacketListen
             reset();
         }, ANIMATION_PACKETS);
 
-        registry.registerSendHandler(event -> {
+        registry.registerReceiveHandler(event -> {
             if (!isTickPacket(event.getPacketType())) return;
 
             if (!stackChanged) {

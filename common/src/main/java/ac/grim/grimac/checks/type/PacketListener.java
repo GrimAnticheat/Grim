@@ -2,12 +2,12 @@ package ac.grim.grimac.checks.type;
 
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import com.github.retrooper.packetevents.protocol.packettype.ServerBoundPacket;
 import org.jetbrains.annotations.NotNull;
 
 public interface PacketListener {
     // please don't mutate this
-    PacketTypeCommon[] TICK_PACKET_CANDIDATES = {
+    @NotNull ServerBoundPacket @NotNull [] TICK_PACKET_CANDIDATES = {
             PacketType.Play.Client.CLIENT_TICK_END,
             PacketType.Play.Client.PLAYER_FLYING,
             PacketType.Play.Client.PLAYER_POSITION,
@@ -16,7 +16,7 @@ public interface PacketListener {
     };
 
     // please don't mutate this
-    PacketTypeCommon[] FLYING_PACKETS = {
+    @NotNull ServerBoundPacket @NotNull [] FLYING_PACKETS = {
             PacketType.Play.Client.PLAYER_FLYING,
             PacketType.Play.Client.PLAYER_POSITION,
             PacketType.Play.Client.PLAYER_ROTATION,
@@ -24,7 +24,7 @@ public interface PacketListener {
     };
 
     // please don't mutate this
-    PacketTypeCommon[] ANIMATION_PACKETS = {
+    @NotNull ServerBoundPacket @NotNull [] ANIMATION_PACKETS = {
             PacketType.Play.Client.ANIMATION,
             PacketType.Play.Client.PUNCH
     };
