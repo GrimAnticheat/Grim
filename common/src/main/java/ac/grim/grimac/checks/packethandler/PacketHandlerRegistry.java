@@ -67,7 +67,7 @@ public class PacketHandlerRegistry {
     }
 
     public void handlePreViaSend(@NotNull PacketSendEvent event) {
-        handle(event, sendHandlers, sendCatchAll);
+        handle(event, preViaSendHandlers, preViaSendCatchAll);
     }
 
     public void handleReceive(@NotNull PacketReceiveEvent event) {
@@ -75,7 +75,7 @@ public class PacketHandlerRegistry {
     }
 
     public void handlePreViaReceive(@NotNull PacketReceiveEvent event) {
-        handle(event, receiveHandlers, receiveCatchAll);
+        handle(event, preViaReceiveHandlers, preViaReceiveCatchAll);
     }
 
     private <T extends @NotNull ProtocolPacketEvent> void handle(T event, @NotNull IdentityHashMap<PacketTypeCommon, Consumer<T>[]> handlers, Consumer<T>[] catchAll) {
