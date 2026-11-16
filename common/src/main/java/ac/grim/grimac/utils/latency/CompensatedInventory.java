@@ -2,8 +2,8 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
-import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.inventory.EquipmentType;
@@ -43,7 +43,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Updated to support modern 1.17 protocol
-public class CompensatedInventory extends GrimProcessor implements PacketReceiveListener, PacketSendListener {
+public class CompensatedInventory extends GrimProcessor implements PacketReceiveListener, PacketListener {
     private static final int PLAYER_INVENTORY_CASE = -1;
     private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     // "Temporarily" public for debugging
@@ -313,13 +313,13 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
-        registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
-        registry.registerHandler(this::onOpenHorseWindow, PacketType.Play.Server.OPEN_HORSE_WINDOW);
-        registry.registerHandler(this::onCloseWindow, PacketType.Play.Server.CLOSE_WINDOW);
-        registry.registerHandler(this::onWindowItems, PacketType.Play.Server.WINDOW_ITEMS);
-        registry.registerHandler(this::onSetPlayerInventory, PacketType.Play.Server.SET_PLAYER_INVENTORY);
-        registry.registerHandler(this::onSetSlot, PacketType.Play.Server.SET_SLOT);
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
+        registry.registerSendHandler(this::onOpenHorseWindow, PacketType.Play.Server.OPEN_HORSE_WINDOW);
+        registry.registerSendHandler(this::onCloseWindow, PacketType.Play.Server.CLOSE_WINDOW);
+        registry.registerSendHandler(this::onWindowItems, PacketType.Play.Server.WINDOW_ITEMS);
+        registry.registerSendHandler(this::onSetPlayerInventory, PacketType.Play.Server.SET_PLAYER_INVENTORY);
+        registry.registerSendHandler(this::onSetSlot, PacketType.Play.Server.SET_SLOT);
     }
 
     // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...

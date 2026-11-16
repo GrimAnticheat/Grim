@@ -3,9 +3,8 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
-import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -13,15 +12,15 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
 import org.jetbrains.annotations.NotNull;
 
-public class PacketChangeGameState extends GrimProcessor implements PacketSendListener {
+public class PacketChangeGameState extends GrimProcessor implements PacketListener {
 
     public PacketChangeGameState(GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
-        registry.registerHandler(event -> {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(event -> {
             WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
 
             switch (packet.getReason()) {

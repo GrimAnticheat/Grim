@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
-import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.worldborder.BorderExtent;
 import ac.grim.grimac.utils.worldborder.RealTimeMovingBorderExtent;
@@ -22,7 +22,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public class PacketWorldBorder extends GrimProcessor implements PacketSendListener {
+public class PacketWorldBorder extends GrimProcessor implements PacketListener {
     private static final boolean SERVER_TICK_BASED = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
 
     @Getter
@@ -64,12 +64,12 @@ public class PacketWorldBorder extends GrimProcessor implements PacketSendListen
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
-        registry.registerHandler(this::onLegacyWorldBorder, PacketType.Play.Server.WORLD_BORDER);
-        registry.registerHandler(this::onInitializeWorldBorder, PacketType.Play.Server.INITIALIZE_WORLD_BORDER);
-        registry.registerHandler(this::onWorldBorderCenter, PacketType.Play.Server.WORLD_BORDER_CENTER);
-        registry.registerHandler(this::onWorldBorderSize, PacketType.Play.Server.WORLD_BORDER_SIZE);
-        registry.registerHandler(this::onWorldBorderLerpSize, PacketType.Play.Server.WORLD_BORDER_LERP_SIZE);
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(this::onLegacyWorldBorder, PacketType.Play.Server.WORLD_BORDER);
+        registry.registerSendHandler(this::onInitializeWorldBorder, PacketType.Play.Server.INITIALIZE_WORLD_BORDER);
+        registry.registerSendHandler(this::onWorldBorderCenter, PacketType.Play.Server.WORLD_BORDER_CENTER);
+        registry.registerSendHandler(this::onWorldBorderSize, PacketType.Play.Server.WORLD_BORDER_SIZE);
+        registry.registerSendHandler(this::onWorldBorderLerpSize, PacketType.Play.Server.WORLD_BORDER_LERP_SIZE);
     }
 
     private void onLegacyWorldBorder(PacketSendEvent event) {

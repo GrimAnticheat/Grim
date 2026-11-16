@@ -2,10 +2,9 @@ package ac.grim.grimac.utils.team;
 
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
-import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -18,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 // Reminder: Entities use UUIDs, players use name, for setting teams.
-public class TeamHandler extends GrimProcessor implements PacketSendListener {
+public class TeamHandler extends GrimProcessor implements PacketListener {
 
     private final Map<String, EntityTeam> entityTeams = new Object2ObjectOpenHashMap<>();
     private final Map<String, EntityTeam> entityToTeam = new Object2ObjectOpenHashMap<>();
@@ -44,8 +43,8 @@ public class TeamHandler extends GrimProcessor implements PacketSendListener {
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
-        registry.registerHandler(event -> {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(event -> {
             WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
             final String teamName = teams.getTeamName();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {

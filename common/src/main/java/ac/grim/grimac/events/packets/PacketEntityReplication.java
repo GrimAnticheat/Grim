@@ -4,8 +4,8 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
-import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.SprintingState;
@@ -68,7 +68,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PacketEntityReplication extends GrimProcessor implements PacketReceiveListener, PacketSendListener {
+public class PacketEntityReplication extends GrimProcessor implements PacketReceiveListener, PacketListener {
 
     private final AtomicBoolean hasSentPreWavePacket = new AtomicBoolean(true);
 
@@ -124,32 +124,32 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
-        registry.registerHandler(this::onTransaction, PacketType.Play.Server.PING, PacketType.Play.Server.WINDOW_CONFIRMATION);
-        registry.registerHandler(this::onSpawnLivingEntity, PacketType.Play.Server.SPAWN_LIVING_ENTITY);
-        registry.registerHandler(this::onSpawnEntity, PacketType.Play.Server.SPAWN_ENTITY);
-        registry.registerHandler(this::onSpawnPlayer, PacketType.Play.Server.SPAWN_PLAYER);
-        registry.registerHandler(this::onSpawnPainting, PacketType.Play.Server.SPAWN_PAINTING);
-        registry.registerHandler(this::onEntityRelativeMove, PacketType.Play.Server.ENTITY_RELATIVE_MOVE);
-        registry.registerHandler(this::onEntityRelativeMoveAndRotation, PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION);
-        registry.registerHandler(this::onEntityTeleport, PacketType.Play.Server.ENTITY_TELEPORT);
-        registry.registerHandler(this::onEntityPositionSync, PacketType.Play.Server.ENTITY_POSITION_SYNC);
-        registry.registerHandler(this::onEntityRotation, PacketType.Play.Server.ENTITY_ROTATION);
-        registry.registerHandler(this::onEntityMetadata, PacketType.Play.Server.ENTITY_METADATA);
-        registry.registerHandler(this::onEntityEquipment, PacketType.Play.Server.ENTITY_EQUIPMENT);
-        registry.registerHandler(this::onPlayerInfoUpdate, PacketType.Play.Server.PLAYER_INFO_UPDATE);
-        registry.registerHandler(this::onPlayerInfoRemove, PacketType.Play.Server.PLAYER_INFO_REMOVE);
-        registry.registerHandler(this::onPlayerInfo, PacketType.Play.Server.PLAYER_INFO);
-        registry.registerHandler(this::onEntityEffect, PacketType.Play.Server.ENTITY_EFFECT);
-        registry.registerHandler(this::onRemoveEntityEffect, PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
-        registry.registerHandler(this::onUpdateAttributes, PacketType.Play.Server.UPDATE_ATTRIBUTES);
-        registry.registerHandler(this::onEntityStatus, PacketType.Play.Server.ENTITY_STATUS);
-        registry.registerHandler(this::onSetSlot, PacketType.Play.Server.SET_SLOT);
-        registry.registerHandler(this::onWindowItems, PacketType.Play.Server.WINDOW_ITEMS);
-        registry.registerHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW, PacketType.Play.Server.OPEN_HORSE_WINDOW);
-        registry.registerHandler(this::onSetPassengers, PacketType.Play.Server.SET_PASSENGERS);
-        registry.registerHandler(this::onAttachEntity, PacketType.Play.Server.ATTACH_ENTITY);
-        registry.registerHandler(this::onDestroyEntities, PacketType.Play.Server.DESTROY_ENTITIES);
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(this::onTransaction, PacketType.Play.Server.PING, PacketType.Play.Server.WINDOW_CONFIRMATION);
+        registry.registerSendHandler(this::onSpawnLivingEntity, PacketType.Play.Server.SPAWN_LIVING_ENTITY);
+        registry.registerSendHandler(this::onSpawnEntity, PacketType.Play.Server.SPAWN_ENTITY);
+        registry.registerSendHandler(this::onSpawnPlayer, PacketType.Play.Server.SPAWN_PLAYER);
+        registry.registerSendHandler(this::onSpawnPainting, PacketType.Play.Server.SPAWN_PAINTING);
+        registry.registerSendHandler(this::onEntityRelativeMove, PacketType.Play.Server.ENTITY_RELATIVE_MOVE);
+        registry.registerSendHandler(this::onEntityRelativeMoveAndRotation, PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION);
+        registry.registerSendHandler(this::onEntityTeleport, PacketType.Play.Server.ENTITY_TELEPORT);
+        registry.registerSendHandler(this::onEntityPositionSync, PacketType.Play.Server.ENTITY_POSITION_SYNC);
+        registry.registerSendHandler(this::onEntityRotation, PacketType.Play.Server.ENTITY_ROTATION);
+        registry.registerSendHandler(this::onEntityMetadata, PacketType.Play.Server.ENTITY_METADATA);
+        registry.registerSendHandler(this::onEntityEquipment, PacketType.Play.Server.ENTITY_EQUIPMENT);
+        registry.registerSendHandler(this::onPlayerInfoUpdate, PacketType.Play.Server.PLAYER_INFO_UPDATE);
+        registry.registerSendHandler(this::onPlayerInfoRemove, PacketType.Play.Server.PLAYER_INFO_REMOVE);
+        registry.registerSendHandler(this::onPlayerInfo, PacketType.Play.Server.PLAYER_INFO);
+        registry.registerSendHandler(this::onEntityEffect, PacketType.Play.Server.ENTITY_EFFECT);
+        registry.registerSendHandler(this::onRemoveEntityEffect, PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
+        registry.registerSendHandler(this::onUpdateAttributes, PacketType.Play.Server.UPDATE_ATTRIBUTES);
+        registry.registerSendHandler(this::onEntityStatus, PacketType.Play.Server.ENTITY_STATUS);
+        registry.registerSendHandler(this::onSetSlot, PacketType.Play.Server.SET_SLOT);
+        registry.registerSendHandler(this::onWindowItems, PacketType.Play.Server.WINDOW_ITEMS);
+        registry.registerSendHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW, PacketType.Play.Server.OPEN_HORSE_WINDOW);
+        registry.registerSendHandler(this::onSetPassengers, PacketType.Play.Server.SET_PASSENGERS);
+        registry.registerSendHandler(this::onAttachEntity, PacketType.Play.Server.ATTACH_ENTITY);
+        registry.registerSendHandler(this::onDestroyEntities, PacketType.Play.Server.DESTROY_ENTITIES);
     }
 
     // ensure grim is the one that sent the transaction

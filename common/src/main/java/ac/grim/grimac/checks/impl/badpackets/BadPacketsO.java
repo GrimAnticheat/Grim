@@ -4,11 +4,10 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
-import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientKeepAlive;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKeepAlive;
@@ -17,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedList;
 
 @CheckData(name = "BadPacketsO", stableKey = "grim.badpackets.invalid_keepalive", description = "Responded with a keepalive ID that was not sent by the server")
-public class BadPacketsO extends Check implements PacketReceiveListener, PacketSendListener {
+public class BadPacketsO extends Check implements PacketReceiveListener, PacketListener {
     private static final Verbose V = Verbose.of("id={slong}");
 
     private final LinkedList<Long> keepalives = new LinkedList<>();
@@ -27,8 +26,8 @@ public class BadPacketsO extends Check implements PacketReceiveListener, PacketS
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
-        registry.registerHandler(event -> keepalives.add(new WrapperPlayServerKeepAlive(event).getId()), PacketType.Play.Server.KEEP_ALIVE);
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(event -> keepalives.add(new WrapperPlayServerKeepAlive(event).getId()), PacketType.Play.Server.KEEP_ALIVE);
     }
 
     @Override

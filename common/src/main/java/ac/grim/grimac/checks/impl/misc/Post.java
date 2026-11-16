@@ -4,15 +4,14 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
-import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
@@ -28,7 +27,7 @@ import java.util.Locale;
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post", stableKey = "grim.post.invalid_order", description = "Sent packets out of the expected movement tick order")
-public class Post extends Check implements PacketReceiveListener, PacketSendListener, PostPredictionListener {
+public class Post extends Check implements PacketReceiveListener, PacketListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("{str}");
 
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
@@ -61,8 +60,8 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     }
 
     @Override
-    public void registerSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
-        registry.registerHandler(event -> {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(event -> {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
             if (animation.getEntityId() == player.entityID) {
                 if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||

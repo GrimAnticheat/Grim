@@ -1,18 +1,53 @@
 package ac.grim.grimac.checks.packethandler;
 
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.function.Consumer;
 
-public class PacketHandlerRegistryBuilder<T extends @NotNull ProtocolPacketEvent> {
-    private final IdentityHashMap<PacketTypeCommon, ArrayList<Consumer<T>>> handlers = new IdentityHashMap<>();
-    private final ArrayList<Consumer<T>> catchAll = new ArrayList<>();
+public class PacketHandlerRegistryBuilder {
+    private final IdentityHashMap<PacketTypeCommon, ArrayList<Consumer<PacketSendEvent>>> sendHandlers = new IdentityHashMap<>();
+    private final IdentityHashMap<PacketTypeCommon, ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers = new IdentityHashMap<>();
+    private final IdentityHashMap<PacketTypeCommon, ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers = new IdentityHashMap<>();
+    private final IdentityHashMap<PacketTypeCommon, ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers = new IdentityHashMap<>();
+    private final ArrayList<Consumer<PacketSendEvent>> sendCatchAll = new ArrayList<>();
+    private final ArrayList<Consumer<PacketSendEvent>> preViaSendCatchAll = new ArrayList<>();
+    private final ArrayList<Consumer<PacketReceiveEvent>> receiveCatchAll = new ArrayList<>();
+    private final ArrayList<Consumer<PacketReceiveEvent>> preViaReceiveCatchAll = new ArrayList<>();
 
-    public void registerHandler(Consumer<T> consumer, PacketTypeCommon... types) {
+    public void registerSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull PacketTypeCommon @NotNull ... types) {
+        register(consumer, types, sendHandlers, sendCatchAll);
+    }
+
+    @Deprecated(forRemoval = true)
+    public void registerHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull PacketTypeCommon @NotNull ... types) {
+        registerSendHandler(consumer, types);
+    }
+
+    public void registerPreViaSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull PacketTypeCommon @NotNull ... types) {
+        register(consumer, types, preViaSendHandlers, preViaSendCatchAll);
+    }
+
+    public void registerReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull PacketTypeCommon @NotNull ... types) {
+        register(consumer, types, receiveHandlers, receiveCatchAll);
+    }
+
+    public void registerPreViaReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull PacketTypeCommon @NotNull ... types) {
+        register(consumer, types, preViaReceiveHandlers, preViaReceiveCatchAll);
+    }
+
+    private static <T extends @NotNull ProtocolPacketEvent> void register(
+            @NotNull Consumer<T> consumer,
+            @NotNull PacketTypeCommon @NotNull [] types,
+            IdentityHashMap<PacketTypeCommon, ArrayList<Consumer<T>>> handlers,
+            ArrayList<Consumer<T>> catchAll
+    ) {
         if (types.length == 0) {
             catchAll.add(consumer);
             // A catchAll registered before a typed handler has to run before it.
@@ -27,7 +62,17 @@ public class PacketHandlerRegistryBuilder<T extends @NotNull ProtocolPacketEvent
         }
     }
 
-    public PacketHandlerRegistry<T> build() {
-        return new PacketHandlerRegistry<>(handlers, catchAll);
+    @Contract(value = "->new", pure = true)
+    public @NotNull PacketHandlerRegistry build() {
+        return new PacketHandlerRegistry(
+                sendHandlers,
+                preViaSendHandlers,
+                receiveHandlers,
+                preViaReceiveHandlers,
+                sendCatchAll,
+                preViaSendCatchAll,
+                receiveCatchAll,
+                preViaReceiveCatchAll
+        );
     }
 }

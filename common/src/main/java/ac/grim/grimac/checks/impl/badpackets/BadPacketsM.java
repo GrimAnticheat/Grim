@@ -3,11 +3,10 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
-import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.Combat;
@@ -18,7 +17,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDe
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsM", stableKey = "grim.badpackets.respawn_alive", description = "Tried to respawn while alive", experimental = true)
-public class BadPacketsM extends Check implements PreViaPacketReceiveListener, PreViaPacketSendListener {
+public class BadPacketsM extends Check implements PreViaPacketReceiveListener, PacketListener {
     public BadPacketsM(final GrimPlayer player) {
         super(player);
     }
@@ -49,12 +48,12 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
     }
 
     @Override
-    public void registerPreViaSend(@NotNull PacketHandlerRegistryBuilder<PacketSendEvent> registry) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
         }
 
-        registry.registerHandler(event -> {
+        registry.registerPreViaSendHandler(event -> {
             WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
             if (packet.getReason() != WrapperPlayServerChangeGameState.Reason.WIN_GAME) return;
 
@@ -71,14 +70,14 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
             });
         }, PacketType.Play.Server.CHANGE_GAME_STATE);
 
-        registry.registerHandler(event -> {
+        registry.registerPreViaSendHandler(event -> {
             if (new WrapperPlayServerDeathCombatEvent(event).getPlayerId() == player.entityID) {
                 player.sendTransaction();
                 player.addRealTimeTaskNow(this::onDeathCombatEvent);
             }
         }, PacketType.Play.Server.DEATH_COMBAT_EVENT);
 
-        registry.registerHandler(event -> {
+        registry.registerPreViaSendHandler(event -> {
             WrapperPlayServerCombatEvent packet = new WrapperPlayServerCombatEvent(event);
             if (packet.getCombat() == Combat.ENTITY_DEAD && packet.getPlayerId() == player.entityID) {
                 player.sendTransaction();

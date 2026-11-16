@@ -76,10 +76,9 @@ public class CheckManager implements BasicReloadable {
     public final ClassToInstanceMap<AbstractProcessor> processors;
     public final Collection<AbstractCheck> checks;
 
+    private final PacketHandlerRegistry packetHandlerRegistry;
     private final PreViaPacketReceiveListener[] preViaPacketReceiveListeners;
-    private final PacketHandlerRegistry<PacketSendEvent> preViaPacketSendRegistry;
     private final PacketReceiveListener[] packetReceiveListeners;
-    private final PacketHandlerRegistry<PacketSendEvent> packetSendRegistry;
     private final PositionListener[] positionListeners;
     private final RotationListener[] rotationListeners;
     private final VehicleListener[] vehicleListeners;
@@ -255,10 +254,9 @@ public class CheckManager implements BasicReloadable {
                 .build();
 
         ArrayList<AbstractCheck> checks = new ArrayList<>();
+        PacketHandlerRegistryBuilder packetHandlerRegistry = new PacketHandlerRegistryBuilder();
         ArrayList<PreViaPacketReceiveListener> preViaPacketReceiveListeners = new ArrayList<>();
-        PacketHandlerRegistryBuilder<PacketSendEvent> preViaPacketSendRegistryBuilder = new PacketHandlerRegistryBuilder<>();
         ArrayList<PacketReceiveListener> packetReceiveListeners = new ArrayList<>();
-        PacketHandlerRegistryBuilder<PacketSendEvent> packetSendRegistryBuilder = new PacketHandlerRegistryBuilder<>();
         ArrayList<PrePredictionPacketReceiveListener> prePredictionPacketReceiveListeners = new ArrayList<>();
         ArrayList<PositionListener> positionListeners = new ArrayList<>();
         ArrayList<RotationListener> rotationListeners = new ArrayList<>();
@@ -275,11 +273,10 @@ public class CheckManager implements BasicReloadable {
                 if (processor instanceof Check grimCheck && !grimCheck.isApplicable()) continue;
             }
 
+            if (processor instanceof PacketListener packetListener) packetListener.registerPacketHandlers(packetHandlerRegistry);
             if (processor instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
             if (processor instanceof PrePredictionPacketReceiveListener prePredictionPacketReceiveListener) prePredictionPacketReceiveListeners.add(prePredictionPacketReceiveListener);
             if (processor instanceof PreViaPacketReceiveListener preViaPacketReceiveListener) preViaPacketReceiveListeners.add(preViaPacketReceiveListener);
-            if (processor instanceof PacketSendListener packetSendListener) packetSendListener.registerSend(packetSendRegistryBuilder);
-            if (processor instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListener.registerPreViaSend(preViaPacketSendRegistryBuilder);
             if (processor instanceof PositionListener positionListener) positionListeners.add(positionListener);
             if (processor instanceof RotationListener rotationListener) rotationListeners.add(rotationListener);
             if (processor instanceof VehicleListener vehicleListener) vehicleListeners.add(vehicleListener);
@@ -292,10 +289,9 @@ public class CheckManager implements BasicReloadable {
 
         checks.trimToSize();
         this.checks = Collections.unmodifiableCollection(checks);
+        this.packetHandlerRegistry = packetHandlerRegistry.build();
         this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
-        this.preViaPacketSendRegistry = preViaPacketSendRegistryBuilder.build();
         this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
-        this.packetSendRegistry = packetSendRegistryBuilder.build();
         this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);
@@ -351,11 +347,11 @@ public class CheckManager implements BasicReloadable {
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
-        packetSendRegistry.handle(packet);
+        packetHandlerRegistry.handleSend(packet);
     }
 
     public void onPreViaPacketSend(final PacketSendEvent packet) {
-        preViaPacketSendRegistry.handle(packet);
+        packetHandlerRegistry.handlePreViaSend(packet);
     }
 
     public void onPositionUpdate(final PositionUpdate position) {
