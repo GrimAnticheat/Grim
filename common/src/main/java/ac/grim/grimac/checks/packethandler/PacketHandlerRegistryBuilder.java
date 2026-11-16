@@ -3,20 +3,21 @@ package ac.grim.grimac.checks.packethandler;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
+import com.github.retrooper.packetevents.protocol.PacketSide;
 import com.github.retrooper.packetevents.protocol.packettype.ClientBoundPacket;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.packettype.ServerBoundPacket;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistryBuilder {
-    private final IdentityHashMap<ClientBoundPacket, ArrayList<Consumer<PacketSendEvent>>> sendHandlers = new IdentityHashMap<>();
-    private final IdentityHashMap<ClientBoundPacket, ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers = new IdentityHashMap<>();
-    private final IdentityHashMap<ServerBoundPacket, ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers = new IdentityHashMap<>();
-    private final IdentityHashMap<ServerBoundPacket, ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers = new IdentityHashMap<>();
+    private final PacketMap<ArrayList<Consumer<PacketSendEvent>>> sendHandlers = new PacketMap<>(PacketSide.SERVER);
+    private final PacketMap<ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers = new PacketMap<>(PacketSide.SERVER);
+    private final PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers = new PacketMap<>(PacketSide.CLIENT);
+    private final PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
     private final ArrayList<Consumer<PacketSendEvent>> sendCatchAll = new ArrayList<>();
     private final ArrayList<Consumer<PacketSendEvent>> preViaSendCatchAll = new ArrayList<>();
     private final ArrayList<Consumer<PacketReceiveEvent>> receiveCatchAll = new ArrayList<>();
@@ -41,23 +42,29 @@ public class PacketHandlerRegistryBuilder {
     private static <T extends @NotNull ProtocolPacketEvent, P> void register(
             @NotNull Consumer<T> consumer,
             @NotNull P @NotNull [] types,
-            IdentityHashMap<P, ArrayList<Consumer<T>>> handlers,
+            PacketMap<ArrayList<Consumer<T>>> handlers,
             ArrayList<Consumer<T>> catchAll
     ) {
         if (types.length == 0) {
             catchAll.add(consumer);
             // A catchAll registered before a typed handler has to run before it.
-            for (ArrayList<Consumer<T>> typed : handlers.values()) {
-                typed.add(consumer);
-            }
+            handlers.forEachValue(value -> {
+                if (value != null) {
+                    value.add(consumer);
+                }
+            });
             return;
         }
 
         for (@NotNull P type : types) {
-            handlers.computeIfAbsent(type, ignored -> new ArrayList<>(catchAll)).add(consumer);
+            handlers.putIfNull((PacketTypeCommon) type, () -> new ArrayList<>(catchAll)).add(consumer);
         }
     }
 
+    /**
+     * Creates and returns a {@link PacketHandlerRegistry} from this builder.
+     * This builder object must not be used after calling this method.
+     */
     @Contract(value = "->new", pure = true)
     public @NotNull PacketHandlerRegistry build() {
         return new PacketHandlerRegistry(

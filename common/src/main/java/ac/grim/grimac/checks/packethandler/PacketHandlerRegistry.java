@@ -3,93 +3,61 @@ package ac.grim.grimac.checks.packethandler;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
-import com.github.retrooper.packetevents.protocol.packettype.ClientBoundPacket;
-import com.github.retrooper.packetevents.protocol.packettype.ServerBoundPacket;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistry {
-    private final IdentityHashMap<ClientBoundPacket, Consumer<PacketSendEvent>[]> sendHandlers;
-    private final IdentityHashMap<ClientBoundPacket, Consumer<PacketSendEvent>[]> preViaSendHandlers;
-    private final IdentityHashMap<ServerBoundPacket, Consumer<PacketReceiveEvent>[]> receiveHandlers;
-    private final IdentityHashMap<ServerBoundPacket, Consumer<PacketReceiveEvent>[]> preViaReceiveHandlers;
-    private final Consumer<PacketSendEvent>[] sendCatchAll;
-    private final Consumer<PacketSendEvent>[] preViaSendCatchAll;
-    private final Consumer<PacketReceiveEvent>[] receiveCatchAll;
-    private final Consumer<PacketReceiveEvent>[] preViaReceiveCatchAll;
+    private final PacketMap<Consumer<PacketSendEvent>[]> sendHandlers;
+    private final PacketMap<Consumer<PacketSendEvent>[]> preViaSendHandlers;
+    private final PacketMap<Consumer<PacketReceiveEvent>[]> receiveHandlers;
+    private final PacketMap<Consumer<PacketReceiveEvent>[]> preViaReceiveHandlers;
 
-    @SuppressWarnings({"ToArrayCallWithZeroLengthArrayArgument", "unchecked"})
+    @SuppressWarnings("ToArrayCallWithZeroLengthArrayArgument")
     PacketHandlerRegistry(
-            @NotNull IdentityHashMap<ClientBoundPacket, ArrayList<Consumer<PacketSendEvent>>> sendHandlers,
-            @NotNull IdentityHashMap<ClientBoundPacket, ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers,
-            @NotNull IdentityHashMap<ServerBoundPacket, ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers,
-            @NotNull IdentityHashMap<ServerBoundPacket, ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers,
-            @NotNull ArrayList<Consumer<PacketSendEvent>> sendCatchAll,
-            @NotNull ArrayList<Consumer<PacketSendEvent>> preViaSendCatchAll,
-            @NotNull ArrayList<Consumer<PacketReceiveEvent>> receiveCatchAll,
-            @NotNull ArrayList<Consumer<PacketReceiveEvent>> preViaReceiveCatchAll
+            @NotNull PacketMap<ArrayList<Consumer<PacketSendEvent>>> sendHandlers,
+            @NotNull PacketMap<ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers,
+            @NotNull PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers,
+            @NotNull PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers,
+            @NotNull ArrayList<Consumer<PacketSendEvent>> sendDefaults,
+            @NotNull ArrayList<Consumer<PacketSendEvent>> preViaSendDefaults,
+            @NotNull ArrayList<Consumer<PacketReceiveEvent>> receiveDefaults,
+            @NotNull ArrayList<Consumer<PacketReceiveEvent>> preViaReceiveDefaults
     ) {
-        this.sendHandlers = new IdentityHashMap<>(sendHandlers.size());
-        this.preViaSendHandlers = new IdentityHashMap<>(preViaSendHandlers.size());
-        this.receiveHandlers = new IdentityHashMap<>(receiveHandlers.size());
-        this.preViaReceiveHandlers = new IdentityHashMap<>(preViaReceiveHandlers.size());
-        this.sendCatchAll = sendCatchAll.toArray(new Consumer[sendCatchAll.size()]);
-        this.preViaSendCatchAll = preViaSendCatchAll.toArray(new Consumer[preViaSendCatchAll.size()]);
-        this.receiveCatchAll = receiveCatchAll.toArray(new Consumer[receiveCatchAll.size()]);
-        this.preViaReceiveCatchAll = preViaReceiveCatchAll.toArray(new Consumer[preViaReceiveCatchAll.size()]);
-
-        for (Map.Entry<ClientBoundPacket, ArrayList<Consumer<PacketSendEvent>>> entry : sendHandlers.entrySet()) {
-            ArrayList<Consumer<PacketSendEvent>> value = entry.getValue();
-            this.sendHandlers.put(entry.getKey(), value.toArray(new Consumer[value.size()]));
-        }
-
-        for (Map.Entry<ClientBoundPacket, ArrayList<Consumer<PacketSendEvent>>> entry : preViaSendHandlers.entrySet()) {
-            ArrayList<Consumer<PacketSendEvent>> value = entry.getValue();
-            this.preViaSendHandlers.put(entry.getKey(), value.toArray(new Consumer[value.size()]));
-        }
-
-        for (Map.Entry<ServerBoundPacket, ArrayList<Consumer<PacketReceiveEvent>>> entry : receiveHandlers.entrySet()) {
-            ArrayList<Consumer<PacketReceiveEvent>> value = entry.getValue();
-            this.receiveHandlers.put(entry.getKey(), value.toArray(new Consumer[value.size()]));
-        }
-
-        for (Map.Entry<ServerBoundPacket, ArrayList<Consumer<PacketReceiveEvent>>> entry : preViaReceiveHandlers.entrySet()) {
-            ArrayList<Consumer<PacketReceiveEvent>> value = entry.getValue();
-            this.preViaReceiveHandlers.put(entry.getKey(), value.toArray(new Consumer[value.size()]));
-        }
+        Object[] sendDefault = sendDefaults.toArray(new Consumer[sendDefaults.size()]);
+        this.sendHandlers = sendHandlers.mapRawValues(value -> value == null ? sendDefault : value.toArray(new Consumer[value.size()]));
+        Object[] preViaSendDefault = preViaSendDefaults.toArray(new Consumer[preViaSendDefaults.size()]);
+        this.preViaSendHandlers = preViaSendHandlers.mapRawValues(value -> value == null ? preViaSendDefault : value.toArray(new Consumer[value.size()]));
+        Object[] receiveDefault = receiveDefaults.toArray(new Consumer[receiveDefaults.size()]);
+        this.receiveHandlers = receiveHandlers.mapRawValues(value -> value == null ? receiveDefault : value.toArray(new Consumer[value.size()]));
+        Object[] preViaReceiveDefault = preViaReceiveDefaults.toArray(new Consumer[preViaReceiveDefaults.size()]);
+        this.preViaReceiveHandlers = preViaReceiveHandlers.mapRawValues(value -> value == null ? preViaReceiveDefault : value.toArray(new Consumer[value.size()]));
     }
 
     public void handleSend(@NotNull PacketSendEvent event) {
-        handle(event, sendHandlers, sendCatchAll);
+        handle(event, sendHandlers);
     }
 
     public void handlePreViaSend(@NotNull PacketSendEvent event) {
-        handle(event, preViaSendHandlers, preViaSendCatchAll);
+        handle(event, preViaSendHandlers);
     }
 
     public void handleReceive(@NotNull PacketReceiveEvent event) {
-        handle(event, receiveHandlers, receiveCatchAll);
+        handle(event, receiveHandlers);
     }
 
     public void handlePreViaReceive(@NotNull PacketReceiveEvent event) {
-        handle(event, preViaReceiveHandlers, preViaReceiveCatchAll);
+        handle(event, preViaReceiveHandlers);
     }
 
-    private <T extends @NotNull ProtocolPacketEvent, P> void handle(T event, @NotNull IdentityHashMap<@NotNull P, Consumer<T>[]> handlers, Consumer<T>[] catchAll) {
-        @SuppressWarnings("unchecked")
-        Consumer<T>[] typed = handlers.get((P) event.getPacketType());
-        if (typed != null) {
-            for (Consumer<T> handler : typed) {
-                handler.accept(event);
-            }
-            return;
-        }
-
-        for (Consumer<T> handler : catchAll) {
+    private <E extends @NotNull ProtocolPacketEvent> void handle(
+            E event,
+            @NotNull PacketMap<@NotNull Consumer<E> @NotNull []> handlers
+    ) {
+        Consumer<E>[] array = handlers.get(event.getPacketType(), event.getConnectionState());
+        if (array == null) return; // we don't care about this packet
+        for (Consumer<E> handler : array) {
             handler.accept(event);
         }
     }
