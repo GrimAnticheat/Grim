@@ -361,7 +361,10 @@ public class MovementCheckRunner extends GrimProcessor {
         // can change the attribute
         if (!player.inVehicle()) {
             double movementSpeed = player.speed;
-            if (player.compensatedEntities.hasSprintingAttributeEnabled) {
+
+            boolean isSprinting = !player.uncertaintyHandler.lastSprintingStatusChange.hasOccurredSince(2) && player.isSprinting || player.compensatedEntities.hasSprintingAttributeEnabled;
+
+            if (isSprinting) {
                 movementSpeed += movementSpeed * 0.3F;
             }
             player.speed = (float) movementSpeed;
