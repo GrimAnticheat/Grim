@@ -19,29 +19,6 @@ import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayC
 // Not everything has to be a check for it to process packets & be configurable
 public class GrimProcessor implements AbstractProcessor, ConfigReloadable, ConfigReloadObserver {
 
-    // please don't mutate this
-    public static final PacketTypeCommon[] TICK_PACKET_CANDIDATES = {
-            PacketType.Play.Client.CLIENT_TICK_END,
-            PacketType.Play.Client.PLAYER_FLYING,
-            PacketType.Play.Client.PLAYER_POSITION,
-            PacketType.Play.Client.PLAYER_ROTATION,
-            PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION
-    };
-
-    // please don't mutate this
-    public static final PacketTypeCommon[] FLYING_PACKETS = {
-            PacketType.Play.Client.PLAYER_FLYING,
-            PacketType.Play.Client.PLAYER_POSITION,
-            PacketType.Play.Client.PLAYER_ROTATION,
-            PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION
-    };
-
-    // please don't mutate this
-    public static final PacketTypeCommon[] ANIMATION_PACKETS = {
-            PacketType.Play.Client.ANIMATION,
-            PacketType.Play.Client.PUNCH
-    };
-
     protected final @NotNull GrimPlayer player;
 
     public GrimProcessor(final @NotNull GrimPlayer player) {
