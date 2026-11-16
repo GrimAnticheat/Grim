@@ -5,7 +5,6 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketListener;
-import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.SprintingState;
@@ -68,7 +67,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PacketEntityReplication extends GrimProcessor implements PacketReceiveListener, PacketListener {
+public class PacketEntityReplication extends GrimProcessor implements PacketListener {
 
     private final AtomicBoolean hasSentPreWavePacket = new AtomicBoolean(true);
 
@@ -99,31 +98,6 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
     }
 
     @Override
-    public void onPacketReceive(@NotNull PacketReceiveEvent event) {
-        // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
-        if (!isTickPacket(event.getPacketType())) return;
-        player.compensatedEntities.entitiesRemovedThisTick.clear();
-        boolean isTickingReliably = player.isTickingReliablyFor(3);
-
-        PacketEntity playerVehicle = player.compensatedEntities.self.getRiding();
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity == playerVehicle && !player.vehicleData.lastDummy) {
-                // The player has this as their vehicle, so they aren't interpolating it.
-                // And it isn't a dummy position
-                entity.setPositionRaw(player, entity.getPossibleLocationBoxes());
-            } else {
-                entity.onMovement(isTickingReliably);
-            }
-        }
-
-        if (player.vehicleData.camelSprintingState == SprintingState.STOPPING) {
-            player.vehicleData.camelSprintingState = SprintingState.STOPPED;
-        } else if (player.vehicleData.camelSprintingState == SprintingState.STOPPED && player.isSprinting) { // For sprint desyncs
-            player.vehicleData.camelSprintingState = SprintingState.STARTED;
-        }
-    }
-
-    @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
         registry.registerSendHandler(this::onTransaction, PacketType.Play.Server.PING, PacketType.Play.Server.WINDOW_CONFIRMATION);
         registry.registerSendHandler(this::onSpawnLivingEntity, PacketType.Play.Server.SPAWN_LIVING_ENTITY);
@@ -150,6 +124,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
         registry.registerSendHandler(this::onSetPassengers, PacketType.Play.Server.SET_PASSENGERS);
         registry.registerSendHandler(this::onAttachEntity, PacketType.Play.Server.ATTACH_ENTITY);
         registry.registerSendHandler(this::onDestroyEntities, PacketType.Play.Server.DESTROY_ENTITIES);
+
+        registry.registerReceiveHandler(this::handleClientTick, TICK_PACKET_CANDIDATES);
     }
 
     // ensure grim is the one that sent the transaction
@@ -529,6 +505,31 @@ public class PacketEntityReplication extends GrimProcessor implements PacketRece
                     }
                 }
             }, maxFireworkBoostPing);
+        }
+    }
+
+    private void handleClientTick(PacketReceiveEvent event) {
+        // Teleports don't interpolate, 1.17 duplicate packets don't interpolate
+        if (!isTickPacket(event.getPacketType())) return;
+
+        player.compensatedEntities.entitiesRemovedThisTick.clear();
+        boolean isTickingReliably = player.isTickingReliablyFor(3);
+
+        PacketEntity playerVehicle = player.compensatedEntities.self.getRiding();
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity == playerVehicle && !player.vehicleData.lastDummy) {
+                // The player has this as their vehicle, so they aren't interpolating it.
+                // And it isn't a dummy position
+                entity.setPositionRaw(player, entity.getPossibleLocationBoxes());
+            } else {
+                entity.onMovement(isTickingReliably);
+            }
+        }
+
+        if (player.vehicleData.camelSprintingState == SprintingState.STOPPING) {
+            player.vehicleData.camelSprintingState = SprintingState.STOPPED;
+        } else if (player.vehicleData.camelSprintingState == SprintingState.STOPPED && player.isSprinting) { // For sprint desyncs
+            player.vehicleData.camelSprintingState = SprintingState.STARTED;
         }
     }
 

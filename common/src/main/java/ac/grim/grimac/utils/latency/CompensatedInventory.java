@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketListener;
-import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.inventory.EquipmentType;
@@ -43,7 +42,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Updated to support modern 1.17 protocol
-public class CompensatedInventory extends GrimProcessor implements PacketReceiveListener, PacketListener {
+public class CompensatedInventory extends GrimProcessor implements PacketListener {
     private static final int PLAYER_INVENTORY_CASE = -1;
     private static final int UNSUPPORTED_INVENTORY_CASE = -2;
     // "Temporarily" public for debugging
@@ -180,122 +179,6 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
         return false;
     }
 
-    @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
-            WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
-
-            ItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? getHeldItem() : getOffHand();
-
-            EquipmentType equipmentType = EquipmentType.getEquipmentSlotForItem(use);
-            if (equipmentType != null) {
-                int slot;
-                switch (equipmentType) {
-                    case HEAD -> slot = Inventory.SLOT_HELMET;
-                    case CHEST -> slot = Inventory.SLOT_CHESTPLATE;
-                    case LEGS -> slot = Inventory.SLOT_LEGGINGS;
-                    case FEET -> slot = Inventory.SLOT_BOOTS;
-                    default -> {
-                        return; // Not armor, therefore we shouldn't run this code
-                    }
-                }
-
-                ItemStack currentEquippedItem = getByEquipmentType(equipmentType);
-                // Only 1.19.4+ clients support swapping with non-empty items
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !currentEquippedItem.isEmpty())
-                    return;
-
-                // 1.19.4+ clients support swapping with non-empty items
-                int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.getSelected() + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
-
-                // Mojang implemented this stupidly, I rewrote their item swap code to make it somewhat cleaner.
-                // Slot in hotbar
-                inventory.getInventoryStorage().handleClientClaimedSlotSet(swapItemSlot);
-                inventory.getInventoryStorage().setItem(swapItemSlot, currentEquippedItem);
-
-                // Equipment slot
-                inventory.getInventoryStorage().handleClientClaimedSlotSet(slot);
-                inventory.getInventoryStorage().setItem(slot, use);
-            }
-        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
-            WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
-
-            // 1.8 clients don't predict dropping items
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return;
-
-            if (dig.getAction() == DiggingAction.DROP_ITEM) {
-                ItemStack heldItem = getHeldItem();
-                if (heldItem != null) {
-                    heldItem.setAmount(heldItem.getAmount() - 1);
-                    if (heldItem.getAmount() <= 0) {
-                        heldItem = null;
-                    }
-                }
-                inventory.setHeldItem(heldItem);
-                inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
-            }
-
-            if (dig.getAction() == DiggingAction.DROP_ITEM_STACK) {
-                inventory.setHeldItem(null);
-                inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
-            }
-        } else if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
-            final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
-
-            // Stop people from spamming the server with an out-of-bounds exception
-            if (slot > 8 || slot < 0) return;
-
-            // set this before we change the selected slot so we get the previous item held
-            this.startOfTickStack = getHeldItem();
-            inventory.setSelected(slot);
-        } else if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
-            WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
-            if (player.gamemode != GameMode.CREATIVE) return;
-
-            boolean valid = action.getSlot() >= 1 &&
-                    (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8) ?
-                            action.getSlot() <= 45 : action.getSlot() < 45);
-
-            if (valid) {
-                inventory.getSlot(action.getSlot()).set(action.getItemStack());
-                inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
-            }
-        } else if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
-            WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
-
-            // How is this possible? Maybe transaction splitting.
-            if (click.getWindowId() != openWindowID) {
-                return;
-            }
-
-            // Don't care about this click since we can't track it.
-            if (menu instanceof NotImplementedMenu) {
-                return;
-            }
-
-            // Mark the slots the player has changed as changed, then continue simulating what they changed
-            Optional<Map<Integer, ItemStack>> slots = click.getSlots();
-            slots.ifPresent(integerItemStackMap -> integerItemStackMap.keySet().forEach(this::markPlayerSlotAsChanged));
-
-            // 0 for left click
-            // 1 for right click
-            int button = click.getButton();
-            // Offset by the number of slots in the inventory actively open
-            // Is -999 when clicking off the screen
-            int slot = click.getSlot();
-            // Self-explanatory, look at the enum's values
-            WrapperPlayClientClickWindow.WindowClickType clickType = click.getWindowClickType();
-
-            if (slot == -1 || slot == -999 || slot < menu.getSlots().size()) {
-                menu.doClick(button, slot, clickType);
-            }
-        } else if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
-            this.closeActiveInventory();
-        } else if (isTickPacket(event.getPacketType())) {
-            this.startOfTickStack = getHeldItem();
-        }
-    }
-
     public void markSlotAsResyncing(BlockPlace place) {
         // Update held item tracking
         if (place.hand == InteractionHand.MAIN_HAND) {
@@ -316,16 +199,24 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
         registry.registerSendHandler(this::onOpenWindow, PacketType.Play.Server.OPEN_WINDOW);
         registry.registerSendHandler(this::onOpenHorseWindow, PacketType.Play.Server.OPEN_HORSE_WINDOW);
-        registry.registerSendHandler(this::onCloseWindow, PacketType.Play.Server.CLOSE_WINDOW);
+        registry.registerSendHandler(this::onServerCloseWindow, PacketType.Play.Server.CLOSE_WINDOW);
         registry.registerSendHandler(this::onWindowItems, PacketType.Play.Server.WINDOW_ITEMS);
         registry.registerSendHandler(this::onSetPlayerInventory, PacketType.Play.Server.SET_PLAYER_INVENTORY);
         registry.registerSendHandler(this::onSetSlot, PacketType.Play.Server.SET_SLOT);
+
+        registry.registerReceiveHandler(this::onUseItem, PacketType.Play.Client.USE_ITEM);
+        registry.registerReceiveHandler(this::onPlayerDigging, PacketType.Play.Client.PLAYER_DIGGING);
+        registry.registerReceiveHandler(this::onHeldItemChange, PacketType.Play.Client.HELD_ITEM_CHANGE);
+        registry.registerReceiveHandler(this::onCreativeInventoryAction, PacketType.Play.Client.CREATIVE_INVENTORY_ACTION);
+        registry.registerReceiveHandler(this::onClickWindow, PacketType.Play.Client.CLICK_WINDOW);
+        registry.registerReceiveHandler(this::onClientCloseWindow, PacketType.Play.Client.CLOSE_WINDOW);
+        registry.registerReceiveHandler(this::onClientTick, TICK_PACKET_CANDIDATES);
     }
 
     // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
     // For example, we don't need permanent storage, only storing data until the client closes the window
     // We also don't need a lot of server-sided only logic
-    private void onOpenWindow(final PacketSendEvent event) {
+    private void onOpenWindow(final @NotNull PacketSendEvent event) {
         WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
         MenuType menuType = MenuType.getMenuType(open.getType());
@@ -350,7 +241,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     // I'm not implementing this lol
-    private void onOpenHorseWindow(final PacketSendEvent event) {
+    private void onOpenHorseWindow(final @NotNull PacketSendEvent event) {
         WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
 
         packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
@@ -362,7 +253,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     // 1:1 MCP
-    private void onCloseWindow(final PacketSendEvent event) {
+    private void onServerCloseWindow(final @NotNull PacketSendEvent event) {
         packetSendingInventorySize = PLAYER_INVENTORY_CASE;
 
         // Disregard provided window ID, client doesn't care...
@@ -371,7 +262,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     // Should be 1:1 MCP
-    private void onWindowItems(final PacketSendEvent event) {
+    private void onWindowItems(final @NotNull PacketSendEvent event) {
         WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
         stateID = items.getStateId();
 
@@ -428,7 +319,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     // This packet replaces SET_SLOT for player inventory for 1.21.2+
-    private void onSetPlayerInventory(final PacketSendEvent event) {
+    private void onSetPlayerInventory(final @NotNull PacketSendEvent event) {
         WrapperPlayServerSetPlayerInventory slot = new WrapperPlayServerSetPlayerInventory(event);
         final int slotID = slot.getSlot();
         final ItemStack item = slot.getStack();
@@ -442,7 +333,7 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     }
 
     // Also 1:1 MCP
-    private void onSetSlot(final PacketSendEvent event) {
+    private void onSetSlot(final @NotNull PacketSendEvent event) {
         // Only edit hotbar (36 to 44) if window ID is 0
         // Set cursor by putting -1 as window ID and as slot
         // Window ID -2 means any slot can be used
@@ -480,6 +371,134 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
                 menu.getSlot(slotID).set(item);
             }
         });
+    }
+
+    private void onUseItem(final @NotNull PacketReceiveEvent event) {
+        WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
+
+        ItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? getHeldItem() : getOffHand();
+
+        EquipmentType equipmentType = EquipmentType.getEquipmentSlotForItem(use);
+        if (equipmentType == null) return;
+
+        int slot;
+        switch (equipmentType) {
+            case HEAD -> slot = Inventory.SLOT_HELMET;
+            case CHEST -> slot = Inventory.SLOT_CHESTPLATE;
+            case LEGS -> slot = Inventory.SLOT_LEGGINGS;
+            case FEET -> slot = Inventory.SLOT_BOOTS;
+            default -> {
+                return; // Not armor, therefore we shouldn't run this code
+            }
+        }
+
+        ItemStack currentEquippedItem = getByEquipmentType(equipmentType);
+        // Only 1.19.4+ clients support swapping with non-empty items
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_19_4) && !currentEquippedItem.isEmpty())
+            return;
+
+        // 1.19.4+ clients support swapping with non-empty items
+        int swapItemSlot = item.getHand() == InteractionHand.MAIN_HAND ? inventory.getSelected() + Inventory.HOTBAR_OFFSET : Inventory.SLOT_OFFHAND;
+
+        // Mojang implemented this stupidly, I rewrote their item swap code to make it somewhat cleaner.
+        // Slot in hotbar
+        inventory.getInventoryStorage().handleClientClaimedSlotSet(swapItemSlot);
+        inventory.getInventoryStorage().setItem(swapItemSlot, currentEquippedItem);
+
+        // Equipment slot
+        inventory.getInventoryStorage().handleClientClaimedSlotSet(slot);
+        inventory.getInventoryStorage().setItem(slot, use);
+    }
+
+    private void onPlayerDigging(final @NotNull PacketReceiveEvent event) {
+        // 1.8 clients don't predict dropping items
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return;
+
+        WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
+
+        if (dig.getAction() == DiggingAction.DROP_ITEM) {
+            ItemStack heldItem = getHeldItem();
+            if (heldItem != null) {
+                heldItem.setAmount(heldItem.getAmount() - 1);
+                if (heldItem.getAmount() <= 0) {
+                    heldItem = null;
+                }
+            }
+            inventory.setHeldItem(heldItem);
+            inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
+        } else if (dig.getAction() == DiggingAction.DROP_ITEM_STACK) {
+            inventory.setHeldItem(null);
+            inventory.getInventoryStorage().handleClientClaimedSlotSet(Inventory.HOTBAR_OFFSET + player.packetStateData.lastSlotSelected);
+        }
+    }
+
+    private void onHeldItemChange(final @NotNull PacketReceiveEvent event) {
+        final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
+
+        // Stop people from spamming the server with an out-of-bounds exception
+        if (slot > 8 || slot < 0) return;
+
+        // set this before we change the selected slot so we get the previous item held
+        this.startOfTickStack = getHeldItem();
+        inventory.setSelected(slot);
+    }
+
+    private void onCreativeInventoryAction(final @NotNull PacketReceiveEvent event) {
+        if (player.gamemode != GameMode.CREATIVE) return;
+
+        WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
+
+        boolean valid = action.getSlot() >= 1 &&
+                (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8) ?
+                        action.getSlot() <= 45 : action.getSlot() < 45);
+
+        if (valid) {
+            inventory.getSlot(action.getSlot()).set(action.getItemStack());
+            inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
+        }
+    }
+
+    private void onClickWindow(final @NotNull PacketReceiveEvent event) {
+        if (event.isCancelled()) return;
+
+        WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
+
+        // How is this possible? Maybe transaction splitting.
+        if (click.getWindowId() != openWindowID) {
+            return;
+        }
+
+        // Don't care about this click since we can't track it.
+        if (menu instanceof NotImplementedMenu) {
+            return;
+        }
+
+        // Mark the slots the player has changed as changed, then continue simulating what they changed
+        Optional<Map<Integer, ItemStack>> slots = click.getSlots();
+        slots.ifPresent(integerItemStackMap -> integerItemStackMap.keySet().forEach(this::markPlayerSlotAsChanged));
+
+        // 0 for left click
+        // 1 for right click
+        int button = click.getButton();
+        // Offset by the number of slots in the inventory actively open
+        // Is -999 when clicking off the screen
+        int slot = click.getSlot();
+        // Self-explanatory, look at the enum's values
+        WrapperPlayClientClickWindow.WindowClickType clickType = click.getWindowClickType();
+
+        if (slot == -1 || slot == -999 || slot < menu.getSlots().size()) {
+            menu.doClick(button, slot, clickType);
+        }
+    }
+
+    private void onClientCloseWindow(final @NotNull PacketReceiveEvent event) {
+        this.closeActiveInventory();
+    }
+
+    private void onClientTick(final @NotNull PacketReceiveEvent event) {
+        if (isTickPacket(event.getPacketType())) {
+            this.startOfTickStack = getHeldItem();
+        }
     }
 
     /**
