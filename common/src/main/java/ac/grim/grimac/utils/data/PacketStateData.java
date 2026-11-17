@@ -11,6 +11,9 @@ public class PacketStateData {
     public boolean lastPacketWasTeleport = false;
     public boolean cancelDuplicatePacket, lastPacketWasOnePointSeventeenDuplicate, isReceivingQueuedDuplicate;
     public QueuedDuplicate queuedDuplicate;
+    // Whether the queued duplicate being replayed is a 1.17 duplicate (the packet behind it was a USE_ITEM).
+    // lastPacketWasOnePointSeventeenDuplicate can't hold this: on 1.21.2+ servers ViaBackwards puts a CLIENT_TICK_END in
+    // front of the replayed packet, and the reset at the end of CheckManagerListener#onPacketReceive clears it first
     public boolean queuedDuplicateIsDuplicate;
     public boolean lastTransactionPacketWasValid = false;
     public int lastSlotSelected;
