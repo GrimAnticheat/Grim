@@ -20,8 +20,8 @@ public class PacketChangeGameState extends GrimProcessor implements PacketListen
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerSendHandler(event -> {
-            WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
+        registry.registerSendHandler((event, wrapper) -> {
+            WrapperPlayServerChangeGameState packet = wrapper.get();
 
             switch (packet.getReason()) {
                 case CHANGE_GAME_MODE -> {

@@ -20,10 +20,11 @@ public class BadPacketsD extends Check implements PacketListener {
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerReceiveHandler(event -> {
+        registry.registerReceiveHandler((event, wrapper) -> {
             if (player.packetStateData.lastPacketWasTeleport) return;
 
-            final float pitch = new WrapperPlayClientPlayerFlying(event).getLocation().getPitch();
+            WrapperPlayClientPlayerFlying packet = wrapper.get();
+            final float pitch = packet.getLocation().getPitch();
             if (pitch > 90 || pitch < -90) {
                 // Ban.
                 if (flag(V.write(verbose()).f32(pitch)) && shouldModifyPackets()) {
@@ -35,6 +36,6 @@ public class BadPacketsD extends Check implements PacketListener {
                     player.onPacketCancel();
                 }
             }
-        }, PacketType.Play.Client.PLAYER_ROTATION, PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION);
+        }, PacketType.Play.Client.PLAYER_ROTATION);
     }
 }

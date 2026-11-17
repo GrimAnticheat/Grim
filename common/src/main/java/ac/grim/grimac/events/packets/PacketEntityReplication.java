@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.packethandler.LazyPacketWrapper;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -129,53 +130,53 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
     }
 
     // ensure grim is the one that sent the transaction
-    private void onTransaction(PacketSendEvent event) {
+    private void onTransaction(@NotNull PacketSendEvent event) {
         if (player.packetStateData.lastServerTransWasValid) {
             despawnedEntitiesThisTransaction.clear();
         }
     }
 
-    private void onSpawnLivingEntity(PacketSendEvent event) {
-        WrapperPlayServerSpawnLivingEntity packetOutEntity = new WrapperPlayServerSpawnLivingEntity(event);
+    private void onSpawnLivingEntity(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerSpawnLivingEntity packetOutEntity = wrapper.get();
         addEntity(packetOutEntity.getEntityId(), packetOutEntity.getEntityUUID(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata(), 0);
     }
 
-    private void onSpawnEntity(PacketSendEvent event) {
-        WrapperPlayServerSpawnEntity packetOutEntity = new WrapperPlayServerSpawnEntity(event);
+    private void onSpawnEntity(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerSpawnEntity packetOutEntity = wrapper.get();
         addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID().orElse(null), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null, packetOutEntity.getData());
     }
 
-    private void onSpawnPlayer(PacketSendEvent event) {
-        WrapperPlayServerSpawnPlayer packetOutEntity = new WrapperPlayServerSpawnPlayer(event);
+    private void onSpawnPlayer(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerSpawnPlayer packetOutEntity = wrapper.get();
         addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata(), 0);
     }
 
-    private void onSpawnPainting(PacketSendEvent event) {
-        WrapperPlayServerSpawnPainting packetOutEntity = new WrapperPlayServerSpawnPainting(event);
+    private void onSpawnPainting(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerSpawnPainting packetOutEntity = wrapper.get();
         addEntity(packetOutEntity.getEntityId(), packetOutEntity.getUUID(), EntityTypes.PAINTING, packetOutEntity.getPosition().toVector3d(), 0, 0f, null, packetOutEntity.getDirection().getHorizontalIndex());
     }
 
-    private void onEntityRelativeMove(PacketSendEvent event) {
-        WrapperPlayServerEntityRelativeMove move = new WrapperPlayServerEntityRelativeMove(event);
+    private void onEntityRelativeMove(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerEntityRelativeMove move = wrapper.get();
         double deltaX = move.getDeltaX();
-            double deltaY = move.getDeltaY();
-            double deltaZ = move.getDeltaZ();
-            VecDelta delta = null;
+        double deltaY = move.getDeltaY();
+        double deltaZ = move.getDeltaZ();
+        VecDelta delta = null;
 
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3)) {
-                delta = ViaMovementTranslator.convert(player.getClientVersion(), move.getServerVersion(), move.getDelta());
-            } else if (move.getServerVersion().isNewerThanOrEquals(ServerVersion.V_26_3)) {
-                LinearVecDelta legacyDelta = ViaMovementTranslator.modernToLegacy(move.getDelta());
-                deltaX = legacyDelta.dx();
-                deltaY = legacyDelta.dy();
-                deltaZ = legacyDelta.dz();
-            }
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3)) {
+            delta = ViaMovementTranslator.convert(player.getClientVersion(), move.getServerVersion(), move.getDelta());
+        } else if (move.getServerVersion().isNewerThanOrEquals(ServerVersion.V_26_3)) {
+            LinearVecDelta legacyDelta = ViaMovementTranslator.modernToLegacy(move.getDelta());
+            deltaX = legacyDelta.dx();
+            deltaY = legacyDelta.dy();
+            deltaZ = legacyDelta.dz();
+        }
 
-            handleMoveEntity(event, move.getEntityId(), deltaX, deltaY, deltaZ, null, null, true, true, delta, null);
+        handleMoveEntity(event, move.getEntityId(), deltaX, deltaY, deltaZ, null, null, true, true, delta, null);
     }
 
-    private void onEntityRelativeMoveAndRotation(PacketSendEvent event) {
-        WrapperPlayServerEntityRelativeMoveAndRotation move = new WrapperPlayServerEntityRelativeMoveAndRotation(event);
+    private void onEntityRelativeMoveAndRotation(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerEntityRelativeMoveAndRotation move = wrapper.get();
         double deltaX = move.getDeltaX();
             double deltaY = move.getDeltaY();
             double deltaZ = move.getDeltaZ();
@@ -194,16 +195,16 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
             handleMoveEntity(event, move.getEntityId(), deltaX, deltaY, deltaZ, move.getYaw() * rotationScale, move.getPitch() * rotationScale, true, true, delta, null);
     }
 
-    private void onEntityTeleport(PacketSendEvent event) {
-        WrapperPlayServerEntityTeleport move = new WrapperPlayServerEntityTeleport(event);
+    private void onEntityTeleport(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerEntityTeleport move = wrapper.get();
         Vector3d pos = move.getPosition();
         LinearPositionPath path = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) ? new LinearPositionPath(pos) : null;
             handleMoveEntity(event, move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false, true, null, path);
     }
 
-    private void onEntityPositionSync(PacketSendEvent event) {
+    private void onEntityPositionSync(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
         // ENTITY_TELEPORT but without relative flags
-        WrapperPlayServerEntityPositionSync move = new WrapperPlayServerEntityPositionSync(event);
+        WrapperPlayServerEntityPositionSync move = wrapper.get();
         final Vector3d pos;
             PositionPath path = null;
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3)) {
@@ -219,25 +220,26 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         handleMoveEntity(event, move.getId(), pos.getX(), pos.getY(), pos.getZ(), move.getYRot(), move.getXRot(), false, true, null, path);
     }
 
-    private void onEntityRotation(PacketSendEvent event) { // Affects interpolation
-        WrapperPlayServerEntityRotation move = new WrapperPlayServerEntityRotation(event);float rotationScale = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) ? 1F : 0.7111111F;
+    private void onEntityRotation(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) { // Affects interpolation
+        WrapperPlayServerEntityRotation move = wrapper.get();
+        float rotationScale = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_3) ? 1F : 0.7111111F;
         handleMoveEntity(event, move.getEntityId(), 0, 0, 0, move.getYaw() * rotationScale, move.getPitch() * rotationScale, true, false, null, null);
     }
 
-    private void onEntityMetadata(PacketSendEvent event) {
-        WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
+    private void onEntityMetadata(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerEntityMetadata entityMetadata = wrapper.get();
         schedulePoseTransition(entityMetadata, event);
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
     }
 
-    private void onEntityEquipment(PacketSendEvent event) {
-        WrapperPlayServerEntityEquipment equipment = new WrapperPlayServerEntityEquipment(event);
+    private void onEntityEquipment(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerEntityEquipment equipment = wrapper.get();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityEquipment(equipment.getEntityId(), equipment.getEquipment()));
     }
 
     // 1.19.3+
-    private void onPlayerInfoUpdate(PacketSendEvent event) {
-        WrapperPlayServerPlayerInfoUpdate info = new WrapperPlayServerPlayerInfoUpdate(event);
+    private void onPlayerInfoUpdate(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerPlayerInfoUpdate info = wrapper.get();
         if (info.getActions().contains(WrapperPlayServerPlayerInfoUpdate.Action.ADD_PLAYER)) {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 for (WrapperPlayServerPlayerInfoUpdate.PlayerInfo entry : info.getEntries()) {
@@ -249,13 +251,13 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         }
     }
 
-    private void onPlayerInfoRemove(PacketSendEvent event) {
-        WrapperPlayServerPlayerInfoRemove remove = new WrapperPlayServerPlayerInfoRemove(event);
+    private void onPlayerInfoRemove(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerPlayerInfoRemove remove = wrapper.get();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> remove.getProfileIds().forEach(player.compensatedEntities.profiles::remove));
     }
 
-    private void onPlayerInfo(PacketSendEvent event) {
-        WrapperPlayServerPlayerInfo info = new WrapperPlayServerPlayerInfo(event);
+    private void onPlayerInfo(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerPlayerInfo info = wrapper.get();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             if (info.getAction() == WrapperPlayServerPlayerInfo.Action.ADD_PLAYER) {
                 for (WrapperPlayServerPlayerInfo.PlayerData entry : info.getPlayerDataList()) {
@@ -269,8 +271,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         });
     }
 
-    private void onEntityEffect(PacketSendEvent event) {
-        WrapperPlayServerEntityEffect effect = new WrapperPlayServerEntityEffect(event);
+    private void onEntityEffect(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerEntityEffect effect = wrapper.get();
 
         PotionType type = effect.getPotionType();
 
@@ -301,8 +303,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         });
     }
 
-    private void onRemoveEntityEffect(PacketSendEvent event) {
-        WrapperPlayServerRemoveEntityEffect effect = new WrapperPlayServerRemoveEntityEffect(event);
+    private void onRemoveEntityEffect(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerRemoveEntityEffect effect = wrapper.get();
 
         if (isDirectlyAffectingPlayer(player, effect.getEntityId())) player.sendTransaction();
 
@@ -314,8 +316,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         });
     }
 
-    private void onUpdateAttributes(PacketSendEvent event) {
-        WrapperPlayServerUpdateAttributes attributes = new WrapperPlayServerUpdateAttributes(event);
+    private void onUpdateAttributes(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerUpdateAttributes attributes = wrapper.get();
 
         int entityID = attributes.getEntityId();
 
@@ -326,8 +328,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
                 () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
     }
 
-    private void onEntityStatus(PacketSendEvent event) {
-        WrapperPlayServerEntityStatus status = new WrapperPlayServerEntityStatus(event);
+    private void onEntityStatus(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerEntityStatus status = wrapper.get();
         // This hasn't changed from 1.7.2 to 1.17
         // Needed to exempt players on dead vehicles, as dead entities have strange physics.
         if (status.getStatus() == 3) {
@@ -360,8 +362,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         }
     }
 
-    private void onSetSlot(PacketSendEvent event) {
-        WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
+    private void onSetSlot(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerSetSlot slot = wrapper.get();
 
         if (slot.getWindowId() == 0) {
             Runnable task = () -> {
@@ -384,8 +386,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         }
     }
 
-    private void onWindowItems(PacketSendEvent event) {
-        WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
+    private void onWindowItems(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerWindowItems items = wrapper.get();
 
         if (items.getWindowId() == 0) { // Player inventory
             Runnable task = () -> {
@@ -423,13 +425,13 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
     }
 
     // 1.8 clients fail to send the RELEASE_USE_ITEM packet when a window is opened client sided while using an item
-    private void onOpenWindow(PacketSendEvent event) {
+    private void onOpenWindow(@NotNull PacketSendEvent event) {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.setSlowedByUsingItem(false));
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.setSlowedByUsingItem(false));
     }
 
-    private void onSetPassengers(PacketSendEvent event) {
-        WrapperPlayServerSetPassengers mount = new WrapperPlayServerSetPassengers(event);
+    private void onSetPassengers(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerSetPassengers mount = wrapper.get();
 
         int vehicleID = mount.getEntityId();
         int[] passengers = mount.getPassengers();
@@ -437,8 +439,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         handleMountVehicle(event, vehicleID, passengers);
     }
 
-    private void onAttachEntity(PacketSendEvent event) {
-        WrapperPlayServerAttachEntity attach = new WrapperPlayServerAttachEntity(event);
+    private void onAttachEntity(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerAttachEntity attach = wrapper.get();
 
         // This packet was replaced by the mount packet on 1.9+ servers - to support multiple passengers on one vehicle
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))
@@ -468,8 +470,8 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         }
     }
 
-    private void onDestroyEntities(PacketSendEvent event) {
-        WrapperPlayServerDestroyEntities destroy = new WrapperPlayServerDestroyEntities(event);
+    private void onDestroyEntities(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+        WrapperPlayServerDestroyEntities destroy = wrapper.get();
 
         int[] destroyEntityIds = destroy.getEntityIds();
 
@@ -508,7 +510,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         }
     }
 
-    private void handleClientTick(PacketReceiveEvent event) {
+    private void handleClientTick(@NotNull PacketReceiveEvent event) {
         // Teleports don't interpolate, 1.17 duplicate packets don't interpolate
         if (!isTickPacket(event.getPacketType())) return;
 
@@ -533,7 +535,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         }
     }
 
-    private void handleMountVehicle(PacketSendEvent event, int vehicleID, int @NotNull [] passengers) {
+    private void handleMountVehicle(@NotNull PacketSendEvent event, int vehicleID, int @NotNull [] passengers) {
         Objects.requireNonNull(passengers, "passengers");
 
         boolean wasInVehicle = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == vehicleID;
@@ -575,7 +577,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         });
     }
 
-    private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos, @Nullable VecDelta delta, @Nullable PositionPath path) {
+    private void handleMoveEntity(@NotNull PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos, @Nullable VecDelta delta, @Nullable PositionPath path) {
         TrackerData data = player.compensatedEntities.getTrackedEntity(entityId);
         if (data == null) return;
 
@@ -676,7 +678,7 @@ public class PacketEntityReplication extends GrimProcessor implements PacketList
         });
     }
 
-    private void schedulePoseTransition(WrapperPlayServerEntityMetadata entityMetadata, PacketSendEvent event) {
+    private void schedulePoseTransition(@NotNull WrapperPlayServerEntityMetadata entityMetadata, @NotNull PacketSendEvent event) {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) return;
 
         int entityId = entityMetadata.getEntityId();

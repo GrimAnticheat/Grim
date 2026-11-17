@@ -50,8 +50,8 @@ public class ExplosionHandler extends Check implements PacketListener, PostPredi
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerSendHandler(event -> {
-            WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
+        registry.registerSendHandler((event, wrapper) -> {
+            WrapperPlayServerExplosion explosion = wrapper.get();
 
             // Since 1.21.2, the server will instead send these changes via block change packets
             final boolean hasBlocks = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_21_2);
