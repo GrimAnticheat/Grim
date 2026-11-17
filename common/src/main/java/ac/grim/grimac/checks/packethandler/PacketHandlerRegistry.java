@@ -9,21 +9,24 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistry {
-    private final PacketMap<Consumer<PacketSendEvent>[]> sendHandlers;
-    private final PacketMap<Consumer<PacketSendEvent>[]> preViaSendHandlers;
-    private final PacketMap<Consumer<PacketReceiveEvent>[]> receiveHandlers;
-    private final PacketMap<Consumer<PacketReceiveEvent>[]> preViaReceiveHandlers;
+    private final PacketMap<@NotNull Consumer<@NotNull PacketSendEvent>[]> sendHandlers;
+    private final PacketMap<@NotNull Consumer<@NotNull PacketSendEvent>[]> preViaSendHandlers;
+    private final PacketMap<@NotNull Consumer<@NotNull PacketReceiveEvent>[]> receiveHandlers;
+    private final PacketMap<@NotNull Consumer<@NotNull PacketReceiveEvent>[]> preViaReceiveHandlers;
+    private final PacketMap<@NotNull Consumer<@NotNull PacketReceiveEvent>[]> prePredictionReceiveHandlers;
 
     @SuppressWarnings("ToArrayCallWithZeroLengthArrayArgument")
     PacketHandlerRegistry(
-            @NotNull PacketMap<ArrayList<Consumer<PacketSendEvent>>> sendHandlers,
-            @NotNull PacketMap<ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers,
-            @NotNull PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers,
-            @NotNull PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers,
-            @NotNull ArrayList<Consumer<PacketSendEvent>> sendDefaults,
-            @NotNull ArrayList<Consumer<PacketSendEvent>> preViaSendDefaults,
-            @NotNull ArrayList<Consumer<PacketReceiveEvent>> receiveDefaults,
-            @NotNull ArrayList<Consumer<PacketReceiveEvent>> preViaReceiveDefaults
+            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> sendHandlers,
+            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> preViaSendHandlers,
+            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> receiveHandlers,
+            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> preViaReceiveHandlers,
+            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> prePredictionReceiveHandlers,
+            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> sendDefaults,
+            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> preViaSendDefaults,
+            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> receiveDefaults,
+            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> preViaReceiveDefaults,
+            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> prePredictionReceiveDefaults
     ) {
         Object[] sendDefault = sendDefaults.toArray(new Consumer[sendDefaults.size()]);
         this.sendHandlers = sendHandlers.mapValuesToRawValues(value -> value == null ? sendDefault : value.toArray(new Consumer[value.size()]));
@@ -33,6 +36,8 @@ public class PacketHandlerRegistry {
         this.receiveHandlers = receiveHandlers.mapValuesToRawValues(value -> value == null ? receiveDefault : value.toArray(new Consumer[value.size()]));
         Object[] preViaReceiveDefault = preViaReceiveDefaults.toArray(new Consumer[preViaReceiveDefaults.size()]);
         this.preViaReceiveHandlers = preViaReceiveHandlers.mapValuesToRawValues(value -> value == null ? preViaReceiveDefault : value.toArray(new Consumer[value.size()]));
+        Object[] prePredictionReceiveDefault = prePredictionReceiveDefaults.toArray(new Consumer[preViaReceiveDefaults.size()]);
+        this.prePredictionReceiveHandlers = prePredictionReceiveHandlers.mapValuesToRawValues(value -> value == null ? prePredictionReceiveDefault : value.toArray(new Consumer[value.size()]));
     }
 
     public void handleSend(@NotNull PacketSendEvent event) {
@@ -48,6 +53,10 @@ public class PacketHandlerRegistry {
     }
 
     public void handlePreViaReceive(@NotNull PacketReceiveEvent event) {
+        handle(event, preViaReceiveHandlers);
+    }
+
+    public void handlePrePredictionReceive(@NotNull PacketReceiveEvent event) {
         handle(event, preViaReceiveHandlers);
     }
 

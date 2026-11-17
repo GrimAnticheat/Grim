@@ -14,14 +14,16 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistryBuilder {
-    private final PacketMap<ArrayList<Consumer<PacketSendEvent>>> sendHandlers = new PacketMap<>(PacketSide.SERVER);
-    private final PacketMap<ArrayList<Consumer<PacketSendEvent>>> preViaSendHandlers = new PacketMap<>(PacketSide.SERVER);
-    private final PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> receiveHandlers = new PacketMap<>(PacketSide.CLIENT);
-    private final PacketMap<ArrayList<Consumer<PacketReceiveEvent>>> preViaReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
-    private final ArrayList<Consumer<PacketSendEvent>> sendCatchAll = new ArrayList<>();
-    private final ArrayList<Consumer<PacketSendEvent>> preViaSendCatchAll = new ArrayList<>();
-    private final ArrayList<Consumer<PacketReceiveEvent>> receiveCatchAll = new ArrayList<>();
-    private final ArrayList<Consumer<PacketReceiveEvent>> preViaReceiveCatchAll = new ArrayList<>();
+    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> sendHandlers = new PacketMap<>(PacketSide.SERVER);
+    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> preViaSendHandlers = new PacketMap<>(PacketSide.SERVER);
+    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> receiveHandlers = new PacketMap<>(PacketSide.CLIENT);
+    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> preViaReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
+    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> prePredictionReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
+    private final ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> sendCatchAll = new ArrayList<>();
+    private final ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> preViaSendCatchAll = new ArrayList<>();
+    private final ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> receiveCatchAll = new ArrayList<>();
+    private final ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> preViaReceiveCatchAll = new ArrayList<>();
+    private final ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> prePredictionReceiveCatchAll = new ArrayList<>();
 
     public void registerSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull ClientBoundPacket @NotNull ... types) {
         register(consumer, types, sendHandlers, sendCatchAll);
@@ -37,6 +39,10 @@ public class PacketHandlerRegistryBuilder {
 
     public void registerPreViaReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull ServerBoundPacket @NotNull ... types) {
         register(consumer, types, preViaReceiveHandlers, preViaReceiveCatchAll);
+    }
+
+    public void registerPrePredictionReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull ServerBoundPacket @NotNull ... types) {
+        register(consumer, types, prePredictionReceiveHandlers, prePredictionReceiveCatchAll);
     }
 
     private static <T extends @NotNull ProtocolPacketEvent, P> void register(
@@ -72,10 +78,12 @@ public class PacketHandlerRegistryBuilder {
                 preViaSendHandlers,
                 receiveHandlers,
                 preViaReceiveHandlers,
+                prePredictionReceiveHandlers,
                 sendCatchAll,
                 preViaSendCatchAll,
                 receiveCatchAll,
-                preViaReceiveCatchAll
+                preViaReceiveCatchAll,
+                prePredictionReceiveCatchAll
         );
     }
 }

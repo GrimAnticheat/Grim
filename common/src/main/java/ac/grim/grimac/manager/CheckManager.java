@@ -329,6 +329,7 @@ public class CheckManager implements BasicReloadable {
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
+        packetHandlerRegistry.handlePrePredictionReceive(packet);
         for (PrePredictionPacketReceiveListener check : prePredictionPacketReceiveListeners) {
             check.onPrePredictionPacketReceive(packet);
         }

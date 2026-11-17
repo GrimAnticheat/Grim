@@ -100,7 +100,7 @@ public class PacketMap<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public <V> PacketMap<V> mapValuesToRawValues(Function<T, Object> mapper) {
+    public <V> PacketMap<V> mapValuesToRawValues(Function<@Nullable T, Object> mapper) {
         for (int i = 0; i < this.configuration.length; i++) {
             this.configuration[i] = mapper.apply((T) configuration[i]);
         }
