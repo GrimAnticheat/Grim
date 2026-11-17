@@ -17,9 +17,8 @@ public class BadPacketsC extends Check implements PacketListener {
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerPreViaReceiveHandler((event, wrapper) -> {
-            WrapperPlayClientEntityAction packet = wrapper.get();
-            WrapperPlayClientEntityAction.Action action = packet.getAction();
+        registry.registerPreViaReceiveHandler(event -> {
+            WrapperPlayClientEntityAction.Action action = new WrapperPlayClientEntityAction(event).getAction();
             if (action == WrapperPlayClientEntityAction.Action.LEAVE_BED && !player.isInBed) {
                 flag();
             }

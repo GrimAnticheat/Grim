@@ -45,8 +45,8 @@ public class KnockbackHandler extends Check implements PacketListener, PostPredi
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerSendHandler((event, wrapper) -> {
-            WrapperPlayServerEntityVelocity velocity = wrapper.get();
+        registry.registerSendHandler(event -> {
+            WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
 
             // Detect whether this knockback packet affects the player or if it is useless

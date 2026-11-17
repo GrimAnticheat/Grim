@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.packethandler.LazyPacketWrapper;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -217,8 +216,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
     // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
     // For example, we don't need permanent storage, only storing data until the client closes the window
     // We also don't need a lot of server-sided only logic
-    private void onOpenWindow(final @NotNull PacketSendEvent event, final @NotNull LazyPacketWrapper wrapper) {
-        WrapperPlayServerOpenWindow open = wrapper.get();
+    private void onOpenWindow(final @NotNull PacketSendEvent event) {
+        WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
         MenuType menuType = MenuType.getMenuType(open.getType());
 
@@ -242,8 +241,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
     }
 
     // I'm not implementing this lol
-    private void onOpenHorseWindow(final @NotNull PacketSendEvent event, final @NotNull LazyPacketWrapper wrapper) {
-        WrapperPlayServerOpenHorseWindow open = wrapper.get();
+    private void onOpenHorseWindow(final @NotNull PacketSendEvent event) {
+        WrapperPlayServerOpenHorseWindow open = new WrapperPlayServerOpenHorseWindow(event);
 
         packetSendingInventorySize = UNSUPPORTED_INVENTORY_CASE;
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -263,8 +262,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
     }
 
     // Should be 1:1 MCP
-    private void onWindowItems(final @NotNull PacketSendEvent event, final @NotNull LazyPacketWrapper wrapper) {
-        WrapperPlayServerWindowItems items = wrapper.get();
+    private void onWindowItems(final @NotNull PacketSendEvent event) {
+        WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
         stateID = items.getStateId();
 
         List<ItemStack> slots = items.getItems();
@@ -320,8 +319,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
     }
 
     // This packet replaces SET_SLOT for player inventory for 1.21.2+
-    private void onSetPlayerInventory(final @NotNull PacketSendEvent event, final @NotNull LazyPacketWrapper wrapper) {
-        WrapperPlayServerSetPlayerInventory slot = wrapper.get();
+    private void onSetPlayerInventory(final @NotNull PacketSendEvent event) {
+        WrapperPlayServerSetPlayerInventory slot = new WrapperPlayServerSetPlayerInventory(event);
         final int slotID = slot.getSlot();
         final ItemStack item = slot.getStack();
 
@@ -334,11 +333,11 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
     }
 
     // Also 1:1 MCP
-    private void onSetSlot(final @NotNull PacketSendEvent event, final @NotNull LazyPacketWrapper wrapper) {
+    private void onSetSlot(final @NotNull PacketSendEvent event) {
         // Only edit hotbar (36 to 44) if window ID is 0
         // Set cursor by putting -1 as window ID and as slot
         // Window ID -2 means any slot can be used
-        WrapperPlayServerSetSlot slot = wrapper.get();
+        WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
         final int slotID = slot.getSlot();
         final int inventoryID = slot.getWindowId();
         final ItemStack item = slot.getItem();
@@ -374,8 +373,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
         });
     }
 
-    private void onUseItem(final @NotNull PacketReceiveEvent event, final @NotNull LazyPacketWrapper wrapper) {
-        WrapperPlayClientUseItem item = wrapper.get();
+    private void onUseItem(final @NotNull PacketReceiveEvent event) {
+        WrapperPlayClientUseItem item = new WrapperPlayClientUseItem(event);
 
         ItemStack use = item.getHand() == InteractionHand.MAIN_HAND ? getHeldItem() : getOffHand();
 
@@ -411,11 +410,11 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
         inventory.getInventoryStorage().setItem(slot, use);
     }
 
-    private void onPlayerDigging(final @NotNull PacketReceiveEvent event, final @NotNull LazyPacketWrapper wrapper) {
+    private void onPlayerDigging(final @NotNull PacketReceiveEvent event) {
         // 1.8 clients don't predict dropping items
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return;
 
-        WrapperPlayClientPlayerDigging dig = wrapper.get();
+        WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
         if (dig.getAction() == DiggingAction.DROP_ITEM) {
             ItemStack heldItem = getHeldItem();
@@ -433,9 +432,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
         }
     }
 
-    private void onHeldItemChange(final @NotNull PacketReceiveEvent event, final @NotNull LazyPacketWrapper wrapper) {
-        WrapperPlayClientHeldItemChange packet = wrapper.get();
-        final int slot = packet.getSlot();
+    private void onHeldItemChange(final @NotNull PacketReceiveEvent event) {
+        final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
         // Stop people from spamming the server with an out-of-bounds exception
         if (slot > 8 || slot < 0) return;
@@ -445,10 +443,10 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
         inventory.setSelected(slot);
     }
 
-    private void onCreativeInventoryAction(final @NotNull PacketReceiveEvent event, final @NotNull LazyPacketWrapper wrapper) {
+    private void onCreativeInventoryAction(final @NotNull PacketReceiveEvent event) {
         if (player.gamemode != GameMode.CREATIVE) return;
 
-        WrapperPlayClientCreativeInventoryAction action = wrapper.get();
+        WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
 
         boolean valid = action.getSlot() >= 1 &&
                 (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8) ?
@@ -460,10 +458,10 @@ public class CompensatedInventory extends GrimProcessor implements PacketListene
         }
     }
 
-    private void onClickWindow(final @NotNull PacketReceiveEvent event, final @NotNull LazyPacketWrapper wrapper) {
+    private void onClickWindow(final @NotNull PacketReceiveEvent event) {
         if (event.isCancelled()) return;
 
-        WrapperPlayClientClickWindow click = wrapper.get();
+        WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
 
         // How is this possible? Maybe transaction splitting.
         if (click.getWindowId() != openWindowID) {

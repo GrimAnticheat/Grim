@@ -22,9 +22,8 @@ public class BadPacketsA extends Check implements PacketListener {
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerPreViaReceiveHandler((event, wrapper) -> {
-            WrapperPlayClientHeldItemChange packet = wrapper.get();
-            final int slot = packet.getSlot();
+        registry.registerPreViaReceiveHandler(event -> {
+            final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
             if (slot == lastSlot && flag(V.write(verbose()).sint(slot)) && shouldModifyPackets()) {
                 event.setCancelled(true);

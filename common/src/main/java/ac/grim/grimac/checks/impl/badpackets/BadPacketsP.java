@@ -6,7 +6,9 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketListener;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType;
@@ -14,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOp
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsP", stableKey = "grim.badpackets.invalid_click", description = "Invalid window click packet", experimental = true)
-public class BadPacketsP extends Check implements PacketListener {
+public class BadPacketsP extends Check implements PacketReceiveListener, PacketListener {
     private static final Verbose V =
             Verbose.of("clickType={clicktype_lower}, button={sint}[, container={sint}]");
 
@@ -27,10 +29,19 @@ public class BadPacketsP extends Check implements PacketListener {
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerReceiveHandler((event, wrapper) -> {
-            WrapperPlayClientClickWindow packet = wrapper.get();
-            WindowClickType clickType = packet.getWindowClickType();
-            int button = packet.getButton();
+        registry.registerSendHandler(event -> {
+            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
+            this.containerType = window.getType();
+            this.containerId = window.getContainerId();
+        }, PacketType.Play.Server.OPEN_WINDOW);
+    }
+
+    @Override
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+            WrapperPlayClientClickWindow wrapper = new WrapperPlayClientClickWindow(event);
+            WindowClickType clickType = wrapper.getWindowClickType();
+            int button = wrapper.getButton();
 
             // TODO: Adjust for containers
             boolean flag = switch (clickType) {
@@ -44,19 +55,13 @@ public class BadPacketsP extends Check implements PacketListener {
 
             // Allowing this to false flag to debug and find issues faster
             if (flag) {
-                boolean hasContainer = packet.getWindowId() == containerId;
+                boolean hasContainer = wrapper.getWindowId() == containerId;
                 if (flag(V.write(verbose()).uint(VerboseCodecs.enumId(clickType)).sint(button).bool(hasContainer).sint(containerType))
                         && shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
                 }
             }
-        }, PacketType.Play.Client.CLICK_WINDOW);
-
-        registry.registerSendHandler((event, wrapper) -> {
-            WrapperPlayServerOpenWindow window = wrapper.get();
-            this.containerType = window.getType();
-            this.containerId = window.getContainerId();
-        }, PacketType.Play.Server.OPEN_WINDOW);
+        }
     }
 }

@@ -4,7 +4,9 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketListener;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.Combat;
@@ -15,7 +17,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDe
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsM", stableKey = "grim.badpackets.respawn_alive", description = "Tried to respawn while alive", experimental = true)
-public class BadPacketsM extends Check implements PacketListener {
+public class BadPacketsM extends Check implements PreViaPacketReceiveListener, PacketListener {
     public BadPacketsM(final GrimPlayer player) {
         super(player);
     }
@@ -26,30 +28,33 @@ public class BadPacketsM extends Check implements PacketListener {
     private boolean menu;
 
     @Override
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() != PacketType.Play.Client.CLIENT_STATUS
+                || new WrapperPlayClientClientStatus(event).getAction() != WrapperPlayClientClientStatus.Action.PERFORM_RESPAWN) {
+            return;
+        }
+
+        if (exempt > 0) {
+            exempt--;
+            return;
+        }
+
+        if (!player.compensatedEntities.self.isDead && !menu) {
+            flag(); // don't cancel in case of a false positive
+        }
+
+        // the client closes the menu and reopens it if dead
+        menu = player.compensatedEntities.self.isDead && player.packetStateData.showsDeathScreen;
+    }
+
+    @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerPreViaReceiveHandler((event, wrapper) -> {
-            WrapperPlayClientClientStatus packet = wrapper.get();
-            if (packet.getAction() != WrapperPlayClientClientStatus.Action.PERFORM_RESPAWN) return;
-
-            if (exempt > 0) {
-                exempt--;
-                return;
-            }
-
-            if (!player.compensatedEntities.self.isDead && !menu) {
-                flag(); // don't cancel in case of a false positive
-            }
-
-            // the client closes the menu and reopens it if dead
-            menu = player.compensatedEntities.self.isDead && player.packetStateData.showsDeathScreen;
-        }, PacketType.Play.Client.CLIENT_STATUS);
-
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
         }
 
-        registry.registerPreViaSendHandler((event, wrapper) -> {
-            WrapperPlayServerChangeGameState packet = wrapper.get();
+        registry.registerPreViaSendHandler(event -> {
+            WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(event);
             if (packet.getReason() != WrapperPlayServerChangeGameState.Reason.WIN_GAME) return;
 
             if (packet.getValue() != 0 && packet.getValue() != 1) {
@@ -65,16 +70,15 @@ public class BadPacketsM extends Check implements PacketListener {
             });
         }, PacketType.Play.Server.CHANGE_GAME_STATE);
 
-        registry.registerPreViaSendHandler((event, wrapper) -> {
-            WrapperPlayServerDeathCombatEvent packet = wrapper.get();
-            if (packet.getPlayerId() == player.entityID) {
+        registry.registerPreViaSendHandler(event -> {
+            if (new WrapperPlayServerDeathCombatEvent(event).getPlayerId() == player.entityID) {
                 player.sendTransaction();
                 player.addRealTimeTaskNow(this::onDeathCombatEvent);
             }
         }, PacketType.Play.Server.DEATH_COMBAT_EVENT);
 
-        registry.registerPreViaSendHandler((event, wrapper) -> {
-            WrapperPlayServerCombatEvent packet = wrapper.get();
+        registry.registerPreViaSendHandler(event -> {
+            WrapperPlayServerCombatEvent packet = new WrapperPlayServerCombatEvent(event);
             if (packet.getCombat() == Combat.ENTITY_DEAD && packet.getPlayerId() == player.entityID) {
                 player.sendTransaction();
                 player.addRealTimeTaskNow(this::onDeathCombatEvent);

@@ -44,8 +44,8 @@ public class TeamHandler extends GrimProcessor implements PacketListener {
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerSendHandler((event, wrapper) -> {
-            WrapperPlayServerTeams teams = wrapper.get();
+        registry.registerSendHandler(event -> {
+            WrapperPlayServerTeams teams = new WrapperPlayServerTeams(event);
             final String teamName = teams.getTeamName();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 EntityTeam entityTeam = switch (teams.getTeamMode()) {

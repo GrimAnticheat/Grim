@@ -6,9 +6,11 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
 import ac.grim.grimac.checks.type.PacketListener;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.inventory.MenuType;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
@@ -16,7 +18,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOp
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "CrashD", stableKey = "grim.crash.lectern", description = "Clicking slots in lectern window")
-public class CrashD extends Check implements PacketListener {
+public class CrashD extends Check implements PacketReceiveListener, PacketListener {
     private static final Verbose V = Verbose.of("clickType={clicktype}, button={sint}");
 
     private MenuType type = MenuType.UNKNOWN;
@@ -33,8 +35,17 @@ public class CrashD extends Check implements PacketListener {
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerReceiveHandler((event, wrapper) -> {
-            WrapperPlayClientClickWindow click = wrapper.get();
+        registry.registerSendHandler(event -> {
+            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
+            this.type = MenuType.getMenuType(window.getType());
+            if (type == MenuType.LECTERN) lecternId = window.getContainerId();
+        }, PacketType.Play.Server.OPEN_WINDOW);
+    }
+
+    @Override
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+            WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
             int clickType = VerboseCodecs.enumId(click.getWindowClickType());
             int button = click.getButton();
             int windowId = click.getWindowId();
@@ -45,12 +56,6 @@ public class CrashD extends Check implements PacketListener {
                     player.onPacketCancel();
                 }
             }
-        }, PacketType.Play.Client.CLICK_WINDOW);
-
-        registry.registerSendHandler((event, wrapper) -> {
-            WrapperPlayServerOpenWindow window = wrapper.get();
-            this.type = MenuType.getMenuType(window.getType());
-            if (type == MenuType.LECTERN) lecternId = window.getContainerId();
-        }, PacketType.Play.Server.OPEN_WINDOW);
+        }
     }
 }

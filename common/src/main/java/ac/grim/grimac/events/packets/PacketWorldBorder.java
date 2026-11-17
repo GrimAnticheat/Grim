@@ -1,7 +1,6 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.packethandler.LazyPacketWrapper;
 import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
@@ -73,8 +72,8 @@ public class PacketWorldBorder extends GrimProcessor implements PacketListener {
         registry.registerSendHandler(this::onWorldBorderLerpSize, PacketType.Play.Server.WORLD_BORDER_LERP_SIZE);
     }
 
-    private void onLegacyWorldBorder(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
-        WrapperPlayServerWorldBorder packet = wrapper.get();
+    private void onLegacyWorldBorder(PacketSendEvent event) {
+        WrapperPlayServerWorldBorder packet = new WrapperPlayServerWorldBorder(event);
 
         player.sendTransaction();
         // Names are misleading, it's diameter not radius.
@@ -105,9 +104,9 @@ public class PacketWorldBorder extends GrimProcessor implements PacketListener {
         }
     }
 
-    private void onInitializeWorldBorder(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+    private void onInitializeWorldBorder(PacketSendEvent event) {
         player.sendTransaction();
-        WrapperPlayServerInitializeWorldBorder packet = wrapper.get();
+        WrapperPlayServerInitializeWorldBorder packet = new WrapperPlayServerInitializeWorldBorder(event);
         double centerX = packet.getX();
         double centerZ = packet.getZ();
         double oldDiameter = packet.getOldDiameter();
@@ -121,24 +120,23 @@ public class PacketWorldBorder extends GrimProcessor implements PacketListener {
         });
     }
 
-    private void onWorldBorderCenter(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+    private void onWorldBorderCenter(PacketSendEvent event) {
         player.sendTransaction();
-        WrapperPlayServerWorldBorderCenter packet = wrapper.get();
+        WrapperPlayServerWorldBorderCenter packet = new WrapperPlayServerWorldBorderCenter(event);
         double centerX = packet.getX();
         double centerZ = packet.getZ();
         player.addRealTimeTaskNow(() -> setCenter(centerX, centerZ));
     }
 
-    private void onWorldBorderSize(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+    private void onWorldBorderSize(PacketSendEvent event) {
         player.sendTransaction();
-        WrapperPlayServerWorldBorderSize packet = wrapper.get();
-        double size = packet.getDiameter();
+        double size = new WrapperPlayServerWorldBorderSize(event).getDiameter();
         player.addRealTimeTaskNow(() -> setSize(size));
     }
 
-    private void onWorldBorderLerpSize(@NotNull PacketSendEvent event, @NotNull LazyPacketWrapper wrapper) {
+    private void onWorldBorderLerpSize(PacketSendEvent event) {
         player.sendTransaction();
-        WrapperPlayWorldBorderLerpSize packet = wrapper.get();
+        WrapperPlayWorldBorderLerpSize packet = new WrapperPlayWorldBorderLerpSize(event);
         double oldDiameter = packet.getOldDiameter();
         double newDiameter = packet.getNewDiameter();
         long speed = packet.getSpeed();

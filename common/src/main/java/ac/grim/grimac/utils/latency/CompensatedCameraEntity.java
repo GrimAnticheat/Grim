@@ -23,9 +23,8 @@ public class CompensatedCameraEntity extends GrimProcessor implements PacketList
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerPreViaSendHandler((event, wrapper) -> {
-            WrapperPlayServerCamera packet = wrapper.get();
-            int camera = packet.getCameraId();
+        registry.registerPreViaSendHandler(event -> {
+            int camera = new WrapperPlayServerCamera(event).getCameraId();
             player.sendTransaction();
 
             player.addRealTimeTaskNow(() -> {

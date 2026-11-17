@@ -24,13 +24,13 @@ public class PacketPlayerAbilities extends GrimProcessor implements PacketListen
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerReceiveHandler((event, wrapper) -> {
-            WrapperPlayClientPlayerAbilities abilities = wrapper.get();
+        registry.registerReceiveHandler(event -> {
+            WrapperPlayClientPlayerAbilities abilities = new WrapperPlayClientPlayerAbilities(event);
             player.isFlying = abilities.isFlying() && player.canFly;
         }, PacketType.Play.Client.PLAYER_ABILITIES);
 
-        registry.registerSendHandler((event, wrapper) -> {
-            WrapperPlayServerPlayerAbilities abilities = wrapper.get();
+        registry.registerSendHandler(event -> {
+            WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
             player.sendTransaction();
 
             int transaction = player.lastTransactionSent.get();
