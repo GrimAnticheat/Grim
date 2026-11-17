@@ -15,13 +15,17 @@ import java.util.function.Supplier;
 
 public class PacketMap<T> {
 
-    private static final int CLIENT_PLAY_LENGTH = PacketType.Play.Client.values().length;
-    private static final int CLIENT_CONFIGURATION_LENGTH = PacketType.Configuration.Client.values().length;
+    private static final PacketType.Configuration.Client[] CLIENT_CONFIGURATION = PacketType.Configuration.Client.values();
+    private static final PacketType.Play.Client[] CLIENT_PLAY = PacketType.Play.Client.values();
+    private static final PacketType.Configuration.Server[] SERVER_CONFIGURATION = PacketType.Configuration.Server.values();
+    private static final PacketType.Play.Server[] SERVER_PLAY = PacketType.Play.Server.values();
 
-    private static final int SERVER_PLAY_LENGTH = PacketType.Play.Server.values().length;
-    private static final int SERVER_CONFIGURATION_LENGTH = PacketType.Configuration.Server.values().length;
+    private static final int CLIENT_CONFIGURATION_LENGTH = CLIENT_CONFIGURATION.length;
+    private static final int CLIENT_PLAY_LENGTH = CLIENT_PLAY.length;
+    private static final int SERVER_CONFIGURATION_LENGTH = SERVER_CONFIGURATION.length;
+    private static final int SERVER_PLAY_LENGTH = SERVER_PLAY.length;
 
-    private final Object[] play, configuration;
+    private final Object[] configuration, play;
 
     public PacketMap(@NotNull PacketSide side) {
         boolean isServer = side == PacketSide.SERVER;
@@ -48,7 +52,6 @@ public class PacketMap<T> {
             throw new IllegalArgumentException("unknown server packet: " + packetType);
         }
     }
-
 
     public T putIfNull(@NotNull PacketTypeCommon packetType, @NotNull Supplier<T> newValue) {
         if (packetType instanceof PacketType.Configuration.Client p) {
@@ -97,7 +100,7 @@ public class PacketMap<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public <V> PacketMap<V> mapRawValues(Function<T, Object> mapper) {
+    public <V> PacketMap<V> mapValuesToRawValues(Function<T, Object> mapper) {
         for (int i = 0; i < this.configuration.length; i++) {
             this.configuration[i] = mapper.apply((T) configuration[i]);
         }

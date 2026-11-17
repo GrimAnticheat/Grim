@@ -26,13 +26,13 @@ public class PacketHandlerRegistry {
             @NotNull ArrayList<Consumer<PacketReceiveEvent>> preViaReceiveDefaults
     ) {
         Object[] sendDefault = sendDefaults.toArray(new Consumer[sendDefaults.size()]);
-        this.sendHandlers = sendHandlers.mapRawValues(value -> value == null ? sendDefault : value.toArray(new Consumer[value.size()]));
+        this.sendHandlers = sendHandlers.mapValuesToRawValues(value -> value == null ? sendDefault : value.toArray(new Consumer[value.size()]));
         Object[] preViaSendDefault = preViaSendDefaults.toArray(new Consumer[preViaSendDefaults.size()]);
-        this.preViaSendHandlers = preViaSendHandlers.mapRawValues(value -> value == null ? preViaSendDefault : value.toArray(new Consumer[value.size()]));
+        this.preViaSendHandlers = preViaSendHandlers.mapValuesToRawValues(value -> value == null ? preViaSendDefault : value.toArray(new Consumer[value.size()]));
         Object[] receiveDefault = receiveDefaults.toArray(new Consumer[receiveDefaults.size()]);
-        this.receiveHandlers = receiveHandlers.mapRawValues(value -> value == null ? receiveDefault : value.toArray(new Consumer[value.size()]));
+        this.receiveHandlers = receiveHandlers.mapValuesToRawValues(value -> value == null ? receiveDefault : value.toArray(new Consumer[value.size()]));
         Object[] preViaReceiveDefault = preViaReceiveDefaults.toArray(new Consumer[preViaReceiveDefaults.size()]);
-        this.preViaReceiveHandlers = preViaReceiveHandlers.mapRawValues(value -> value == null ? preViaReceiveDefault : value.toArray(new Consumer[value.size()]));
+        this.preViaReceiveHandlers = preViaReceiveHandlers.mapValuesToRawValues(value -> value == null ? preViaReceiveDefault : value.toArray(new Consumer[value.size()]));
     }
 
     public void handleSend(@NotNull PacketSendEvent event) {
