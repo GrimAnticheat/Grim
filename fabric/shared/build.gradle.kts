@@ -31,6 +31,7 @@ dependencies {
     compileOnly(libs.grim.internal)
     compileOnly(libs.grim.internal.shims)
 
+    compileOnly(libs.netty)
     compileOnly(libs.packetevents.api)
 
     compileOnly(libs.fabric.loader)

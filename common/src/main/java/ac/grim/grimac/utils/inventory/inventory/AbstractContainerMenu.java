@@ -200,6 +200,7 @@ public abstract class AbstractContainerMenu {
                 // 1.17+ clients send changed itemstacks anyways, so just hack around stuff until people stop using decade old versions.
                 if (slot instanceof ResultSlot) {
                     player.inventory.isPacketInventoryActive = false;
+                    player.inventory.needResend = true;
                 }
 
                 // TODO: Bundle support

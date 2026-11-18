@@ -12,7 +12,7 @@
     ]
   },
   "depends": {
-    "minecraft": ">=26.1.2 <26.3",
+    "minecraft": ">=26.1.2 <26.4",
     "java": ">=25",
     "fabricloader": ">=0.19",
     "packetevents": "*"

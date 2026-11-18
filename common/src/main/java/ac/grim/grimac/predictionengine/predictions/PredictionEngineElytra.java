@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.data.IndexedVector3d;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.nmsutil.StuckSpeed;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
@@ -19,13 +20,20 @@ public class PredictionEngineElytra extends PredictionEngine {
         float pitchRadians = GrimMath.radians(player.pitch);
         double horizontalSqrt = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double horizontalLength = vector.clone().setY(0).length();
-        double length = lookVector.length();
 
         // Mojang changed from using their math to using regular java math in 1.18.2 elytra movement
-        double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? Math.cos(pitchRadians) : player.trigHandler.cos(pitchRadians);
-        vertCosRotation = vertCosRotation * vertCosRotation * Math.min(1.0D, length / 0.4D);
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
-            vertCosRotation = (float) vertCosRotation;
+        ClientVersion version = player.getClientVersion();
+        double vertCosRotation;
+        if (version.isOlderThan(ClientVersion.V_1_18_2)) {
+            float cos = player.trigHandler.cos(pitchRadians);
+            double lookLength = VectorUtils.getVanillaLength(version, lookVector);
+            vertCosRotation = (float) (cos * (cos * Math.min(1.0D, lookLength / 0.4D)));
+        } else {
+            double cos = Math.cos(pitchRadians);
+            vertCosRotation = cos * cos;
+            if (version.isOlderThan(ClientVersion.V_1_21_2)) {
+                vertCosRotation *= Math.min(1.0D, lookVector.length() / 0.4D);
+            }
         }
 
         // So we actually use the player's actual movement to get the gravity/slow falling status

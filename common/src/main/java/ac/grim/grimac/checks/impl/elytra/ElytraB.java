@@ -24,7 +24,7 @@ public class ElytraB extends Check implements PacketReceiveListener, PostPredict
 
     @Override
     public boolean isApplicable() {
-        return player.supportsEndTick();
+        return player.supportsEndTickPreVia();
     }
 
     @Override

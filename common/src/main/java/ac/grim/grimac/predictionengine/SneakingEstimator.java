@@ -6,7 +6,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -49,11 +48,12 @@ public class SneakingEstimator extends GrimProcessor implements PostPredictionLi
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!predictionComplete.isChecked()) return;
 
-        float airDrag = BlockProperties.getModifiedAirDrag(0.91F, player);
-        double trueFriction = player.lastOnGround ? player.friction * airDrag : airDrag;
+        // player.friction already includes air drag
+        double trueFriction = player.friction;
         if (player.wasTouchingLava) trueFriction = 0.5;
         if (player.wasTouchingWater) trueFriction = 0.96;
-        if (player.isGliding) trueFriction = 0.99;
+        // Gliding takes its drag before the move, so the speed the edge held back carries over as it is
+        if (player.isGliding) trueFriction = 1;
 
         // START HACKERY
 

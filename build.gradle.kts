@@ -14,7 +14,7 @@ import versioning.VersionUtil
 
 BuildConfig.init(project)
 
-val baseVersion = "2.3.74"
+val baseVersion = "2.3.75"
 group = "ac.grim.grimac"
 version = VersionUtil.computeVersion(project, baseVersion)
 description = "Libre simulation anticheat designed for 26.3 with 1.8–26.3 support, powered by PacketEvents 2.0."
@@ -35,8 +35,9 @@ println("    version            = $version")
 tasks.register("printVersion") {
     group = "versioning"
     description = "Prints the computed project version"
+    inputs.property("version", version.toString())
     doLast {
-        println("VERSION=$version")
+        println("VERSION=${inputs.properties["version"]}")
     }
 }
 

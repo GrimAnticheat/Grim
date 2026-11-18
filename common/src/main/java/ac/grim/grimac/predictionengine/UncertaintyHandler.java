@@ -157,18 +157,19 @@ public class UncertaintyHandler {
             entityBox.maxY -= height;
             entityBox.expand(-width / 2, 0, -width / 2);
 
-            Vector3dm maxLocation = new Vector3dm(entityBox.maxX, entityBox.maxY, entityBox.maxZ);
-            Vector3dm minLocation = new Vector3dm(entityBox.minX, entityBox.minY, entityBox.minZ);
+            double minX = (entityBox.minX - player.lastX) * 0.1;
+            double minY = (entityBox.minY - (player.lastY + 0.8 * 1.8)) * 0.1;
+            double minZ = (entityBox.minZ - player.lastZ) * 0.1;
+            fishingRodPullBox.minX = Math.min(0, minX);
+            fishingRodPullBox.minY = Math.min(0, minY);
+            fishingRodPullBox.minZ = Math.min(0, minZ);
 
-            Vector3dm diff = minLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
-            fishingRodPullBox.minX = Math.min(0, diff.getX());
-            fishingRodPullBox.minY = Math.min(0, diff.getY());
-            fishingRodPullBox.minZ = Math.min(0, diff.getZ());
-
-            diff = maxLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
-            fishingRodPullBox.maxX = Math.max(0, diff.getX());
-            fishingRodPullBox.maxY = Math.max(0, diff.getY());
-            fishingRodPullBox.maxZ = Math.max(0, diff.getZ());
+            double maxX = (entityBox.maxX - player.lastX) * 0.1;
+            double maxY = (entityBox.maxY - (player.lastY + 0.8 * 1.8)) * 0.1;
+            double maxZ = (entityBox.maxZ - player.lastZ) * 0.1;
+            fishingRodPullBox.maxX = Math.max(0, maxX);
+            fishingRodPullBox.maxY = Math.max(0, maxY);
+            fishingRodPullBox.maxZ = Math.max(0, maxZ);
         }
 
         fishingRodPulls.clear();
@@ -324,13 +325,14 @@ public class UncertaintyHandler {
         // This bounding box can be infinitely large without crashing the server.
         // This works by the proof that if you collide with an object, you will stop near the object
         SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
-        return isSteppingNearShulker || regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
+        // Entities in our own vehicle stack move with us and can't be collided with (vanilla's isPassengerOfSameVehicle)
+        PacketEntity root = player.compensatedEntities.self.getRootVehicle();
+        return isSteppingNearShulker || regularHardCollision(expandedBB, root) || striderCollision(expandedBB, root) || boatCollision(expandedBB, root);
     }
 
-    private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
-        final PacketEntity riding = player.compensatedEntities.self.getRiding();
+    private boolean regularHardCollision(SimpleCollisionBox expandedBB, PacketEntity root) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && entity != riding
+            if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && entity.getRootVehicle() != root
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -339,27 +341,27 @@ public class UncertaintyHandler {
         return false;
     }
 
-    private boolean striderCollision(SimpleCollisionBox expandedBB) {
+    private boolean striderCollision(SimpleCollisionBox expandedBB, PacketEntity root) {
         // Stiders can walk on top of other striders
-        if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.getType() == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
-                        && !entity.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
-                    return true;
-                }
+        if (!(player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider)) return false;
+
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.getType() == EntityTypes.STRIDER && entity.getRootVehicle() != root
+                    && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                return true;
             }
         }
 
         return false;
     }
 
-    private boolean boatCollision(SimpleCollisionBox expandedBB) {
+    private boolean boatCollision(SimpleCollisionBox expandedBB, PacketEntity root) {
         // Boats can collide with quite literally anything
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         if (riding == null || !riding.isBoat) return false;
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity != riding && entity.isPushable() && !riding.hasPassenger(entity)
+            if (entity.isPushable() && entity.getRootVehicle() != root
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }

@@ -13,8 +13,8 @@ cloud-processors-requirements = "1.0.0-rc.1"
 # --- Minecraft-Specific APIs ---
 floodgate-api = "2.0-SNAPSHOT"
 geyser-base-api = "1.0.2"
-grim-api = "1.6.0.12"
-packetevents = "2.14.1+b1f9403-SNAPSHOT"
+grim-api = "1.6.0.13"
+packetevents = "2.14.1+addb80e-SNAPSHOT"
 placeholderapi = "2.11.6"
 viaversion = "5.9.0"
 luckperms = "5.5"
@@ -31,10 +31,10 @@ configuralize = "1.4.1" # :slim classifier is applied in build.gradle.kts
 
 # --- Build & Tooling ---
 fabric-loader = "0.16.14"
-fabric-loom = "1.15.5"
+fabric-loom = "1.19.3"
 lombok = "9.0.0"
 shadow = "9.3.0"
-spotless = "6.25.0"
+spotless = "8.9.0"
 
 [libraries]
 # --- Core Frameworks: Adventure (Text) & Cloud (Commands) ---

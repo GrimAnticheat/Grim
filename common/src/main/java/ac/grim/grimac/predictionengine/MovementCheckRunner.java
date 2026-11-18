@@ -237,7 +237,7 @@ public class MovementCheckRunner extends GrimProcessor {
             } else {
                 // Server always teleports the player when they eject anyways,
                 // so just let the player control where they eject within reason, they get set back anyways
-                if (new Vector3dm(player.lastX, player.lastY, player.lastZ).distance(new Vector3dm(player.x, player.y, player.z)) > 3) {
+                if (VectorUtils.distance(player.lastX, player.lastY, player.lastZ, player.x, player.y, player.z) > 3) {
                     player.getSetbackTeleportUtil().executeForceResync(); // Too far! (I think this value is sane)
                 }
 
@@ -245,7 +245,7 @@ public class MovementCheckRunner extends GrimProcessor {
 
                 if (player.isClimbing) {
                     Vector3dm ladder = player.clientVelocity.clone().setY(0.2);
-                    PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
+                    PredictionEngineNormal.staticVectorEndOfTick(player, ladder, player.clientVelocity.getY());
                     player.lastWasClimbing = ladder.getY();
                 }
                 return;

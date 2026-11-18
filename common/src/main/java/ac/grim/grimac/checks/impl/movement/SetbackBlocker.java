@@ -3,9 +3,9 @@ package ac.grim.grimac.checks.impl.movement;
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 public class SetbackBlocker extends GrimProcessor implements PacketReceiveListener {
@@ -40,7 +40,7 @@ public class SetbackBlocker extends GrimProcessor implements PacketReceiveListen
             }
 
             // The player is sleeping, should be safe to block position packets
-            if (player.isInBed && new Vector3d(player.x, player.y, player.z).distanceSquared(player.bedPosition) > 1) {
+            if (player.isInBed && player.bedPosition != null && VectorUtils.distanceSquared(player.x, player.y, player.z, player.bedPosition) > 1) {
                 event.setCancelled(true);
             }
 

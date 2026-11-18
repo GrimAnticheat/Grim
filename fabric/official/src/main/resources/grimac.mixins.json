@@ -7,7 +7,6 @@
         "FabricOfficialCommandSourceStackMixin",
         "FabricOfficialLevelChunkMixin",
         "FabricOfficialLevelMixin",
-        "FabricOfficialPistonBaseBlockMixin",
         "FabricOfficialServerMixin",
         "FabricOfficialServerPlayerMixin",
         "FabricOfficialEntityMixin"
