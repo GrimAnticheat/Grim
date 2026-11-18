@@ -37,12 +37,12 @@ public class QueuedDuplicateHandler extends PacketListenerAbstract {
         if (queuedDuplicate == null) return;
 
         player.packetStateData.isReceivingQueuedDuplicate = true;
-        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM;
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.queuedDuplicateIsDuplicate = event.getPacketType() == PacketType.Play.Client.USE_ITEM;
 
         WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(true, true, queuedDuplicate.onGround(), queuedDuplicate.location());
         ConnectionUtils.receivePacketPreVia(player, wrapper);
 
         player.packetStateData.queuedDuplicate = null;
-        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = player.packetStateData.queuedDuplicateIsDuplicate = player.packetStateData.isReceivingQueuedDuplicate = false;
     }
 }
