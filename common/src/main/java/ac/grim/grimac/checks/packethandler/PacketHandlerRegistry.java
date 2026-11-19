@@ -1,11 +1,11 @@
 package ac.grim.grimac.checks.packethandler;
 
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder.IncompleteHandlerMap;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistry {
@@ -15,29 +15,18 @@ public class PacketHandlerRegistry {
     private final PacketMap<@NotNull Consumer<@NotNull PacketReceiveEvent>[]> preViaReceiveHandlers;
     private final PacketMap<@NotNull Consumer<@NotNull PacketReceiveEvent>[]> prePredictionReceiveHandlers;
 
-    @SuppressWarnings("ToArrayCallWithZeroLengthArrayArgument")
     PacketHandlerRegistry(
-            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> sendHandlers,
-            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> preViaSendHandlers,
-            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> receiveHandlers,
-            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> preViaReceiveHandlers,
-            @NotNull PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> prePredictionReceiveHandlers,
-            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> sendDefaults,
-            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> preViaSendDefaults,
-            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> receiveDefaults,
-            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> preViaReceiveDefaults,
-            @NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> prePredictionReceiveDefaults
+            @NotNull IncompleteHandlerMap<PacketSendEvent> sendHandlers,
+            @NotNull IncompleteHandlerMap<PacketSendEvent> preViaSendHandlers,
+            @NotNull IncompleteHandlerMap<PacketReceiveEvent> receiveHandlers,
+            @NotNull IncompleteHandlerMap<PacketReceiveEvent> preViaReceiveHandlers,
+            @NotNull IncompleteHandlerMap<PacketReceiveEvent> prePredictionReceiveHandlers
     ) {
-        Object[] sendDefault = sendDefaults.toArray(new Consumer[sendDefaults.size()]);
-        this.sendHandlers = sendHandlers.mapValuesToRawValues(value -> value == null ? sendDefault : value.toArray(new Consumer[value.size()]));
-        Object[] preViaSendDefault = preViaSendDefaults.toArray(new Consumer[preViaSendDefaults.size()]);
-        this.preViaSendHandlers = preViaSendHandlers.mapValuesToRawValues(value -> value == null ? preViaSendDefault : value.toArray(new Consumer[value.size()]));
-        Object[] receiveDefault = receiveDefaults.toArray(new Consumer[receiveDefaults.size()]);
-        this.receiveHandlers = receiveHandlers.mapValuesToRawValues(value -> value == null ? receiveDefault : value.toArray(new Consumer[value.size()]));
-        Object[] preViaReceiveDefault = preViaReceiveDefaults.toArray(new Consumer[preViaReceiveDefaults.size()]);
-        this.preViaReceiveHandlers = preViaReceiveHandlers.mapValuesToRawValues(value -> value == null ? preViaReceiveDefault : value.toArray(new Consumer[value.size()]));
-        Object[] prePredictionReceiveDefault = prePredictionReceiveDefaults.toArray(new Consumer[prePredictionReceiveDefaults.size()]);
-        this.prePredictionReceiveHandlers = prePredictionReceiveHandlers.mapValuesToRawValues(value -> value == null ? prePredictionReceiveDefault : value.toArray(new Consumer[value.size()]));
+        this.sendHandlers = sendHandlers.complete();
+        this.preViaSendHandlers = preViaSendHandlers.complete();
+        this.receiveHandlers = receiveHandlers.complete();
+        this.preViaReceiveHandlers = preViaReceiveHandlers.complete();
+        this.prePredictionReceiveHandlers = prePredictionReceiveHandlers.complete();
     }
 
     public void handleSend(@NotNull PacketSendEvent event) {

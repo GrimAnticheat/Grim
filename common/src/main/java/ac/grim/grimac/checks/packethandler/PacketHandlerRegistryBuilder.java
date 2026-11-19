@@ -14,57 +14,30 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class PacketHandlerRegistryBuilder {
-    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> sendHandlers = new PacketMap<>(PacketSide.SERVER);
-    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>>> preViaSendHandlers = new PacketMap<>(PacketSide.SERVER);
-    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> receiveHandlers = new PacketMap<>(PacketSide.CLIENT);
-    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> preViaReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
-    private final PacketMap<@NotNull ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>>> prePredictionReceiveHandlers = new PacketMap<>(PacketSide.CLIENT);
-    private final ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> sendCatchAll = new ArrayList<>();
-    private final ArrayList<@NotNull Consumer<@NotNull PacketSendEvent>> preViaSendCatchAll = new ArrayList<>();
-    private final ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> receiveCatchAll = new ArrayList<>();
-    private final ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> preViaReceiveCatchAll = new ArrayList<>();
-    private final ArrayList<@NotNull Consumer<@NotNull PacketReceiveEvent>> prePredictionReceiveCatchAll = new ArrayList<>();
+    private final IncompleteHandlerMap<PacketSendEvent> sendHandlers = new IncompleteHandlerMap<>(PacketSide.SERVER);
+    private final IncompleteHandlerMap<PacketSendEvent> preViaSendHandlers = new IncompleteHandlerMap<>(PacketSide.SERVER);
+    private final IncompleteHandlerMap<PacketReceiveEvent> receiveHandlers = new IncompleteHandlerMap<>(PacketSide.CLIENT);
+    private final IncompleteHandlerMap<PacketReceiveEvent> preViaReceiveHandlers = new IncompleteHandlerMap<>(PacketSide.CLIENT);
+    private final IncompleteHandlerMap<PacketReceiveEvent> prePredictionReceiveHandlers = new IncompleteHandlerMap<>(PacketSide.CLIENT);
 
-    public void registerSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull ClientBoundPacket @NotNull ... types) {
-        register(consumer, types, sendHandlers, sendCatchAll);
+    public void registerSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> handler, @NotNull ClientBoundPacket @NotNull ... types) {
+        sendHandlers.put(handler, types);
     }
 
-    public void registerPreViaSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> consumer, @NotNull ClientBoundPacket @NotNull ... types) {
-        register(consumer, types, preViaSendHandlers, preViaSendCatchAll);
+    public void registerPreViaSendHandler(@NotNull Consumer<@NotNull PacketSendEvent> handler, @NotNull ClientBoundPacket @NotNull ... types) {
+        preViaSendHandlers.put(handler, types);
     }
 
-    public void registerReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull ServerBoundPacket @NotNull ... types) {
-        register(consumer, types, receiveHandlers, receiveCatchAll);
+    public void registerReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> handler, @NotNull ServerBoundPacket @NotNull ... types) {
+        receiveHandlers.put(handler, types);
     }
 
-    public void registerPreViaReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull ServerBoundPacket @NotNull ... types) {
-        register(consumer, types, preViaReceiveHandlers, preViaReceiveCatchAll);
+    public void registerPreViaReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> handler, @NotNull ServerBoundPacket @NotNull ... types) {
+        preViaReceiveHandlers.put(handler, types);
     }
 
-    public void registerPrePredictionReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> consumer, @NotNull ServerBoundPacket @NotNull ... types) {
-        register(consumer, types, prePredictionReceiveHandlers, prePredictionReceiveCatchAll);
-    }
-
-    private static <T extends @NotNull ProtocolPacketEvent, P> void register(
-            @NotNull Consumer<T> consumer,
-            @NotNull P @NotNull [] types,
-            PacketMap<ArrayList<Consumer<T>>> handlers,
-            ArrayList<Consumer<T>> catchAll
-    ) {
-        if (types.length == 0) {
-            catchAll.add(consumer);
-            // A catchAll registered before a typed handler has to run before it.
-            handlers.forEachValue(value -> {
-                if (value != null) {
-                    value.add(consumer);
-                }
-            });
-            return;
-        }
-
-        for (@NotNull P type : types) {
-            handlers.putIfNull((PacketTypeCommon) type, () -> new ArrayList<>(catchAll)).add(consumer);
-        }
+    public void registerPrePredictionReceiveHandler(@NotNull Consumer<@NotNull PacketReceiveEvent> handler, @NotNull ServerBoundPacket @NotNull ... types) {
+        prePredictionReceiveHandlers.put(handler, types);
     }
 
     /**
@@ -78,12 +51,44 @@ public class PacketHandlerRegistryBuilder {
                 preViaSendHandlers,
                 receiveHandlers,
                 preViaReceiveHandlers,
-                prePredictionReceiveHandlers,
-                sendCatchAll,
-                preViaSendCatchAll,
-                receiveCatchAll,
-                preViaReceiveCatchAll,
-                prePredictionReceiveCatchAll
+                prePredictionReceiveHandlers
         );
+    }
+
+    record IncompleteHandlerMap<T extends @NotNull ProtocolPacketEvent>(
+            @NotNull PacketMap<ArrayList<@NotNull Consumer<T>>> handlers,
+            @NotNull ArrayList<@NotNull Consumer<T>> catchAll
+    ) {
+        public IncompleteHandlerMap(PacketSide side) {
+            this(new PacketMap<>(side), new ArrayList<>());
+        }
+
+        public <P> void put(@NotNull Consumer<T> handler, @NotNull P @NotNull [] types) {
+            if (types.length == 0) {
+                catchAll.add(handler);
+
+                // A catchAll registered before a typed handler has to run before it.
+                handlers.forEachValue(value -> {
+                    if (value != null) {
+                        value.add(handler);
+                    }
+                });
+                return;
+            }
+
+            for (@NotNull P type : types) {
+                put((PacketTypeCommon) type, handler);
+            }
+        }
+
+        private void put(@NotNull PacketTypeCommon type, @NotNull Consumer<T> handler) {
+            handlers.putIfNull(type, () -> new ArrayList<>(catchAll)).add(handler);
+        }
+
+        @SuppressWarnings("ToArrayCallWithZeroLengthArrayArgument")
+        public @NotNull PacketMap<@NotNull Consumer<T>[]> complete() {
+            Object[] sendDefault = catchAll.toArray(new Consumer[catchAll.size()]);
+            return handlers.mapValuesToRawValues(value -> value == null ? sendDefault : value.toArray(new Consumer[value.size()]));
+        }
     }
 }
