@@ -36,7 +36,7 @@ public class PacketHandlerRegistry {
         this.receiveHandlers = receiveHandlers.mapValuesToRawValues(value -> value == null ? receiveDefault : value.toArray(new Consumer[value.size()]));
         Object[] preViaReceiveDefault = preViaReceiveDefaults.toArray(new Consumer[preViaReceiveDefaults.size()]);
         this.preViaReceiveHandlers = preViaReceiveHandlers.mapValuesToRawValues(value -> value == null ? preViaReceiveDefault : value.toArray(new Consumer[value.size()]));
-        Object[] prePredictionReceiveDefault = prePredictionReceiveDefaults.toArray(new Consumer[preViaReceiveDefaults.size()]);
+        Object[] prePredictionReceiveDefault = prePredictionReceiveDefaults.toArray(new Consumer[prePredictionReceiveDefaults.size()]);
         this.prePredictionReceiveHandlers = prePredictionReceiveHandlers.mapValuesToRawValues(value -> value == null ? prePredictionReceiveDefault : value.toArray(new Consumer[value.size()]));
     }
 
@@ -57,7 +57,7 @@ public class PacketHandlerRegistry {
     }
 
     public void handlePrePredictionReceive(@NotNull PacketReceiveEvent event) {
-        handle(event, preViaReceiveHandlers);
+        handle(event, prePredictionReceiveHandlers);
     }
 
     private <E extends @NotNull ProtocolPacketEvent> void handle(
