@@ -133,6 +133,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
         if (FLAG_CHANNEL.fire(player, this, verbose)) return false;
 
+        player.violationCorrelationTracker.record(stableKey);
         player.punishmentManager.handleViolation(this);
         lastViolationTime = System.currentTimeMillis();
         violations++;
@@ -151,6 +152,7 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
         if (FLAG_CHANNEL.fire(player, this, rendered)) return false;
 
+        player.violationCorrelationTracker.record(stableKey);
         player.punishmentManager.handleViolation(this);
         lastViolationTime = System.currentTimeMillis();
         violations++;

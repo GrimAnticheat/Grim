@@ -441,6 +441,7 @@ public class CheckManager implements BasicReloadable {
         inited = true;
 
         registerBuiltInVerboseTemplates();
+        GrimAPI.INSTANCE.getPermissionManager().registerPermission("grim.correlation", PermissionDefaultValue.FALSE);
 
         final String[] permissions = {
                 "grim.exempt.",

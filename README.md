@@ -49,6 +49,12 @@ If you use a proxy such as Velocity or BungeeCord:
 - For answers to commonly asked questions visit the [FAQ](https://github.com/GrimAnticheat/Grim/wiki/FAQ).
 - For community support and project discussion join our [Discord](https://discord.grim.ac).
 
+## Observe-only check correlation
+
+The `grim.correlation` permission grants access to `/grim correlation <player>`, which summarizes
+recent signals from movement, combat, packet, and world check families. It uses a bounded 10-second
+window and does not change violation levels, setbacks, or punishments.
+
 ## Pull Requests
 
 See [Contributing](CONTRIBUTING.md) for more information about contributing and what our guidelines

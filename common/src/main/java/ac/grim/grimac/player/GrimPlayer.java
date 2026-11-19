@@ -125,6 +125,7 @@ public class GrimPlayer implements GrimUser {
     public final @NotNull CheckManager checkManager;
     public final @NotNull AttackCooldownHandler attackCooldown;
     public final @NotNull PunishmentManager punishmentManager;
+    public final @NotNull ViolationCorrelationTracker violationCorrelationTracker = new ViolationCorrelationTracker();
     public final @NotNull MovementCheckRunner movementCheckRunner;
     public final @NotNull SyncedTags tagManager;
     // End manager like classes
