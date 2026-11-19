@@ -1,6 +1,5 @@
 package ac.grim.grimac.checks.packethandler;
 
-import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder.IncompleteHandlerMap;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.event.ProtocolPacketEvent;
