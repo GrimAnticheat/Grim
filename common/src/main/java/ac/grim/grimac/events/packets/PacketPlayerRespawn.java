@@ -190,6 +190,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     } else {
                         player.lastSprintingForSpeed = false;
                     }
+                } else if (player.vehicleData.lastDummy) {
+                    // The new client player keeps the sprint it had, and it stopped sprinting on the seat without sending it
+                    player.isSprinting = player.lastSprinting;
                 }
 
                 player.checkManager.get(BadPacketsE.class).handleRespawn(); // Reminder ticks reset
