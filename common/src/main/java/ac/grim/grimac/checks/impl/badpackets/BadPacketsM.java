@@ -17,7 +17,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDe
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsM", stableKey = "grim.badpackets.respawn_alive", description = "Tried to respawn while alive", experimental = true)
-public class BadPacketsM extends Check implements PreViaPacketReceiveListener, PacketListener {
+public class BadPacketsM extends Check implements PacketListener {
     public BadPacketsM(final GrimPlayer player) {
         super(player);
     }
@@ -28,27 +28,26 @@ public class BadPacketsM extends Check implements PreViaPacketReceiveListener, P
     private boolean menu;
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() != PacketType.Play.Client.CLIENT_STATUS
-                || new WrapperPlayClientClientStatus(event).getAction() != WrapperPlayClientClientStatus.Action.PERFORM_RESPAWN) {
-            return;
-        }
-
-        if (exempt > 0) {
-            exempt--;
-            return;
-        }
-
-        if (!player.compensatedEntities.self.isDead && !menu) {
-            flag(); // don't cancel in case of a false positive
-        }
-
-        // the client closes the menu and reopens it if dead
-        menu = player.compensatedEntities.self.isDead && player.packetStateData.showsDeathScreen;
-    }
-
-    @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
+            WrapperPlayClientClientStatus packet = new WrapperPlayClientClientStatus(event);
+            if (packet.getAction() != WrapperPlayClientClientStatus.Action.PERFORM_RESPAWN) {
+                return;
+            }
+
+            if (exempt > 0) {
+                exempt--;
+                return;
+            }
+
+            if (!player.compensatedEntities.self.isDead && !menu) {
+                flag(); // don't cancel in case of a false positive
+            }
+
+            // the client closes the menu and reopens it if dead
+            menu = player.compensatedEntities.self.isDead && player.packetStateData.showsDeathScreen;
+        }, PacketType.Play.Client.CLIENT_STATUS);
+
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             return;
         }

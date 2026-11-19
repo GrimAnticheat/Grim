@@ -18,7 +18,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOp
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "CrashD", stableKey = "grim.crash.lectern", description = "Clicking slots in lectern window")
-public class CrashD extends Check implements PacketReceiveListener, PacketListener {
+public class CrashD extends Check implements PacketListener {
     private static final Verbose V = Verbose.of("clickType={clicktype}, button={sint}");
 
     private MenuType type = MenuType.UNKNOWN;
@@ -35,16 +35,7 @@ public class CrashD extends Check implements PacketReceiveListener, PacketListen
 
     @Override
     public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
-        registry.registerSendHandler(event -> {
-            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
-            this.type = MenuType.getMenuType(window.getType());
-            if (type == MenuType.LECTERN) lecternId = window.getContainerId();
-        }, PacketType.Play.Server.OPEN_WINDOW);
-    }
-
-    @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+        registry.registerReceiveHandler(event -> {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
             int clickType = VerboseCodecs.enumId(click.getWindowClickType());
             int button = click.getButton();
@@ -56,6 +47,12 @@ public class CrashD extends Check implements PacketReceiveListener, PacketListen
                     player.onPacketCancel();
                 }
             }
-        }
+        }, PacketType.Play.Client.CLICK_WINDOW);
+
+        registry.registerSendHandler(event -> {
+            WrapperPlayServerOpenWindow window = new WrapperPlayServerOpenWindow(event);
+            this.type = MenuType.getMenuType(window.getType());
+            if (type == MenuType.LECTERN) lecternId = window.getContainerId();
+        }, PacketType.Play.Server.OPEN_WINDOW);
     }
 }
