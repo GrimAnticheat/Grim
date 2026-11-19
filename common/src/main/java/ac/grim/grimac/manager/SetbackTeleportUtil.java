@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.TransferData;
 import ac.grim.grimac.api.event.events.GrimPlayerSetbackEvent;
 import ac.grim.grimac.api.event.events.GrimTeleportEvent;
 import ac.grim.grimac.checks.GrimProcessor;
@@ -62,6 +63,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?
     public boolean blockOffsets = false;
     public SetbackPosWithVector lastKnownGoodPosition;
+    private boolean transferDataPending;
     // Are we currently sending setback stuff?
     public boolean isSendingSetback = false;
     public int cheatVehicleInterpolationDelay = 0;
@@ -73,6 +75,17 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
 
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
+    }
+
+    /** Seeds the safe position and velocity before the initial server teleport. */
+    public void setTransferData(TransferData transferData) {
+        if (lastKnownGoodPosition != null) {
+            throw new IllegalStateException("Trying to set transfer data too late");
+        }
+        this.lastKnownGoodPosition = new SetbackPosWithVector(
+                new Vector3d(transferData.positionX(), transferData.positionY(), transferData.positionZ()),
+                new Vector3dm(transferData.velocityX(), transferData.velocityY(), transferData.velocityZ()));
+        this.transferDataPending = true;
     }
 
     @Override
@@ -477,7 +490,10 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
         data = new TeleportData(safePosition, 0, 0, velocity, RelativeFlag.YAW.or(RelativeFlag.PITCH), transaction, teleportId);
         requiredSetBack = new SetBackData(data, player.yaw, player.pitch, null, false, plugin);
 
-        this.lastKnownGoodPosition = new SetbackPosWithVector(safePosition, new Vector3dm());
+        Vector3dm safeVelocity = transferDataPending && lastKnownGoodPosition != null
+                ? lastKnownGoodPosition.getVector() : new Vector3dm();
+        this.lastKnownGoodPosition = new SetbackPosWithVector(safePosition, safeVelocity);
+        transferDataPending = false;
     }
 
     @AllArgsConstructor

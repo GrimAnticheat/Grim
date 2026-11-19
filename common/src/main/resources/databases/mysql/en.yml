@@ -19,6 +19,11 @@ mysql:
   user: "root"
   password: ""
 
+  # Bounds connection establishment and in-flight reads, in milliseconds.
+  # An explicit timeout in extra-jdbc-params takes precedence.
+  connect-timeout-ms: 5000
+  socket-timeout-ms: 60000
+
   # HikariCP connection pool settings. These only apply to SQL backends
   # that use Hikari internally.
   pool-settings:
@@ -35,10 +40,8 @@ mysql:
     # Maximum time to wait for a connection from the pool before failing.
     connection-timeout-ms: 5000
 
-  # Extra URL parameters appended after the canned set
-  # (useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true).
-  # Leave empty unless you know you need something specific — the defaults
-  # match what a local dev install wants.
+  # Extra JDBC URL parameters. Explicit TLS and public-key-retrieval values
+  # override their defaults. TLS is disabled by default for local connections.
   extra-jdbc-params: ""
 
   # Per-handler batch-flush cap. Each ring handler accumulates events into a
@@ -60,4 +63,4 @@ mysql:
 
 # Schema markers — see header comment in config.yml.
 config-flavor: V2
-config-version: 2
+config-version: 3

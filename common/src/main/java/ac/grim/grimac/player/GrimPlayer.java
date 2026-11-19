@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.api.GrimUser;
+import ac.grim.grimac.api.TransferData;
 import ac.grim.grimac.api.PacketWorld;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.handler.ResyncHandler;
@@ -752,6 +753,27 @@ public class GrimPlayer implements GrimUser {
             playerClockAtLeast = System.nanoTime();
         }
         return playerClockAtLeast;
+    }
+
+    @Override
+    public void setTransferData(TransferData transferData) {
+        Objects.requireNonNull(transferData, "transferData");
+        getSetbackTeleportUtil().setTransferData(transferData);
+        this.x = transferData.positionX();
+        this.y = transferData.positionY();
+        this.z = transferData.positionZ();
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.lastZ = this.z;
+        this.clientVelocity.setX(transferData.velocityX());
+        this.clientVelocity.setY(transferData.velocityY());
+        this.clientVelocity.setZ(transferData.velocityZ());
+        if (transferData.hasRotation()) {
+            this.yaw = transferData.yaw();
+            this.pitch = transferData.pitch();
+            this.lastYaw = this.yaw;
+            this.lastPitch = this.pitch;
+        }
     }
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
