@@ -389,7 +389,7 @@ public final class Collisions {
 
             double maxStepDown = overrideVersion || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_11) ? -player.getMaxUpStep() : -1 + COLLISION_EPSILON;
 
-            while (x != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, 0.0))) {
+            while (x != 0.0 && canFallAtLeast(player, x, 0.0, -maxStepDown)) {
                 if (x < 0.05D && x >= -0.05D) {
                     x = 0.0D;
                 } else if (x > 0.0D) {
@@ -398,7 +398,7 @@ public final class Collisions {
                     x += 0.05D;
                 }
             }
-            while (z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, maxStepDown, z))) {
+            while (z != 0.0 && canFallAtLeast(player, 0.0, z, -maxStepDown)) {
                 if (z < 0.05D && z >= -0.05D) {
                     z = 0.0D;
                 } else if (z > 0.0D) {
@@ -407,7 +407,7 @@ public final class Collisions {
                     z += 0.05D;
                 }
             }
-            while (x != 0.0 && z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, z))) {
+            while (x != 0.0 && z != 0.0 && canFallAtLeast(player, x, z, -maxStepDown)) {
                 if (x < 0.05D && x >= -0.05D) {
                     x = 0.0D;
                 } else if (x > 0.0D) {
@@ -433,7 +433,23 @@ public final class Collisions {
     public static boolean isAboveGround(GrimPlayer player) {
         // https://bugs.mojang.com/browse/MC-2404
         return player.lastOnGround || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && (player.fallDistance < player.getMaxUpStep() &&
-                !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0))));
+                !canFallAtLeast(player, 0.0, 0.0, player.getMaxUpStep() - player.fallDistance)));
+    }
+
+    // Whether a sneaking player has nothing to stand on within this height, this far from where it is
+    private static boolean canFallAtLeast(GrimPlayer player, double x, double z, double height) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+            // 1.20.5+ only looks at the space under the feet (Player#canFallAtLeast), so a wall next to the
+            // player is not ground. In from the sides and the top because isEmpty counts touching as colliding
+            // (1.21.5+ moves the sides in by the same 1.0E-7 itself)
+            SimpleCollisionBox box = player.boundingBox;
+            double below = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) ? COLLISION_EPSILON : (double) 1.0E-5F;
+            return isEmpty(player, new SimpleCollisionBox(
+                    box.minX + COLLISION_EPSILON + x, box.minY - height - below, box.minZ + COLLISION_EPSILON + z,
+                    box.maxX - COLLISION_EPSILON + x, box.minY - COLLISION_EPSILON, box.maxZ - COLLISION_EPSILON + z, false));
+        }
+
+        return isEmpty(player, player.boundingBox.copy().offset(x, -height, z));
     }
 
     public static void handleInsideBlocks(GrimPlayer player) {

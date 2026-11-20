@@ -22,10 +22,13 @@ public class MultiActionsE extends Check implements PacketListener {
     }
 
     @Override
-    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+    public boolean isApplicable() {
         // this is possible to false on 1.7
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) return;
+        return player.getClientVersion().isNewerThan(ClientVersion.V_1_7_10);
+    }
 
+    @Override
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)
                 && player.getClientVersion().isOlderThan(ClientVersion.V_26_3)) {
             registry.registerPreViaReceiveHandler(event -> {
