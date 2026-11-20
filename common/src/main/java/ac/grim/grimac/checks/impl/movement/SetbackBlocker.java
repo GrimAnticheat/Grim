@@ -1,34 +1,36 @@
 package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.VectorUtils;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import org.jetbrains.annotations.NotNull;
 
-public class SetbackBlocker extends GrimProcessor implements PacketReceiveListener {
+public class SetbackBlocker extends GrimProcessor implements PacketListener {
     public SetbackBlocker(GrimPlayer player) {
         super(player);
     }
 
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (player.disableGrim)
-            return; // Let's avoid letting people disable grim with grim.nomodifypackets
+    @Override
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerReceiveHandler(event -> {
+            if (player.disableGrim)
+                return; // Let's avoid letting people disable grim with grim.nomodifypackets
 
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY
-                || event.getPacketType() == PacketType.Play.Client.ATTACK
-                || event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
             if (player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay > 0) {
                 event.setCancelled(true); // Player is in the vehicle
             }
-        }
+        }, PacketType.Play.Client.INTERACT_ENTITY, PacketType.Play.Client.ATTACK, PacketType.Play.Client.SPECTATE_ENTITY);
 
-        // Don't block teleport packets
-        if (player.packetStateData.lastPacketWasTeleport) return;
+        registry.registerReceiveHandler(event -> {
+            if (player.disableGrim)
+                return; // Let's avoid letting people disable grim with grim.nomodifypackets
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            // Don't block teleport packets
+            if (player.packetStateData.lastPacketWasTeleport) return;
+
             // The player must obey setbacks
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
                 event.setCancelled(true);
@@ -48,9 +50,15 @@ public class SetbackBlocker extends GrimProcessor implements PacketReceiveListen
             if (player.compensatedEntities.self.isDead) {
                 event.setCancelled(true);
             }
-        }
+        }, FLYING_PACKETS);
 
-        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+        registry.registerReceiveHandler(event -> {
+            if (player.disableGrim)
+                return; // Let's avoid letting people disable grim with grim.nomodifypackets
+
+            // Don't block teleport packets
+            if (player.packetStateData.lastPacketWasTeleport) return;
+
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
                 event.setCancelled(true);
             }
@@ -69,6 +77,6 @@ public class SetbackBlocker extends GrimProcessor implements PacketReceiveListen
             if (player.compensatedEntities.self.isDead) {
                 event.setCancelled(true);
             }
-        }
+        }, PacketType.Play.Client.VEHICLE_MOVE);
     }
 }

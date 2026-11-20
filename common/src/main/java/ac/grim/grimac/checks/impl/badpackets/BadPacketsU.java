@@ -3,9 +3,9 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsU", stableKey = "grim.badpackets.invalid_block_placement", description = "Sent impossible use item packet")
-public class BadPacketsU extends Check implements PreViaPacketReceiveListener {
+public class BadPacketsU extends Check implements PacketListener {
     private static final Verbose V =
             Verbose.of("xyz={mcpos}, cursor={cursor}, item={bool}");
 
@@ -30,38 +30,39 @@ public class BadPacketsU extends Check implements PreViaPacketReceiveListener {
     }
 
     @Override
-    public void onPreViaPacketReceive(@NotNull PacketReceiveEvent event) {
-        if (event.getPacketType() != PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) return;
-        final WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
-        // face 255 is USE_ITEM for pre 1.9
-        if (packet.getFaceId() != 255) return;
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
+            final WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
+            // face 255 is USE_ITEM for pre 1.9
+            if (packet.getFaceId() != 255) return;
 
-        // This packet is always sent at (-1, -1, -1) at (0, 0, 0) on the block
-        // except y gets wrapped on 1.7
-        final int expectedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? -1 : 255;
+            // This packet is always sent at (-1, -1, -1) at (0, 0, 0) on the block
+            // except y gets wrapped on 1.7
+            final int expectedY = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? -1 : 255;
 
-        final boolean failedItemCheck = isEmpty(packet.getItemStack().orElse(null));
+            final boolean failedItemCheck = isEmpty(packet.getItemStack().orElse(null));
 
-        final Vector3i pos = packet.getBlockPosition();
-        final Vector3f cursor = packet.getCursorPosition();
+            final Vector3i pos = packet.getBlockPosition();
+            final Vector3f cursor = packet.getCursorPosition();
 
-        if (failedItemCheck
-                || pos.x != -1
-                || pos.y != expectedY
-                || pos.z != -1
-                || cursor.x != 0
-                || cursor.y != 0
-                || cursor.z != 0
-        ) {
-            var buf = V.write(verbose())
-                    .mcPos(pos.x, pos.y, pos.z)
-                    .cursor(cursor.x, cursor.y, cursor.z)
-                    .bool(!failedItemCheck);
-            if (flag(buf) && shouldModifyPackets()) {
-                player.onPacketCancel();
-                event.setCancelled(true);
+            if (failedItemCheck
+                    || pos.x != -1
+                    || pos.y != expectedY
+                    || pos.z != -1
+                    || cursor.x != 0
+                    || cursor.y != 0
+                    || cursor.z != 0
+            ) {
+                var buf = V.write(verbose())
+                        .mcPos(pos.x, pos.y, pos.z)
+                        .cursor(cursor.x, cursor.y, cursor.z)
+                        .bool(!failedItemCheck);
+                if (flag(buf) && shouldModifyPackets()) {
+                    player.onPacketCancel();
+                    event.setCancelled(true);
+                }
             }
-        }
+        }, PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT);
     }
 
     private static boolean isEmpty(ItemStack itemStack) {
