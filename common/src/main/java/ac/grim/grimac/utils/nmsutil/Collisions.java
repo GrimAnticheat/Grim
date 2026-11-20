@@ -554,11 +554,34 @@ public final class Collisions {
         }
     }
 
+    // Needs the tick end packet (1.21.2+ client and server), without it 0.03 hides ticks the slime slows.
+    // Riding isn't simulated either, the mob gets slowed and we only track the player here.
+    // 1.21.2-1.21.3 keep the lenience, through via they desync at teleports and it's what lets us catch back up on slime
+    public static boolean simulatesSlime(GrimPlayer player) {
+        return player.supportsEndTick() && !player.inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_4);
+    }
+
+    // Since 1.21.2 the block under you is stepped on after travel, not inside the move (#2706)
+    private static void stepOnSlime(GrimPlayer player) {
+        if (!simulatesSlime(player) || !player.onGround || player.isSneaking) return;
+
+        StateType on = BlockProperties.getOnPos(player, player.mainSupportingBlockData, new Vector3d(player.x, player.y, player.z));
+        if (on != StateTypes.SLIME_BLOCK) return;
+
+        double y = Math.abs(player.clientVelocity.getY());
+        if (y < 0.1) {
+            double slow = 0.4 + y * 0.2;
+            player.clientVelocity.multiply(slow, 1, slow);
+        }
+    }
+
     // Implementation of Collisions#handleInsideBlocks for >= 1.21.2
     public static void applyEffectsFromBlocks(GrimPlayer player) {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) {
             return;
         }
+
+        stepOnSlime(player);
 
         // Reset stuck speed so it can update
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
