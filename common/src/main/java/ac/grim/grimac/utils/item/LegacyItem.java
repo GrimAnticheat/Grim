@@ -88,12 +88,19 @@ public class LegacyItem extends ItemBehaviour {
         // Players in survival can't use a bow without an arrow
         // Crossbow charge checked previously
         if (material == ItemTypes.BOW || material == ItemTypes.CROSSBOW) {
-            // TODO: How do we lag compensate arrows? Mojang removed idle packet.
-            // I think we may have to cancel the bukkit event if the player isn't slowed
-            // On 1.8, it wouldn't be too bad to handle bows correctly
-            // But on 1.9+, no idle packet and clients/servers don't agree on bow status
-            // Mojang pls fix
-            return false;
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_21_2)) {
+                // TODO: How do we lag compensate arrows? Mojang removed idle packet.
+                // I think we may have to cancel the bukkit event if the player isn't slowed
+                // On 1.8, it wouldn't be too bad to handle bows correctly
+                // But on 1.9+, no idle packet and clients/servers don't agree on bow status
+                // Mojang pls fix
+                return false;
+            }else{
+                return player.gamemode == GameMode.CREATIVE ||
+                        player.inventory.hasItemType(ItemTypes.ARROW) ||
+                        player.inventory.hasItemType(ItemTypes.TIPPED_ARROW) ||
+                        player.inventory.hasItemType(ItemTypes.SPECTRAL_ARROW);
+            }
         }
 
         if (material == ItemTypes.SPYGLASS && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
