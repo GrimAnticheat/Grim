@@ -29,6 +29,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public class PredictionEngine {
+    // Y velocity going into this tick's move. Before 1.21.2 slow falling is picked against it, see PredictionEngineNormal#endOfTick
+    protected double preMoveY = Double.NaN;
 
     public static Vector3dm clampMovementToHardBorder(GrimPlayer player, Vector3dm outputVel) {
         // TODO: Reimplement
@@ -71,6 +73,7 @@ public class PredictionEngine {
 
         // Client velocity - before collision and carried into the next tick
         // Predicted velocity - after collision and not carried into the next tick
+        preMoveY = beforeCollisionMovement.getY();
         new MovementTickerPlayer(player).move(beforeCollisionMovement, player.predictedVelocity.vector);
         endOfTick(player, player.gravity);
     }
