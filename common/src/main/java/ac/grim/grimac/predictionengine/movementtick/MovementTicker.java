@@ -410,6 +410,13 @@ public class MovementTicker {
             return;
         }
 
+        // Bounce off the fall speed that was simulated. Lenience moves it towards the landing, which only says how far
+        // the player fell, so it can come out slower (head hit in a 2 high gap over slime, 0.03 of room on the landing tick)
+        VectorData preUncertainty = player.predictedVelocity.preUncertainty;
+        if (preUncertainty != null && preUncertainty.vector.getY() < currentY) {
+            currentY = preUncertainty.vector.getY();
+        }
+
         double restitution = blockRestitution;
         if (riding != null && !riding.isLivingEntity) {
             restitution *= 0.8F;
