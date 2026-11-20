@@ -29,5 +29,11 @@ public interface PacketListener {
             PacketType.Play.Client.PUNCH
     };
 
+    // please don't mutate this
+    @NotNull ServerBoundPacket @NotNull [] TRANSACTION_PACKETS = {
+            PacketType.Play.Client.PONG,
+            PacketType.Play.Client.WINDOW_CONFIRMATION
+    };
+
     void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry);
 }

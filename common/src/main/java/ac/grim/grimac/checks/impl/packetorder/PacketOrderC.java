@@ -4,19 +4,19 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "PacketOrderC", stableKey = "grim.packetorder.interact_order", description = "Sent INTERACT and INTERACT_AT entity packets in the wrong order")
-public class PacketOrderC extends Check implements PreViaPacketReceiveListener {
+public class PacketOrderC extends Check implements PacketListener {
     // Shape index == KIND_* constant value.
     private static final Verbose V = Verbose
             .of("Skipped Interact-At")
@@ -49,8 +49,8 @@ public class PacketOrderC extends Check implements PreViaPacketReceiveListener {
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
             final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
 
             final PacketEntity entity = player.compensatedEntities.entityMap.get(packet.getEntityId());
@@ -100,13 +100,13 @@ public class PacketOrderC extends Check implements PreViaPacketReceiveListener {
                     sentInteractAt = true;
                     break;
             }
-        }
+        }, PacketType.Play.Client.INTERACT_ENTITY);
 
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+        registry.registerPreViaReceiveHandler(event -> {
             if (sentInteractAt) {
                 sentInteractAt = false;
                 flag(writeKind(KIND_SKIPPED_INTERACT_TICK));
             }
-        }
+        }, FLYING_PACKETS);
     }
 }

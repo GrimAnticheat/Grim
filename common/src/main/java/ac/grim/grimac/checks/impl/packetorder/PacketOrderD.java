@@ -3,17 +3,18 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", description = "Sent offhand entity interaction before the matching mainhand interaction", experimental = true)
-public class PacketOrderD extends Check implements PreViaPacketReceiveListener {
+public class PacketOrderD extends Check implements PacketListener {
     private static final Verbose V = Verbose.of(
             "[Skipped Mainhand|requiredEntity={sint}, entity={sint}, requiredSneaking={bool}, sneaking={bool}]");
 
@@ -31,8 +32,8 @@ public class PacketOrderD extends Check implements PreViaPacketReceiveListener {
     private boolean requiredSneaking;
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
             final WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             InteractAction action = packet.getAction();
             if (action != InteractAction.ATTACK) {
@@ -74,10 +75,12 @@ public class PacketOrderD extends Check implements PreViaPacketReceiveListener {
                     sentMainhand = true;
                 }
             }
-        }
+        }, PacketType.Play.Client.INTERACT_ENTITY);
 
-        if (isTickPacket(event.getPacketType())) {
-            sentMainhand = false;
-        }
+        registry.registerPreViaReceiveHandler(event -> {
+            if (isTickPacket(event.getPacketType())) {
+                sentMainhand = false;
+            }
+        }, TICK_PACKET_CANDIDATES);
     }
 }

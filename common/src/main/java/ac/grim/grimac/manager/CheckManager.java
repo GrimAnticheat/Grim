@@ -77,12 +77,10 @@ public class CheckManager implements BasicReloadable {
     public final Collection<AbstractCheck> checks;
 
     private final PacketHandlerRegistry packetHandlerRegistry;
-    private final PreViaPacketReceiveListener[] preViaPacketReceiveListeners;
     private final PacketReceiveListener[] packetReceiveListeners;
     private final PositionListener[] positionListeners;
     private final RotationListener[] rotationListeners;
     private final VehicleListener[] vehicleListeners;
-    private final PrePredictionPacketReceiveListener[] prePredictionPacketReceiveListeners;
     private final BlockBreakListener[] blockBreakListeners;
     private final BlockPlaceListener[] blockPlaceListeners;
     private final PostFlyingBlockPlaceListener[] postFlyingBlockPlaceListeners;
@@ -255,9 +253,7 @@ public class CheckManager implements BasicReloadable {
 
         ArrayList<AbstractCheck> checks = new ArrayList<>();
         PacketHandlerRegistryBuilder packetHandlerRegistry = new PacketHandlerRegistryBuilder();
-        ArrayList<PreViaPacketReceiveListener> preViaPacketReceiveListeners = new ArrayList<>();
         ArrayList<PacketReceiveListener> packetReceiveListeners = new ArrayList<>();
-        ArrayList<PrePredictionPacketReceiveListener> prePredictionPacketReceiveListeners = new ArrayList<>();
         ArrayList<PositionListener> positionListeners = new ArrayList<>();
         ArrayList<RotationListener> rotationListeners = new ArrayList<>();
         ArrayList<VehicleListener> vehicleListeners = new ArrayList<>();
@@ -275,8 +271,6 @@ public class CheckManager implements BasicReloadable {
 
             if (processor instanceof PacketListener packetListener) packetListener.registerPacketHandlers(packetHandlerRegistry);
             if (processor instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
-            if (processor instanceof PrePredictionPacketReceiveListener prePredictionPacketReceiveListener) prePredictionPacketReceiveListeners.add(prePredictionPacketReceiveListener);
-            if (processor instanceof PreViaPacketReceiveListener preViaPacketReceiveListener) preViaPacketReceiveListeners.add(preViaPacketReceiveListener);
             if (processor instanceof PositionListener positionListener) positionListeners.add(positionListener);
             if (processor instanceof RotationListener rotationListener) rotationListeners.add(rotationListener);
             if (processor instanceof VehicleListener vehicleListener) vehicleListeners.add(vehicleListener);
@@ -290,9 +284,7 @@ public class CheckManager implements BasicReloadable {
         checks.trimToSize();
         this.checks = Collections.unmodifiableCollection(checks);
         this.packetHandlerRegistry = packetHandlerRegistry.build();
-        this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
         this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
-        this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
         this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
         this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);
         this.vehicleListeners = vehicleListeners.toArray(new VehicleListener[vehicleListeners.size()]);
@@ -330,9 +322,6 @@ public class CheckManager implements BasicReloadable {
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
         packetHandlerRegistry.handlePrePredictionReceive(packet);
-        for (PrePredictionPacketReceiveListener check : prePredictionPacketReceiveListeners) {
-            check.onPrePredictionPacketReceive(packet);
-        }
     }
 
     public void onPacketReceive(final PacketReceiveEvent packet) {
@@ -344,9 +333,6 @@ public class CheckManager implements BasicReloadable {
 
     public void onPreViaPacketReceive(final PacketReceiveEvent packet) {
         packetHandlerRegistry.handlePreViaReceive(packet);
-        for (PreViaPacketReceiveListener check : preViaPacketReceiveListeners) {
-            check.onPreViaPacketReceive(packet);
-        }
     }
 
     public void onPacketSend(final PacketSendEvent packet) {

@@ -3,7 +3,8 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -14,9 +15,10 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAnimation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "PacketOrderB", stableKey = "grim.packetorder.noswing", description = "Did not swing for attack")
-public class PacketOrderB extends Check implements PreViaPacketReceiveListener {
+public class PacketOrderB extends Check implements PacketListener {
     private static final Verbose V = Verbose.of("[pre-attack|post-attack]");
 
     // 1.9 packet order: INTERACT -> ANIMATION
@@ -32,47 +34,49 @@ public class PacketOrderB extends Check implements PreViaPacketReceiveListener {
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (isAnimation(event.getPacketType()) && (event.getPacketType() == PacketType.Play.Client.PUNCH
-                || new WrapperPlayClientAnimation(event).getHand() == InteractionHand.MAIN_HAND)) {
-            sentAnimationSinceLastAttack = sentAnimation = true;
-            sentAttack = sentSlotSwitch = false;
-            return;
-        }
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
+            if (isAnimation(event.getPacketType()) && (event.getPacketType() == PacketType.Play.Client.PUNCH
+                    || new WrapperPlayClientAnimation(event).getHand() == InteractionHand.MAIN_HAND)) {
+                sentAnimationSinceLastAttack = sentAnimation = true;
+                sentAttack = sentSlotSwitch = false;
+                return;
+            }
 
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-            if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+            if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+                WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
+                if (packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+                    onAttack(event);
+                    return;
+                }
+            }
+
+            if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
                 onAttack(event);
                 return;
             }
-        }
 
-        if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
-            onAttack(event);
-            return;
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
-            WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
-            if (packet.getAction() == DiggingAction.STAB && player.getClientVersion().isOlderThan(ClientVersion.V_26_3)) {
-                onAttack(event);
-                return;
-            }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE && !is1_9 && !sentSlotSwitch) {
-            sentSlotSwitch = true;
-            return; // do not set sentAnimation to false
-        }
-
-        if (!isAsync(event.getPacketType())) {
-            if (sentAttack && is1_9) {
-                flag(V.write(verbose()).bool(false));
+            if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+                WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
+                if (packet.getAction() == DiggingAction.STAB && player.getClientVersion().isOlderThan(ClientVersion.V_26_3)) {
+                    onAttack(event);
+                    return;
+                }
             }
 
-            sentAttack = sentAnimation = sentSlotSwitch = false;
-        }
+            if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE && !is1_9 && !sentSlotSwitch) {
+                sentSlotSwitch = true;
+                return; // do not set sentAnimation to false
+            }
+
+            if (!isAsync(event.getPacketType())) {
+                if (sentAttack && is1_9) {
+                    flag(V.write(verbose()).bool(false));
+                }
+
+                sentAttack = sentAnimation = sentSlotSwitch = false;
+            }
+        });
     }
 
     private void onAttack(PacketReceiveEvent event) {
