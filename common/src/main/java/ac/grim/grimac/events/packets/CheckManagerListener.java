@@ -525,6 +525,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE && player.inVehicle()) {
+            player.vehicleData.lastDriveVehicle = player.getRidingVehicleId();
+            player.vehicleData.lastDriveNanos = System.nanoTime();
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
             Vector3d position = move.getPosition();
 
@@ -542,6 +544,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), move.isOnGround(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
+            if (player.vehicleData.swallowMove) event.setCancelled(true);
 
             player.packetStateData.receivedSteerVehicle = false;
         }
