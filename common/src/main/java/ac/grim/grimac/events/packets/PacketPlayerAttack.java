@@ -79,6 +79,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             if (player == null) return;
 
             WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
+            if (!packet.hasEntityId()) return;
             onAttack(event, player, packet.getEntityId());
         }
     }
