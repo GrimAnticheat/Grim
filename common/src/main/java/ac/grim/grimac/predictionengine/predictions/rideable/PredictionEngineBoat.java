@@ -175,7 +175,7 @@ public class PredictionEngineBoat extends PredictionEngine {
     private void addStuckSpeedResults(GrimPlayer player, List<VectorData> vectors, VectorData result) {
         if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
             // only simulate no stuck speed if player is leaving
-            if (player.uncertaintyHandler.stuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
+            if (player.uncertaintyHandler.minimumStuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
                 addStuckSpeedResult(vectors, result, null);
             addStuckSpeedResult(vectors, result, player.stuckSpeedMultiplier);
             addPossibleStuckSpeedResults(player, vectors, result);

@@ -477,6 +477,7 @@ public class MovementCheckRunner extends GrimProcessor {
 
         player.uncertaintyHandler.shouldSimulateStuckSpeed = hasDifferentStuckSpeeds || hasMultipleStuckSpeeds || lastStuckSpeedNotIncluded;
         player.uncertaintyHandler.stuckSpeedMultiplierMask = maxStuckSpeed;
+        player.uncertaintyHandler.minimumStuckSpeedMultiplierMask = minStuckSpeed;
 
         if (couldBeStuckSpeed) {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
@@ -664,6 +665,7 @@ public class MovementCheckRunner extends GrimProcessor {
                 ((player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement())
                         || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain());
 
+        player.uncertaintyHandler.couldHaveHiddenStuckReset = !player.inVehicle() && player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && stuckSpeed.getIndex() != player.predictedVelocity.stuckSpeedMultiplier.getIndex();
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
         player.uncertaintyHandler.onGroundUncertain = false;
 
