@@ -230,6 +230,7 @@ public class GrimPlayer implements GrimUser {
     // Keep track of basetick stuff
     public final @NotNull Vector3dm baseTickAddition = new Vector3dm();
     public final @NotNull Vector3dm baseTickWaterPushing = new Vector3dm();
+    public final @NotNull Vector3dm baseTickApplied = new Vector3dm();
     public @NotNull Vector3dm startTickClientVel = new Vector3dm();
     public @Nullable VelocityData firstBreadKB;
     public @Nullable VelocityData likelyKB;
@@ -376,6 +377,7 @@ public class GrimPlayer implements GrimUser {
                 PotentSulfurGeyser.launchEntityTicker(this, vector, false);
             }
 
+            vector.setY(vector.getY() + baseTickApplied.getY());
             possibleMovements.add(new VectorData(vector, VectorData.VectorType.Swimhop));
         }
 
@@ -387,7 +389,17 @@ public class GrimPlayer implements GrimUser {
         }
 
         if (lastWasClimbing != 0) {
-            possibleMovements.add(new VectorData(clientVelocity.clone().setY(lastWasClimbing + baseTickAddition.getY()), VectorData.VectorType.Climbable));
+            Vector3dm vector = clientVelocity.clone().setY(lastWasClimbing);
+            if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) {
+                Collisions.resolveBlockEffects(this, vector, true, finalMovementsThisTick);
+            }
+
+            if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2)) {
+                PotentSulfurGeyser.launchEntityTicker(this, vector, false);
+            }
+
+            vector.setY(vector.getY() + baseTickApplied.getY());
+            possibleMovements.add(new VectorData(vector, VectorData.VectorType.Climbable));
         }
 
         // Knockback takes precedence over piston pushing in my testing
@@ -461,6 +473,7 @@ public class GrimPlayer implements GrimUser {
 
     public void baseTickAddVector(double x, double y, double z) {
         clientVelocity.add(x, y, z);
+        baseTickApplied.add(x, y, z);
     }
 
     public void trackBaseTickAddition(@NotNull Vector3dm vector) {
