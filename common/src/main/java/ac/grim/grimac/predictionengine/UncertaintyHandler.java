@@ -260,7 +260,10 @@ public class UncertaintyHandler {
 
     public double getVerticalOffset(VectorData data) {
         // We don't know if the player was pressing jump or not
-        if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))
+        // In water and lava the jump key adds 0.04 even in the air. On the tick the player lands on a bouncy block both
+        // movements end on the block, but the bounce carries the difference into the next tick. That tick starts on the
+        // block (isSteppingOnBouncyBlock), however far above it the landing tick started.
+        if (influencedByBouncyBlock() && (player.wasTouchingWater || player.wasTouchingLava))
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
