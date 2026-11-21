@@ -319,6 +319,7 @@ public class PredictionEngine {
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
         // Swim hop, riptide bounce, climbing, slime block bounces, knockback
         Set<VectorData> velocities = player.getPossibleVelocities();
+        addHiddenStuckResetToPossibilities(player, velocities);
         // Packet stuff is done first
         addExplosionToPossibilities(player, velocities);
 
@@ -339,6 +340,18 @@ public class PredictionEngine {
         addJumpsToPossibilities(player, velocities);
 
         return velocities;
+    }
+
+    // Stuck speed resets velocity to zero. If that happened in a hidden 0.03 tick, the player starts this tick
+    // from zero velocity after one or two ticks of gravity instead of the velocity we simulated
+    private void addHiddenStuckResetToPossibilities(GrimPlayer player, Set<VectorData> velocities) {
+        if (!player.uncertaintyHandler.couldHaveHiddenStuckReset) return;
+
+        Vector3dm reset = new Vector3dm();
+        for (int ticks = 0; ticks < 2; ticks++) {
+            PredictionEngineNormal.staticVectorEndOfTick(player, reset);
+            velocities.add(new VectorData(reset.clone(), VectorData.VectorType.Lenience));
+        }
     }
 
     private void addNonEffectiveAI(GrimPlayer player, Set<VectorData> data) {
@@ -542,6 +555,11 @@ public class PredictionEngine {
 
         Vector3dm min = new Vector3dm(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
         Vector3dm max = new Vector3dm(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty, player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
+
+        // Stuck speed resets velocity every tick, so hidden ticks only move by scaled gravity
+        if (player.uncertaintyHandler.isCertainlyStuckVertically(vector) && !player.lastOnGround && !player.uncertaintyHandler.onGroundUncertain && !player.uncertaintyHandler.lastPacketWasGroundPacket) {
+            uncertainty.setY(0);
+        }
 
         Vector3dm minVector = vector.vector.clone().add(min.subtract(uncertainty));
         Vector3dm maxVector = vector.vector.clone().add(max.add(uncertainty));
@@ -789,7 +807,7 @@ public class PredictionEngine {
 
                             if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
                                 // only simulate no stuck speed if player is leaving
-                                if (player.uncertaintyHandler.stuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
+                                if (player.uncertaintyHandler.minimumStuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
                                     addStuckSpeedResult(player, returnVectors, result, null, loopUsingItem == 1);
                                 addStuckSpeedResult(player, returnVectors, result, player.stuckSpeedMultiplier, loopUsingItem == 1);
                                 addPossibleStuckSpeedResults(player, returnVectors, result, loopUsingItem == 1);
