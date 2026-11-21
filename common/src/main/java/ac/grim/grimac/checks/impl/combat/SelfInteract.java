@@ -30,6 +30,7 @@ public class SelfInteract extends Check implements PreViaPacketReceiveListener {
 
         if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
             WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
+            if (!packet.hasEntityId()) return;
             onInteract(event, packet.getEntityId());
         }
     }
