@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.packetorder;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -11,9 +12,10 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "PacketOrderD", stableKey = "grim.packetorder.interact_hand_order", description = "Sent offhand entity interaction before the matching mainhand interaction", experimental = true)
-public class PacketOrderD extends Check implements PreViaPacketReceiveListener {
+public class PacketOrderD extends Check implements PreViaPacketReceiveListener, PacketReceiveListener {
     private static final Verbose V = Verbose.of(
             "[Skipped Mainhand|requiredEntity={sint}, entity={sint}, requiredSneaking={bool}, sneaking={bool}]");
 
@@ -29,6 +31,14 @@ public class PacketOrderD extends Check implements PreViaPacketReceiveListener {
     private boolean sentMainhand;
     private int requiredEntity;
     private boolean requiredSneaking;
+
+    @Override
+    public void onPacketReceive(@NotNull PacketReceiveEvent event) {
+        // cannot be pre-via because teleports and duplicates are calculated post-via
+        if (isTickPacket(event.getPacketType())) {
+            sentMainhand = false;
+        }
+    }
 
     @Override
     public void onPreViaPacketReceive(PacketReceiveEvent event) {
@@ -74,10 +84,6 @@ public class PacketOrderD extends Check implements PreViaPacketReceiveListener {
                     sentMainhand = true;
                 }
             }
-        }
-
-        if (isTickPacket(event.getPacketType())) {
-            sentMainhand = false;
         }
     }
 }
