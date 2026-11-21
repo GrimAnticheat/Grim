@@ -3,17 +3,12 @@ package ac.grim.grimac.checks.impl.misc;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketReceiveListener;
-import ac.grim.grimac.checks.type.PacketSendListener;
-import ac.grim.grimac.checks.type.PostPredictionListener;
-import ac.grim.grimac.checks.type.PostPredictionListener;
+import ac.grim.grimac.checks.type.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -27,7 +22,7 @@ import java.util.Locale;
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post", stableKey = "grim.post.invalid_order", description = "Sent packets out of the expected movement tick order")
-public class Post extends Check implements PacketReceiveListener, PacketSendListener, PostPredictionListener {
+public class Post extends Check implements PreViaPacketReceiveListener, PacketReceiveListener, PreViaPacketSendListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("{str}");
 
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
@@ -60,7 +55,7 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    public void onPreViaPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
             WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
             if (animation.getEntityId() == player.entityID) {
@@ -74,12 +69,15 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
+        // this can't be pre-via because teleports and duplicates are calculated post-via
         if (isTickPacket(event.getPacketType())) { // Don't count teleports or duplicates as movements
             post.clear();
             sentFlying = true;
-            return;
         }
+    }
 
+    @Override
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
         PacketTypeCommon packetType = event.getPacketType();
         if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
@@ -105,19 +103,18 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
             // Why do 1.13+ players send the click window packet whenever? This doesn't make sense.
             post.add(event.getPacketType());
         } else if (ANIMATION.equals(packetType)
-                && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaVersion delays animations for 1.8 clients
-                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) // when on 1.9+ servers
                 && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) // 1.13 clicking inventory causes weird animations
                 && isExemptFromSwingingCheck < player.lastTransactionReceived.get()) { // Exempt when the server sends animations because viaversion
             post.add(event.getPacketType());
-        } else if (ENTITY_ACTION.equals(packetType) // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
-                && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)) {
+        } else if (ENTITY_ACTION.equals(packetType)) {
             // https://github.com/GrimAnticheat/Grim/issues/824
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) && player.inVehicle()) {
                 return;
             }
+
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.LEAVE_BED)
                 return;
+
             post.add(event.getPacketType());
         }
     }
