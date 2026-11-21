@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
@@ -94,8 +95,11 @@ public class PredictionEngineWater extends PredictionEngine {
     public void endOfTick(GrimPlayer player, double playerGravity) {
         super.endOfTick(player, playerGravity);
 
+        // Vanilla's fluid travel picks falling and slow falling before the move, from the Y going into it, on every version
+        boolean falling = player.preMoveY <= 0;
+        double gravity = BlockProperties.getEffectiveGravity(player, player.preMoveY);
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);
+            staticVectorEndOfTick(player, vector.vector, swimmingFriction, gravity, falling);
         }
     }
 

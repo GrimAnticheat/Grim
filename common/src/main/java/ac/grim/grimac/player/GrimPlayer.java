@@ -231,6 +231,9 @@ public class GrimPlayer implements GrimUser {
     public final @NotNull Vector3dm baseTickAddition = new Vector3dm();
     public final @NotNull Vector3dm baseTickWaterPushing = new Vector3dm();
     public @NotNull Vector3dm startTickClientVel = new Vector3dm();
+    // Y velocity going into this tick's move, from the prediction that was picked. Fluids pick falling and slow falling
+    // against it on every version, the air does before 1.21.2
+    public double preMoveY = Double.NaN;
     public @Nullable VelocityData firstBreadKB;
     public @Nullable VelocityData likelyKB;
     public @Nullable VelocityData firstBreadExplosion;

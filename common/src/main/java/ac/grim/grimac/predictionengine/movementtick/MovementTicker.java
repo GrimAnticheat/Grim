@@ -479,6 +479,9 @@ public class MovementTicker {
 
             player.friction = swimFriction; // Not vanilla, just useful for other grim stuff
             doWaterMove(swimSpeed, isFalling, swimFriction);
+            // The move is picked now, so falling and slow falling go by the Y going into it, like vanilla's fluid travel
+            isFalling = player.preMoveY <= 0;
+            playerGravity = BlockProperties.getEffectiveGravity(player, player.preMoveY);
 
             player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
 
@@ -495,6 +498,8 @@ public class MovementTicker {
                 player.friction = 0.5F; // Not vanilla, just useful for other grim stuff
 
                 doLavaMove();
+                isFalling = player.preMoveY <= 0;
+                playerGravity = BlockProperties.getEffectiveGravity(player, player.preMoveY);
 
                 // Lava movement changed in 1.16
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getFluidHeight(FluidTag.LAVA) <= 0.4D) {

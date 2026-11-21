@@ -29,8 +29,6 @@ import java.util.Objects;
 import java.util.Set;
 
 public class PredictionEngine {
-    // Y velocity going into this tick's move. Before 1.21.2 slow falling is picked against it, see PredictionEngineNormal#endOfTick
-    protected double preMoveY = Double.NaN;
 
     public static Vector3dm clampMovementToHardBorder(GrimPlayer player, Vector3dm outputVel) {
         // TODO: Reimplement
@@ -73,7 +71,7 @@ public class PredictionEngine {
 
         // Client velocity - before collision and carried into the next tick
         // Predicted velocity - after collision and not carried into the next tick
-        preMoveY = beforeCollisionMovement.getY();
+        player.preMoveY = beforeCollisionMovement.getY();
         new MovementTickerPlayer(player).move(beforeCollisionMovement, player.predictedVelocity.vector);
         endOfTick(player, player.gravity);
     }
@@ -272,9 +270,10 @@ public class PredictionEngine {
         if (player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
 
-            // Calculate the Y velocity after friction
+            // Calculate the Y velocity after friction. Slow falling goes by the Y before climbing sets 0.2, like the climb in
+            // PredictionEngineNormal#endOfTick
             Vector3dm hackyClimbVector = new Vector3dm(0, 0.2, 0);
-            PredictionEngineNormal.staticVectorEndOfTick(player, hackyClimbVector);
+            PredictionEngineNormal.staticVectorEndOfTick(player, hackyClimbVector, player.clientVelocity.getY());
 
             pointThreePossibilities.add(new VectorData(hackyClimbVector, VectorData.VectorType.ZeroPointZeroThree));
         }
