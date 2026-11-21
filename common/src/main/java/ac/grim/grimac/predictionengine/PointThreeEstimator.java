@@ -448,6 +448,10 @@ public class PointThreeEstimator {
         // The player couldn't have skipped their Y tick here... no point to simulate (and stop a bypass)
         if (!vector.isZeroPointZeroThree()) return 0;
 
+        // Stuck speed resets velocity every tick, so each hidden tick starts from zero and its movement is scaled
+        boolean stuck = player.uncertaintyHandler.isCertainlyStuckVertically(vector);
+        double stuckY = stuck ? vector.stuckSpeedMultiplier.getY() : 1;
+
         double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.003 : 0.005;
 
         // This should likely be refactored, but it works well.
@@ -460,7 +464,7 @@ public class PointThreeEstimator {
 
             // Don't add the first vector to the movement.  We already counted it.
             if (!first) {
-                maxYTraveled += yVel;
+                maxYTraveled += yVel * stuckY;
             }
 
             // Support for custom gravity, this means we aren't making progress
@@ -474,7 +478,7 @@ public class PointThreeEstimator {
             first = false;
 
             // Simulate end of tick vector
-            yVel = iterateGravity(player, yVel);
+            yVel = iterateGravity(player, stuck ? 0 : yVel);
 
             // We aren't making progress, avoid infinite loop (This can be due to the player not having gravity)
             if (yVel == 0) break;

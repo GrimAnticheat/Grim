@@ -62,6 +62,7 @@ public class UncertaintyHandler {
     public boolean isOrWasNearGlitchyBlock = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
+    public boolean couldHaveHiddenStuckReset = false;
     // Give horizontal lenience if the last movement reset velocity because 0.03 becomes unknown then
     public boolean lastMovementWasUnknown003VectorReset = false;
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
@@ -212,6 +213,14 @@ public class UncertaintyHandler {
         fireworksBox = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
+    public boolean isCertainlyStuck(VectorData data) {
+        return player.isForceStuckSpeed() && !player.inVehicle() && minimumStuckSpeedMultiplierMask != StuckSpeed.NONE.getIndex() && data.stuckSpeedMultiplier != StuckSpeed.NONE;
+    }
+
+    public boolean isCertainlyStuckVertically(VectorData data) {
+        return isCertainlyStuck(data) && data.stuckSpeedMultiplier.getY() < 1 && !player.pointThreeEstimator.controlsVerticalMovement() && player.pointThreeEstimator.canPredictNextVerticalMovement();
+    }
+
     public double getOffsetHorizontal(VectorData data) {
         double threshold = player.getMovementThreshold();
 
@@ -245,6 +254,11 @@ public class UncertaintyHandler {
         // Friction while gliding is 0.99 horizontally
         if (either003 && (player.isGliding || player.wasGliding)) {
             pointThree = (0.99 * (threshold * 2)) + threshold;
+        }
+
+        // Stuck speed resets velocity every tick, so only the hidden position change is unknown
+        if (explicit003 && isCertainlyStuck(data)) {
+            pointThree = Math.min(pointThree, threshold);
         }
 
         return pointThree;
