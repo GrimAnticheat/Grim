@@ -47,6 +47,7 @@ public final class PlayerBaseTick {
         // Keep track of basetick stuff
         player.baseTickAddition.zero();
         player.baseTickWaterPushing.zero();
+        player.baseTickApplied.zero();
 
         if (player.isFlying && player.isSneaking && !player.inVehicle()) {
             double flyingShift = player.flySpeed * -3;
