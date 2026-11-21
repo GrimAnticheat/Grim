@@ -161,6 +161,12 @@ VehicleTimer:
     # Цель 1.005 таймер
     setbackvl: 10
 
+FastBreak:
+    # Сколько миллисекунд преимущества от слишком быстрого ломания блоков допускается до пометки
+    break-threshold: 1000
+    # Сколько миллисекунд преимущества от слишком раннего начала ломания блока после предыдущего допускается до пометки
+    delay-threshold: 1000
+
 PacketOrderI:
     # Включить, если игроки помечаются из-за использования модов анимации 1.7
     exempt-placing-while-digging: false
@@ -194,6 +200,9 @@ debug-pipeline-on-join: false
 
 # Включает экспериментальные проверки
 experimental-checks: false
+
+# Совместное использование одинаковых секций чанков между игроками для экономии памяти (копирование при записи).
+experimental-chunk-sharing: false
 
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true

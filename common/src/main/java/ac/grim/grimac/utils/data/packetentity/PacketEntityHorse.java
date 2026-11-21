@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.attribute.ValuedAttribute;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -134,7 +133,7 @@ public class PacketEntityHorse extends PacketEntityTrackXRot implements Jumpable
         for (VectorData vectorData : possibleVectors) {
             vectorData.vector.setY(jumpVelocity);
             if (forwardInput > 0.0F) {
-                vectorData.vector.add(new Vector3dm(-0.4F * f2 * this.getJumpPower(), 0.0D, 0.4F * f3 * this.getJumpPower()));
+                vectorData.vector.add(-0.4F * f2 * this.getJumpPower(), 0.0D, 0.4F * f3 * this.getJumpPower());
             }
         }
 

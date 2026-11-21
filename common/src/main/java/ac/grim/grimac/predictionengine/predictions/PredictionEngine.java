@@ -97,10 +97,11 @@ public class PredictionEngine {
 
         player.skippedTickInActualMovement = false;
 
+        float stepUpHeight = player.getMaxUpStep();
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector3dm primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
 
-            Vector3dm bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
+            Vector3dm bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(stepUpHeight, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
             // This is quite a good optimization :)
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion()) {
@@ -598,7 +599,8 @@ public class PredictionEngine {
         }
 
         // Hidden slime block bounces by missing idle tick and 0.03
-        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
+        // Not for ridden mobs, they move every tick so the bounce is never hidden
+        if (player.uncertaintyHandler.influencedByBouncyBlock() && !(player.inVehicle() && player.compensatedEntities.self.getRiding().isLivingEntity)) {
             if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty != 0 && !vector.isJump()) { // jumping overrides slime block
                 if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty > maxVector.getY()) {
                     maxVector.setY(player.uncertaintyHandler.thisTickSlimeBlockUncertainty);
@@ -700,7 +702,7 @@ public class PredictionEngine {
         // TODO: Attempt to fix mojang's netcode here
         if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(1)) {
             float airDrag = BlockProperties.getModifiedAirDrag(0.91F, player);
-            double trueFriction = player.lastOnGround ? player.friction * airDrag : airDrag;
+            double trueFriction = player.lastOnGround ? player.friction : airDrag;
             if (player.wasTouchingLava) trueFriction = 0.5;
             if (player.wasTouchingWater) trueFriction = 0.96;
 
@@ -753,7 +755,7 @@ public class PredictionEngine {
         int strafeMax = 1;
 
         // Calculate inputs by the players known inputs on 1.21.2+
-        if (player.supportsEndTick()) {
+        if (player.supportsEndTickPreVia()) {
             forwardMin = forwardMax = strafeMin = strafeMax = 0;
 
             final KnownInput knownInput = player.packetStateData.knownInput;

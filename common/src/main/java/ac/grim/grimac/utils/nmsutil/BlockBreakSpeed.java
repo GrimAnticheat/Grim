@@ -59,6 +59,16 @@ public class BlockBreakSpeed {
             StateTypes.VAULT
     );
 
+    // the infested blocks that exist on 1.16.5 and below, see getBlockDamage
+    private static final Set<StateType> OLD_INFESTED_BLOCKS = Sets.newHashSet(
+            StateTypes.INFESTED_STONE,
+            StateTypes.INFESTED_COBBLESTONE,
+            StateTypes.INFESTED_STONE_BRICKS,
+            StateTypes.INFESTED_MOSSY_STONE_BRICKS,
+            StateTypes.INFESTED_CRACKED_STONE_BRICKS,
+            StateTypes.INFESTED_CHISELED_STONE_BRICKS
+    );
+
     private static final boolean SERVER_USES_COMPONENTS_AND_RULES = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_5);
 
     record ToolSpeedData(float speedMultiplier, boolean isCorrectToolForDrop) {}
@@ -102,6 +112,21 @@ public class BlockBreakSpeed {
         // 1.15.2 and below need this hack
         if ((block == StateTypes.PISTON || block == StateTypes.PISTON_HEAD || block == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2)) {
             blockHardness = 0.5f;
+        }
+
+        // 1.14.4 and below have end stone bricks at 0.8, same for the stairs, slab and wall 1.14 added. 1.15 changed all of them to 3
+        if ((block == StateTypes.END_STONE_BRICKS || block == StateTypes.END_STONE_BRICK_STAIRS || block == StateTypes.END_STONE_BRICK_SLAB
+                || block == StateTypes.END_STONE_BRICK_WALL) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)) {
+            blockHardness = 0.8f;
+        }
+
+        // Infested blocks broke instantly on 1.13 - 1.16.5 and were all 0.75 before that, 1.17 gave them half the hardness of the block they look like
+        if (OLD_INFESTED_BLOCKS.contains(block)) {
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+                blockHardness = 0.75f;
+            } else if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
+                blockHardness = 0;
+            }
         }
 
         if (blockHardness == -1) return 0; // Unbreakable block

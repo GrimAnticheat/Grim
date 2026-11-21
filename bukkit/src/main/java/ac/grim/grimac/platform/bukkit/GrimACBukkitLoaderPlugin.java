@@ -24,7 +24,6 @@ import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
-import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
 import ac.grim.grimac.platform.bukkit.initables.BukkitLuckPermsInitable;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
 import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
@@ -85,7 +84,6 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private Initable[] getBukkitInitTasks() {
         return new Initable[] {
                 new ExemptOnlinePlayersOnReload(),
-                new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),
                 new BukkitLuckPermsInitable(),
