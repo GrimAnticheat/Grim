@@ -76,7 +76,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             onAttack(event, player, packet.getEntityId());
         } else if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+            if (player == null || player.gamemode != GameMode.SPECTATOR) return;
 
             WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
             if (!packet.hasEntityId()) return;
