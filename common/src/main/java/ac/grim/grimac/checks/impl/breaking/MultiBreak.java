@@ -4,22 +4,23 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.BlockBreakListener;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3i;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", description = "Tried to break multiple different blocks in the same movement tick", experimental = true)
-public class MultiBreak extends Check implements BlockBreakListener, PreViaPacketReceiveListener, PostPredictionListener {
+public class MultiBreak extends Check implements BlockBreakListener, PacketListener, PostPredictionListener {
     private static final Verbose V =
             Verbose.of("face={face}, lastFace={face}, pos={mcpos}, lastPos={mcpos}");
 
@@ -59,10 +60,12 @@ public class MultiBreak extends Check implements BlockBreakListener, PreViaPacke
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
-            hasBroken = false;
-        }
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
+            if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
+                hasBroken = false;
+            }
+        });
     }
 
     @Override

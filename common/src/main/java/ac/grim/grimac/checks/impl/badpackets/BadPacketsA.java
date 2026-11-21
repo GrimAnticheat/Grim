@@ -3,14 +3,15 @@ package ac.grim.grimac.checks.impl.badpackets;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "BadPacketsA", stableKey = "grim.badpackets.duplicate_slot", description = "Sent duplicate slot id")
-public class BadPacketsA extends Check implements PreViaPacketReceiveListener {
+public class BadPacketsA extends Check implements PacketListener {
     private static final Verbose V = Verbose.of("slot={sint}");
 
     private int lastSlot = -1;
@@ -20,8 +21,8 @@ public class BadPacketsA extends Check implements PreViaPacketReceiveListener {
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
             final int slot = new WrapperPlayClientHeldItemChange(event).getSlot();
 
             if (slot == lastSlot && flag(V.write(verbose()).sint(slot)) && shouldModifyPackets()) {
@@ -30,6 +31,6 @@ public class BadPacketsA extends Check implements PreViaPacketReceiveListener {
             }
 
             lastSlot = slot;
-        }
+        }, PacketType.Play.Client.HELD_ITEM_CHANGE);
     }
 }

@@ -4,7 +4,8 @@ import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -12,7 +13,6 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -31,7 +31,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 @CheckData(name = "AntiExplosion", stableKey = "grim.velocity.anti_explosion", configName = "Explosion", description = "Did not take the expected explosion knockback", setback = 10)
-public class ExplosionHandler extends Check implements PacketSendListener, PostPredictionListener {
+public class ExplosionHandler extends Check implements PacketListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("[ignored explosion|o: {offset}]");
 
     private final Deque<VelocityData> firstBreadMap = new LinkedList<>();
@@ -49,8 +49,8 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerSendHandler(event -> {
             WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
             // Since 1.21.2, the server will instead send these changes via block change packets
@@ -66,7 +66,7 @@ public class ExplosionHandler extends Check implements PacketSendListener, PostP
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
                 event.getTasksAfterSend().add(player::sendTransaction);
             }
-        }
+        }, PacketType.Play.Server.EXPLOSION);
     }
 
     private void handleBlockExplosions(WrapperPlayServerExplosion explosion) {

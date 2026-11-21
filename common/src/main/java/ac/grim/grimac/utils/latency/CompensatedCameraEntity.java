@@ -1,18 +1,19 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.GrimProcessor;
-import ac.grim.grimac.checks.type.PreViaPacketSendListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCamera;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompensatedCameraEntity extends GrimProcessor implements PreViaPacketSendListener {
+public class CompensatedCameraEntity extends GrimProcessor implements PacketListener {
     private final ArrayDeque<PacketEntity> entities = new ArrayDeque<>(1);
 
     public CompensatedCameraEntity(GrimPlayer player) {
@@ -21,27 +22,28 @@ public class CompensatedCameraEntity extends GrimProcessor implements PreViaPack
     }
 
     @Override
-    public void onPreViaPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() != PacketType.Play.Server.CAMERA) return;
-        int camera = new WrapperPlayServerCamera(event).getCameraId();
-        player.sendTransaction();
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaSendHandler(event -> {
+            int camera = new WrapperPlayServerCamera(event).getCameraId();
+            player.sendTransaction();
 
-        player.addRealTimeTaskNow(() -> {
-            PacketEntity entity = player.compensatedEntities.getEntity(camera);
-            if (entity != null) {
-                entities.add(entity);
-            }
-        });
+            player.addRealTimeTaskNow(() -> {
+                PacketEntity entity = player.compensatedEntities.getEntity(camera);
+                if (entity != null) {
+                    entities.add(entity);
+                }
+            });
 
-        player.addRealTimeTaskNext(() -> {
-            while (entities.size() > 1) {
-                entities.poll();
-            }
+            player.addRealTimeTaskNext(() -> {
+                while (entities.size() > 1) {
+                    entities.poll();
+                }
 
-            if (entities.isEmpty()) {
-                entities.add(player.compensatedEntities.self);
-            }
-        });
+                if (entities.isEmpty()) {
+                    entities.add(player.compensatedEntities.self);
+                }
+            });
+        }, PacketType.Play.Server.CAMERA);
     }
 
     public boolean isSelf() {

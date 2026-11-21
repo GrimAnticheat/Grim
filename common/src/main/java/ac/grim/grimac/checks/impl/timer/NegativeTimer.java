@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.impl.timer;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "NegativeTimer", stableKey = "grim.timer.negative", description = "Sent movement packets slower than the expected client tick rate", setback = -1, experimental = true)
-public class NegativeTimer extends Timer implements PacketReceiveListener, PostPredictionListener {
+public class NegativeTimer extends Timer implements PostPredictionListener {
     private static final Verbose V = Verbose.of("-{ulong}ms");
 
     public NegativeTimer(GrimPlayer player) {
@@ -20,13 +20,9 @@ public class NegativeTimer extends Timer implements PacketReceiveListener, PostP
     }
 
     @Override
-    public void onPrePredictionPacketReceive(PacketReceiveEvent event) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
         // NegativeTimer runs the inherited timer processing during normal packet dispatch.
-    }
-
-    @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        super.onPrePredictionPacketReceive(event);
+        registry.registerReceiveHandler(this::onPacketReceive);
     }
 
     @Override

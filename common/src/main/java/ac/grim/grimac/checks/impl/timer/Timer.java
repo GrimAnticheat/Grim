@@ -3,15 +3,15 @@ package ac.grim.grimac.checks.impl.timer;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PrePredictionPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "Timer", stableKey = "grim.timer.timer", configName = "TimerA", description = "The players game is running faster than normal", setback = 10)
-public class Timer extends Check implements PrePredictionPacketReceiveListener {
+public class Timer extends Check implements PacketListener {
     protected long timerBalanceRealTime = 0;
 
     // Default value is real time minus max keep-alive time
@@ -56,8 +56,12 @@ public class Timer extends Check implements PrePredictionPacketReceiveListener {
     }
 
     @Override
-    public void onPrePredictionPacketReceive(final PacketReceiveEvent event) {
-        if (hasGottenMovementAfterTransaction && checkForTransaction(event.getPacketType())) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPrePredictionReceiveHandler(this::onPacketReceive);
+    }
+
+    public void onPacketReceive(final @NotNull PacketReceiveEvent event) {
+        if (hasGottenMovementAfterTransaction && isTransaction(event.getPacketType())) {
             knownPlayerClockTime = lastMovementPlayerClock;
             lastMovementPlayerClock = player.getPlayerClockAtLeast();
             hasGottenMovementAfterTransaction = false;
@@ -94,11 +98,6 @@ public class Timer extends Check implements PrePredictionPacketReceiveListener {
 
     protected void limitFallBehind() {
         timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock - clockDrift);
-    }
-
-    public boolean checkForTransaction(PacketTypeCommon packetType) {
-        return packetType == PacketType.Play.Client.PONG ||
-                packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
     }
 
     public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {

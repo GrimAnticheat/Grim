@@ -2,36 +2,38 @@ package ac.grim.grimac.checks.impl.combat;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAttack;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSpectateEntity;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "SelfInteract", stableKey = "grim.badpackets.self_hit", description = "Interacted with self")
-public class SelfInteract extends Check implements PreViaPacketReceiveListener {
+public class SelfInteract extends Check implements PacketListener {
     public SelfInteract(GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
             onInteract(event, packet.getEntityId());
-        }
+        }, PacketType.Play.Client.INTERACT_ENTITY);
 
-        if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
+        registry.registerPreViaReceiveHandler(event -> {
             WrapperPlayClientAttack packet = new WrapperPlayClientAttack(event);
             onInteract(event, packet.getEntityId());
-        }
+        }, PacketType.Play.Client.ATTACK);
 
-        if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
+        registry.registerPreViaReceiveHandler(event -> {
             WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
             onInteract(event, packet.getEntityId());
-        }
+        }, PacketType.Play.Client.SPECTATE_ENTITY);
     }
 
     // TODO: should check for camera entity id instead of player entity id?

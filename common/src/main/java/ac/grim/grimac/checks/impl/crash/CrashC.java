@@ -3,16 +3,18 @@ package ac.grim.grimac.checks.impl.crash;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientVehicleMove;
+import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "CrashC", stableKey = "grim.crash.nan_position", description = "Sent non-finite position or rotation")
-public class CrashC extends Check implements PreViaPacketReceiveListener {
+public class CrashC extends Check implements PacketListener {
     private static final Verbose V =
             Verbose.of("xyzYP={f64}, {f64}, {f64}, {f32}, {f32}");
 
@@ -21,8 +23,8 @@ public class CrashC extends Check implements PreViaPacketReceiveListener {
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(event -> {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
             Location pos = flying.getLocation();
 
@@ -33,7 +35,9 @@ public class CrashC extends Check implements PreViaPacketReceiveListener {
             }
 
             flagAndCancel(event, pos);
-        } else if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+        }, FLYING_PACKETS);
+
+        registry.registerPreViaReceiveHandler(event -> {
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
             if (Double.isFinite(move.getPosition().getX()) && Double.isFinite(move.getPosition().getY()) && Double.isFinite(move.getPosition().getZ()) && Float.isFinite(move.getYaw()) && Float.isFinite(move.getPitch())) {
                 return;
@@ -41,7 +45,7 @@ public class CrashC extends Check implements PreViaPacketReceiveListener {
 
             Location pos = new Location(move.getPosition(), move.getYaw(), move.getPitch());
             flagAndCancel(event, pos);
-        }
+        }, PacketType.Play.Client.VEHICLE_MOVE);
     }
 
     private void flagAndCancel(PacketReceiveEvent event, Location pos) {

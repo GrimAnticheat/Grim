@@ -5,7 +5,8 @@ import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.impl.multiactions.MultiActionsC;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -19,7 +20,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 @CheckData(name = "ChatC", stableKey = "grim.chat.moving_while_chatting", description = "Moving while chatting", experimental = true)
-public class ChatC extends Check implements PreViaPacketReceiveListener {
+public class ChatC extends Check implements PacketListener {
     private static final Verbose V = Verbose.of("sprinting={bool}, sneaking={bool}, input={bool}");
 
     public ChatC(GrimPlayer player) {
@@ -30,18 +31,19 @@ public class ChatC extends Check implements PreViaPacketReceiveListener {
     private @Nullable Predicate<String> exemptRegex;
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.CHAT_MESSAGE) {
-            check(new WrapperPlayClientChatMessage(event).getMessage(), event);
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND_UNSIGNED) {
-            check("/" + new WrapperPlayClientChatCommandUnsigned(event).getCommand(), event);
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.CHAT_COMMAND) {
-            check("/" + new WrapperPlayClientChatCommand(event).getCommand(), event);
-        }
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerPreViaReceiveHandler(
+                event -> check(new WrapperPlayClientChatMessage(event).getMessage(), event),
+                PacketType.Play.Client.CHAT_MESSAGE
+        );
+        registry.registerPreViaReceiveHandler(
+                event -> check("/" + new WrapperPlayClientChatCommandUnsigned(event).getCommand(), event),
+                PacketType.Play.Client.CHAT_COMMAND_UNSIGNED
+        );
+        registry.registerPreViaReceiveHandler(
+                event -> check("/" + new WrapperPlayClientChatCommand(event).getCommand(), event),
+                PacketType.Play.Client.CHAT_COMMAND
+        );
     }
 
     private void check(String message, PacketReceiveEvent event) {

@@ -3,22 +3,21 @@ package ac.grim.grimac.checks.impl.misc;
 import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketReceiveListener;
-import ac.grim.grimac.checks.type.PacketSendListener;
-import ac.grim.grimac.checks.type.PostPredictionListener;
+import ac.grim.grimac.checks.packethandler.PacketHandlerRegistryBuilder;
+import ac.grim.grimac.checks.type.PacketListener;
 import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -27,7 +26,7 @@ import java.util.Locale;
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
 @CheckData(name = "Post", stableKey = "grim.post.invalid_order", description = "Sent packets out of the expected movement tick order")
-public class Post extends Check implements PacketReceiveListener, PacketSendListener, PostPredictionListener {
+public class Post extends Check implements PacketListener, PostPredictionListener {
     private static final Verbose V = Verbose.of("{str}");
 
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
@@ -60,65 +59,84 @@ public class Post extends Check implements PacketReceiveListener, PacketSendList
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
-            WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
-            if (animation.getEntityId() == player.entityID) {
-                if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
-                        animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
-                    isExemptFromSwingingCheck = player.lastTransactionSent.get();
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onPacketReceive(final PacketReceiveEvent event) {
-        if (isTickPacket(event.getPacketType())) { // Don't count teleports or duplicates as movements
+    public void registerPacketHandlers(@NotNull PacketHandlerRegistryBuilder registry) {
+        registry.registerReceiveHandler(event -> {
+            // Don't count teleports or duplicates as movements
+            if (!isTickPacket(event.getPacketType())) return;
             post.clear();
             sentFlying = true;
-            return;
-        }
+        }, TICK_PACKET_CANDIDATES);
 
-        // 1.13+ clients can click inventory outside tick loop, so we can't post check those two packets on 1.13+
-        PacketTypeCommon packetType = event.getPacketType();
-        if (isTransaction(packetType) && player.packetStateData.lastTransactionPacketWasValid) {
+        registry.registerReceiveHandler(event -> {
+            if (!player.packetStateData.lastTransactionPacketWasValid) return;
             if (sentFlying && !post.isEmpty()) {
                 flags.add(post.getFirst().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getClientVersion().getReleaseName());
             }
             post.clear();
             sentFlying = false;
-            return;
+        }, TRANSACTION_PACKETS);
+
+        registry.registerReceiveHandler(this::addPost,
+                PLAYER_ABILITIES,
+                INTERACT_ENTITY,
+                PLAYER_BLOCK_PLACEMENT,
+                ATTACK,
+                SPECTATE_ENTITY,
+                PUNCH,
+                USE_ITEM,
+                PLAYER_DIGGING);
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+            registry.registerReceiveHandler(this::addPost, HELD_ITEM_CHANGE);
         }
 
-        if (!sentFlying) {
-            return;
+        // Why do 1.13+ players send the click window packet whenever? This doesn't make sense.
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
+            registry.registerReceiveHandler(this::addPost, CLICK_WINDOW);
         }
 
-        if (PLAYER_ABILITIES.equals(packetType)
-                || (HELD_ITEM_CHANGE.equals(packetType) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
-                || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
-                || ATTACK.equals(packetType) || SPECTATE_ENTITY.equals(packetType) || PUNCH.equals(packetType)
-                || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
-            post.add(event.getPacketType());
-        } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {
-            // Why do 1.13+ players send the click window packet whenever? This doesn't make sense.
-            post.add(event.getPacketType());
-        } else if (ANIMATION.equals(packetType)
-                && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaVersion delays animations for 1.8 clients
-                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) // when on 1.9+ servers
-                && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) // 1.13 clicking inventory causes weird animations
-                && isExemptFromSwingingCheck < player.lastTransactionReceived.get()) { // Exempt when the server sends animations because viaversion
-            post.add(event.getPacketType());
-        } else if (ENTITY_ACTION.equals(packetType) // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
-                && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) || new WrapperPlayClientEntityAction(event).getAction() != WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)) {
+        boolean noViaRewindDelayedSwing = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
+                || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8);
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_13) // 1.13 clicking inventory causes weird animations
+                && noViaRewindDelayedSwing) {
+            registry.registerReceiveHandler(event -> {
+                if (isExemptFromSwingingCheck < player.lastTransactionReceived.get()) {
+                    addPost(event);
+                }
+            }, ANIMATION);
+
+            // only matters if the above is registered
+            registry.registerSendHandler(event -> {
+                WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
+                if (animation.getEntityId() == player.entityID) {
+                    if (animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM ||
+                            animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_OFF_HAND) {
+                        isExemptFromSwingingCheck = player.lastTransactionSent.get();
+                    }
+                }
+            }, PacketType.Play.Server.ENTITY_ANIMATION);
+        }
+
+        registry.registerReceiveHandler(event -> {
+            WrapperPlayClientEntityAction.Action action = new WrapperPlayClientEntityAction(event).getAction();
+            // ViaRewind sends START_FALL_FLYING packets async for 1.8 clients on 1.9+ servers
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+                    && action == WrapperPlayClientEntityAction.Action.START_FLYING_WITH_ELYTRA)
+                return;
+
             // https://github.com/GrimAnticheat/Grim/issues/824
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) && player.inVehicle()) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_3) && player.inVehicle())
                 return;
-            }
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && new WrapperPlayClientEntityAction(event).getAction() == WrapperPlayClientEntityAction.Action.LEAVE_BED)
+
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && action == WrapperPlayClientEntityAction.Action.LEAVE_BED)
                 return;
-            post.add(event.getPacketType());
-        }
+
+            addPost(event);
+        }, ENTITY_ACTION);
+    }
+
+    private void addPost(@NotNull PacketReceiveEvent event) {
+        if (!sentFlying) return;
+        post.add(event.getPacketType());
     }
 }
