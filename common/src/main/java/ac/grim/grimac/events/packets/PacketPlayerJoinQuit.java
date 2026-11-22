@@ -71,6 +71,8 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
                 (p, silent) -> GrimAPI.INSTANCE.getAlertManager().toggleBrands(p, silent),
                 (p, value) -> GrimAPI.INSTANCE.getAlertManager().setBrandsEnabled(p, value, true));
 
+        GrimAPI.INSTANCE.getSpectateManager().onJoin(platformPlayer);
+
         if (platformPlayer.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
             GrimAPI.INSTANCE.getSpectateManager().onLogin(platformPlayer.getUniqueId());
         }
