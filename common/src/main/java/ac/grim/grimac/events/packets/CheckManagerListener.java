@@ -95,6 +95,43 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
+    static boolean shouldApplyQueuedLook(@NotNull GrimPlayer player, boolean hasLook, long lastActionTime, long now) {
+        Objects.requireNonNull(player, "player");
+        if (!hasLook || player.packetStateData.lastPacketWasTeleport) {
+            return false;
+        }
+        // On 1.7/1.8 (idle flying packet every tick) and 1.21.2+ (CLIENT_TICK_END flushes queued interactions
+        // at each tick boundary), any still-queued interaction belongs to the current tick's rotation.
+        // On 1.9-1.21.1 (or <1.21.2 servers without CLIENT_TICK_END), ticks can be skipped, so fall back to 15ms.
+        return !player.canSkipTicks() || now - lastActionTime < 15;
+    }
+
+    static void handleClientTickEnd(@NotNull GrimPlayer player, long now) {
+        Objects.requireNonNull(player, "player");
+
+        // Flush any remaining block interactions at the end of this tick before idle-tick pose updates
+        // so an idle tick's interactions are never evaluated with the next tick's rotation.
+        handleQueuedPlaces(player, false, 0, 0, now);
+        handleQueuedBreaks(player, false, 0, 0, now);
+
+        player.serverOpenedInventoryThisTick = false;
+        if (!player.packetStateData.didSendMovementBeforeTickEnd) {
+            // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
+            player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
+            player.packetStateData.didLastMovementIncludePosition = false;
+
+            // Track dash cooldown
+            if (!player.inVehicle()) {
+                player.dashableEntities.tick();
+                // The client still updates its pose on ticks it sends no movement for, so a crouch
+                // released while standing still has to reach the pose here or the next move uses a stale hitbox
+                PlayerBaseTick.updatePlayerPose(player);
+                player.wasSneaking = player.isSneaking;
+            }
+        }
+        player.packetStateData.didSendMovementBeforeTickEnd = false;
+    }
+
     public static void handleQueuedPlaces(@NotNull GrimPlayer player, boolean hasLook, float pitch, float yaw, long now) {
         Objects.requireNonNull(player, "player");
 
@@ -104,6 +141,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             double lastX = player.x;
             double lastY = player.y;
             double lastZ = player.z;
+            float lastYaw = player.yaw;
+            float lastPitch = player.pitch;
 
             player.x = player.packetStateData.lastClaimedPosition.getX();
             player.y = player.packetStateData.lastClaimedPosition.getY();
@@ -119,23 +158,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.z = posFromVehicle.getZ();
             }
 
-            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
-            // Or mojang had the idle packet... for the 1.7/1.8 clients
-            // No idle packet on 1.9+
-            if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+            if (shouldApplyQueuedLook(player, hasLook, player.lastBlockPlaceUseItem, now)) {
                 player.yaw = yaw;
                 player.pitch = pitch;
             }
 
             // 1.21 put the rotation the item is used with in the packet, and the server turns the player to it first
-            final float lookYaw = player.yaw;
-            final float lookPitch = player.pitch;
-            boolean packetRotation = false;
             if (snapshot.wrapper() instanceof WrapperPlayClientUseItem useItem
                     && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
                     && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21)
                     && Float.isFinite(useItem.getYaw()) && Float.isFinite(useItem.getPitch())) {
-                packetRotation = true;
                 player.yaw = useItem.getYaw();
                 player.pitch = GrimMath.clamp(useItem.getPitch(), -90, 90);
             }
@@ -144,14 +176,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             handleBlockPlaceOrUseItem(player, snapshot.wrapper());
             player.compensatedWorld.stopPredicting(snapshot.wrapper());
 
-            if (packetRotation) {
-                player.yaw = lookYaw;
-                player.pitch = lookPitch;
-            }
-
             player.x = lastX;
             player.y = lastY;
             player.z = lastZ;
+            player.yaw = lastYaw;
+            player.pitch = lastPitch;
             player.isSneaking = lastSneaking;
         }
     }
@@ -164,6 +193,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             double lastX = player.x;
             double lastY = player.y;
             double lastZ = player.z;
+            float lastYaw = player.yaw;
+            float lastPitch = player.pitch;
 
             player.x = player.packetStateData.lastClaimedPosition.getX();
             player.y = player.packetStateData.lastClaimedPosition.getY();
@@ -176,10 +207,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.z = posFromVehicle.getZ();
             }
 
-            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
-            // Or mojang had the idle packet... for the 1.7/1.8 clients
-            // No idle packet on 1.9+
-            if ((now - player.lastBlockBreak < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+            if (shouldApplyQueuedLook(player, hasLook, player.lastBlockBreak, now)) {
                 player.yaw = yaw;
                 player.pitch = pitch;
             }
@@ -189,6 +217,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.x = lastX;
             player.y = lastY;
             player.z = lastZ;
+            player.yaw = lastYaw;
+            player.pitch = lastPitch;
         }
     }
 
@@ -644,22 +674,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END && player.supportsEndTick()) {
-            player.serverOpenedInventoryThisTick = false;
-            if (!player.packetStateData.didSendMovementBeforeTickEnd) {
-                // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
-                player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
-                player.packetStateData.didLastMovementIncludePosition = false;
-
-                // Track dash cooldown
-                if (!player.inVehicle()) {
-                    player.dashableEntities.tick();
-                    // The client still updates its pose on ticks it sends no movement for, so a crouch
-                    // released while standing still has to reach the pose here or the next move uses a stale hitbox
-                    PlayerBaseTick.updatePlayerPose(player);
-                    player.wasSneaking = player.isSneaking;
-                }
-            }
-            player.packetStateData.didSendMovementBeforeTickEnd = false;
+            handleClientTickEnd(player, System.currentTimeMillis());
         }
 
         // Finally, remove the packet state variables on this packet
