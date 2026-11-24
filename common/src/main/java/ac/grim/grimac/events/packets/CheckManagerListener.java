@@ -95,7 +95,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    static boolean shouldApplyQueuedLook(@NotNull GrimPlayer player, boolean hasLook, long lastActionTime, long now) {
+    private static boolean shouldApplyQueuedLook(@NotNull GrimPlayer player, boolean hasLook, long lastActionTime, long now) {
         Objects.requireNonNull(player, "player");
         if (!hasLook || player.packetStateData.lastPacketWasTeleport) {
             return false;
@@ -106,9 +106,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         return !player.canSkipTicks() || now - lastActionTime < 15;
     }
 
-    static void handleClientTickEnd(@NotNull GrimPlayer player, long now) {
+    private static void handleClientTickEnd(@NotNull GrimPlayer player) {
         Objects.requireNonNull(player, "player");
 
+        long now = System.currentTimeMillis();
         // Flush any remaining block interactions at the end of this tick before idle-tick pose updates
         // so an idle tick's interactions are never evaluated with the next tick's rotation.
         handleQueuedPlaces(player, false, 0, 0, now);
@@ -674,7 +675,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END && player.supportsEndTick()) {
-            handleClientTickEnd(player, System.currentTimeMillis());
+            handleClientTickEnd(player);
         }
 
         // Finally, remove the packet state variables on this packet
