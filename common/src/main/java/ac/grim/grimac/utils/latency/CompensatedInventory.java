@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.GrimProcessor;
 import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.checks.type.PacketSendListener;
@@ -34,6 +36,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -57,6 +60,10 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
     // Player inventory is -1
     // Unsupported inventory is -2
     private int packetSendingInventorySize = PLAYER_INVENTORY_CASE;
+
+    private int lastTick;
+    private int clicksThisTick;
+    private int maxClicksPerTick;
 
     // The item held at the start of the current client tick (processed at the end of the previous tick)
     // also updated before slot changes to account for the delay when using hotbar keybinds
@@ -258,8 +265,25 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
                 inventory.getSlot(action.getSlot()).set(action.getItemStack());
                 inventory.getInventoryStorage().handleClientClaimedSlotSet(action.getSlot());
             }
-        } else if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW && !event.isCancelled()) {
+        } else if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
+
+            int currentTick = GrimAPI.INSTANCE.getTickManager().currentTick;
+            if (lastTick != currentTick) {
+                clicksThisTick = 0;
+                lastTick = currentTick;
+            }
+
+            if (maxClicksPerTick > 0 && clicksThisTick >= maxClicksPerTick) {
+                event.setCancelled(true);
+            } else if (click.getWindowClickType() != WrapperPlayClientClickWindow.WindowClickType.PICKUP_ALL
+                    && click.getWindowClickType() != WrapperPlayClientClickWindow.WindowClickType.QUICK_CRAFT
+                    && (click.getWindowClickType() != WrapperPlayClientClickWindow.WindowClickType.QUICK_MOVE
+                    || menu.getCarried().isEmpty() || click.getButton() != 0)) {
+                clicksThisTick++;
+            }
+
+            if (event.isCancelled()) return;
 
             // How is this possible? Maybe transaction splitting.
             if (click.getWindowId() != openWindowID) {
@@ -481,5 +505,10 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
         openWindowID = 0;
         menu = inventory;
         menu.setCarried(ItemStack.EMPTY); // Reset carried item
+    }
+
+    @Override
+    public void reload(@NotNull ConfigManager config) {
+        maxClicksPerTick = config.getIntElse("max-clicks-per-tick", 3);
     }
 }
