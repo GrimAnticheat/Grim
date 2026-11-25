@@ -97,6 +97,12 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
         }
     }
 
+    private boolean isServerChangeInFlight(int slot) {
+        Integer transaction = serverIsCurrentlyProcessingThesePredictions.get(slot);
+        // <= because received is bumped before that transaction's tasks write the slot, so wait one more answered ping
+        return transaction != null && player.lastTransactionReceived.get() <= transaction;
+    }
+
     /**
      * Checks that the specified slot is in sync with the server's and resyncs if needed.
      * @param slot the slot to check
@@ -158,8 +164,14 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
             Map.Entry<Integer, Integer> entry = it.next();
             // If x ticks have passed, check the slot is equal to the server slot and remove
             if (entry.getValue() <= tickID) {
+                // Not while a change the server sent for this slot hasn't reached the client, at high ping the
+                // resend would be just as stale. Keep the check until the client has that change, but at most
+                // 40 ticks (about 2 s) past its due tick, then check as before
+                if (isServerChangeInFlight(entry.getKey()) && tickID - entry.getValue() < 40) continue;
                 checkThatBukkitIsSynced(entry.getKey());
-                it.remove();
+                // Only this entry: a check setItem queued meanwhile, or the follow-up check a correction's own
+                // setItem queues 5 ticks later, is a check of its own
+                pendingFinalizedSlot.remove(entry.getKey(), entry.getValue());
             }
         }
 
