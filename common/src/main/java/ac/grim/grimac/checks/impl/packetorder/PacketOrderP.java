@@ -2,7 +2,8 @@ package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CheckData(name = "PacketOrderP", stableKey = "grim.packetorder.transaction_keepalive_order", description = "Sent keepalive and transaction packets out of order", experimental = true)
-public class PacketOrderP extends Check implements PacketCheck {
+public class PacketOrderP extends Check implements PreViaPacketSendListener, PreViaPacketReceiveListener {
 
     private final List<KeepAliveData> pendingKeepAlives = new ArrayList<>();
 
@@ -24,7 +25,7 @@ public class PacketOrderP extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
             long id = new WrapperPlayClientKeepAlive(event).getId();
             pendingKeepAlives.removeIf(p -> p.id() == id);
@@ -32,7 +33,7 @@ public class PacketOrderP extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketSend(final PacketSendEvent event) {
+    public void onPreViaPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.KEEP_ALIVE) {
             WrapperPlayServerKeepAlive packet = new WrapperPlayServerKeepAlive(event);
 
@@ -46,7 +47,7 @@ public class PacketOrderP extends Check implements PacketCheck {
 
             player.addRealTimeTaskNext(() -> {
                 if (pendingKeepAlives.contains(data)) {
-                    flagAndAlert();
+                    flag();
                 }
             });
 
