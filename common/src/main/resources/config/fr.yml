@@ -161,6 +161,12 @@ VehicleTimer:
     # Cibler un chronomètre de 1,005.
     setbackvl: 10
 
+FastBreak:
+    # Combien de millisecondes d'avantage en cassant des blocs trop vite avant de signaler
+    break-threshold: 1000
+    # Combien de millisecondes d'avantage en commençant à casser un bloc trop tôt après le précédent avant de signaler
+    delay-threshold: 1000
+
 PacketOrderI:
     # Activer si les joueurs sont signalés pour l'utilisation de mods d'animation 1.7
     exempt-placing-while-digging: false

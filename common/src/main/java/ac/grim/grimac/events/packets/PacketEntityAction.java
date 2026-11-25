@@ -18,6 +18,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 public class PacketEntityAction extends PacketListenerAbstract {
 
+    private static final boolean SERVER_SUPPORTS_GLIDING = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
+
     public PacketEntityAction() {
         super(PacketListenerPriority.LOW);
     }
@@ -47,8 +49,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                 case START_SNEAKING -> player.isSneaking = true;
                 case STOP_SNEAKING -> player.isSneaking = false;
                 case START_FLYING_WITH_ELYTRA -> {
-                    if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
-                        return;
+                    if (!SERVER_SUPPORTS_GLIDING) return;
 
                     if (player.onGround || player.lastOnGround) {
                         player.getSetbackTeleportUtil().executeNonSimulatingForceResync();

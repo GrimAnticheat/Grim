@@ -23,7 +23,7 @@ public class MultiInteractA extends Check implements PacketReceiveListener, Post
     private final ArrayList<FlagData> flags = new ArrayList<>();
     private int lastEntity;
     private boolean lastSneaking;
-    private boolean hasInteracted = false;
+    private boolean hasInteracted;
 
     public MultiInteractA(final GrimPlayer player) {
         super(player);
@@ -45,6 +45,7 @@ public class MultiInteractA extends Check implements PacketReceiveListener, Post
 
         if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
             WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
+            if (!packet.hasEntityId()) return;
             onInteract(event, packet.getEntityId(), lastSneaking);
         }
 

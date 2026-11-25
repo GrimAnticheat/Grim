@@ -165,6 +165,12 @@ VehicleTimer:
     # Target 1.005 timer
     setbackvl: 10
 
+FastBreak:
+    # Cuántos milisegundos de ventaja por romper bloques demasiado rápido antes de marcar
+    break-threshold: 1000
+    # Cuántos milisegundos de ventaja por empezar a romper un bloque demasiado pronto tras el anterior antes de marcar
+    delay-threshold: 1000
+
 PacketOrderI:
     # Habilitar si los jugadores están siendo marcados por usar mods de animación de la 1.7
     exempt-placing-while-digging: false

@@ -182,6 +182,12 @@ VehicleTimer:
     setbackvl: 10
     # VL达到多少时回弹？
 
+FastBreak:
+    # 破坏方块过快累计多少毫秒优势后才判定
+    break-threshold: 1000
+    # 在上一个方块之后过早开始破坏下一个方块，累计多少毫秒优势后才判定
+    delay-threshold: 1000
+
 PacketOrderI:
     # 如果玩家因使用1.7动画模组而误判，则启用此项
     exempt-placing-while-digging: false

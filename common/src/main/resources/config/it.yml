@@ -152,6 +152,12 @@ VehicleTimer:
     # Livello di violazione per il timer dei veicoli
     setbackvl: 10
 
+FastBreak:
+    # Quanti millisecondi di vantaggio rompendo i blocchi troppo velocemente prima di segnalare
+    break-threshold: 1000
+    # Quanti millisecondi di vantaggio iniziando a rompere un blocco troppo presto dopo il precedente prima di segnalare
+    delay-threshold: 1000
+
 PacketOrderI:
     # Abilitare se i giocatori vengono segnalati per l'uso di mod di animazione 1.7
     exempt-placing-while-digging: false

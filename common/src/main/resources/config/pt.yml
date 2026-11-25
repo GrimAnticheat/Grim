@@ -163,6 +163,12 @@ VehicleTimer:
     # Detecta até 1.005 de timer.
     setbackvl: 10
 
+FastBreak:
+    # Quantos milissegundos de vantagem por quebrar blocos rápido demais antes de sinalizar
+    break-threshold: 1000
+    # Quantos milissegundos de vantagem por começar a quebrar um bloco cedo demais após o anterior antes de sinalizar
+    delay-threshold: 1000
+
 PacketOrderI:
     # Ativar se os jogadores estão sendo sinalizados por usar mods de animação 1.7
     exempt-placing-while-digging: false

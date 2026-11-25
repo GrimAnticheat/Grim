@@ -32,11 +32,11 @@ public class DoubleInputTransformer implements InputTransformer<DoubleInput> { /
         inputVector.multiply(0.98F);
 
         // Simulate float rounding imprecision
-        inputVector = new Vector3dm((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+        inputVector.set((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
 
         if (inputVector.lengthSquared() > 1) {
             double d0 = VectorUtils.getVanillaLength(player.getClientVersion(), inputVector);
-            inputVector = new Vector3dm(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+            inputVector.set(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
         }
 
         return new DoubleInput(inputVector.getX(), inputVector.getY(), inputVector.getZ());
@@ -52,9 +52,9 @@ public class DoubleInputTransformer implements InputTransformer<DoubleInput> { /
         float sin = player.trigHandler.sin(yawRadians);
         float cos = player.trigHandler.cos(yawRadians);
 
-        double xResult = input.sideways() * cos - input.forward() * sin;
-        double zResult = input.forward() * cos + input.sideways() * sin;
+        double sideways = input.sideways() * speed;
+        double forward = input.forward() * speed;
 
-        return new Vector3dm(xResult * speed, input.vertical() * speed, zResult * speed);
+        return new Vector3dm(sideways * cos - forward * sin, input.vertical() * speed, forward * cos + sideways * sin);
     }
 }
