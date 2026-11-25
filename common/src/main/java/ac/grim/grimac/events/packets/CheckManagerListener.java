@@ -458,10 +458,17 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         boolean isFlying = WrapperPlayClientPlayerFlying.isFlying(event.getPacketType());
 
-        if (isFlying) {
-            player.serverOpenedInventoryThisTick = false;
-
+        if (isFlying) flying: {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
+
+            if (player.packetStateData.isReceivingQueuedDuplicate) {
+                teleportData = new TeleportAcceptData();
+                if (player.packetStateData.queuedDuplicateIsDuplicate) {
+                    handleDuplicatePacket(player, event, flying);
+                }
+                break flying;
+            }
+            player.serverOpenedInventoryThisTick = false;
 
             Location location = flying.getLocation();
             Vector3d position = VectorUtils.clampVector(location.getPosition());
@@ -484,8 +491,17 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = isDuplicatePacket(player, flying);
             if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                handleDuplicatePacket(player, event, flying);
+                if (player.isStrictDuplicateHandling()) {
+                    player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
+                    player.packetStateData.queuedDuplicate = new QueuedDuplicate(location, flying.isOnGround());
+                    event.setCancelled(true);
+                    return;
+                } else {
+                    handleDuplicatePacket(player, event, flying);
+                }
             }
+
+            player.lastDuplicateLocationThisTick = null;
         }
 
         if ((teleportConfirm != null && teleportData.isTeleport()) || (player.inVehicle() ? event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE : isFlying && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)) {
@@ -692,10 +708,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // duplicate packets always have position and rotation
         if (!flying.hasPositionChanged() || !flying.hasRotationChanged()) return false;
 
+        Location location = flying.getLocation();
+
+        // positions and rotations must be the same for all duplicates sent in the same tick
+        if (player.isStrictDuplicateHandling() && player.lastDuplicateLocationThisTick != null
+                && player.lastDuplicateLocationThisTick.equals(location)) return false;
+
         // if the player was in a vehicle, has position and look, and wasn't a teleport, then this was a duplicate packet
         if (player.inVehicle()) return true;
 
-        final Vector3d position = flying.getLocation().getPosition();
+        final Vector3d position = location.getPosition();
         final double threshold = player.getMovementThreshold();
 
         // ground status will never change in duplicate packets
@@ -704,7 +726,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 && player.filterMojangStupidityOnMojangStupidity.distanceSquared(position) < threshold * threshold;
     }
 
-    private static void handleDuplicatePacket(
+    public static void handleDuplicatePacket(
             @NotNull GrimPlayer player,
             @NotNull PacketReceiveEvent event,
             @NotNull WrapperPlayClientPlayerFlying flying) {
@@ -715,6 +737,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         final float yaw = flying.getLocation().getYaw();
         final float pitch = flying.getLocation().getPitch();
         final Vector3d position = flying.getLocation().getPosition();
+
+        if (player.lastDuplicateLocationThisTick == null) {
+            player.lastDuplicateLocationThisTick = flying.getLocation();
+        }
 
         // Mark that we want this packet to be cancelled from reaching the server
         // Additionally, only yaw and pitch matters: https://github.com/GrimAnticheat/Grim/issues/1275#issuecomment-1872444018
