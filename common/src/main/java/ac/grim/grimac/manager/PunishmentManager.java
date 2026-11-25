@@ -75,9 +75,8 @@ public class PunishmentManager implements ConfigReloadable {
                         command = command.substring(1);
                     }
                     for (AbstractCheck check : player.getChecks()) { // o(n) * o(n)?
-                        if (check.getCheckName() != null &&
-                                (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
-                                        || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
+                        if (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
+                                || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command)) { // Some checks have equivalent names like AntiKB and AntiKnockback
                             if (exclude) {
                                 excluded.add(check);
                             } else {
@@ -163,12 +162,7 @@ public class PunishmentManager implements ConfigReloadable {
                             switch (command.command) {
                                 case "[webhook]" -> GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, renderedVerbose, check.getDisplayName(), vl);
                                 case "[log]" -> {
-                                    // Binary flags already stored a row; avoid an extra legacy text row.
-                                    if (!check.isLastFlagStoredBinaryVerbose()) {
-                                        String verboseWithoutGl = renderedVerbose.replaceAll(" /gl .*", "");
-                                        GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks()
-                                                .recordFlagFromCheck(player, check, vl, verboseWithoutGl);
-                                    }
+                                    // handled on flag
                                 }
                                 case "[proxy]" -> ProxyAlertMessenger.sendPluginMessage(cmd);
                                 case "[alert]" -> {

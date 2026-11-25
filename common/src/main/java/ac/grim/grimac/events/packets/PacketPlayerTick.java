@@ -8,6 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import org.jetbrains.annotations.NotNull;
 
 public class PacketPlayerTick extends PacketListenerAbstract {
 
@@ -21,7 +22,7 @@ public class PacketPlayerTick extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(@NotNull PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))

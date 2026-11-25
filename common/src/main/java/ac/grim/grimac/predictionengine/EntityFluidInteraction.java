@@ -268,7 +268,7 @@ public class EntityFluidInteraction {
 
         public void reset() {
             this.height = 0.0;
-            this.accumulatedCurrent = new Vector3dm();
+            this.accumulatedCurrent.zero();
             this.currentCount = 0;
         }
 

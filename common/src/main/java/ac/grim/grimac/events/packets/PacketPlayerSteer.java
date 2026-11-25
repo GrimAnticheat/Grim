@@ -17,6 +17,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerInput;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class PacketPlayerSteer extends PacketListenerAbstract {
 
@@ -30,7 +33,8 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(@NotNull PacketReceiveEvent event) {
+        if (event.isCancelled()) return;
         if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
@@ -40,10 +44,12 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             float forwards = steer.getForward();
             float sideways = steer.getSideways();
 
+            if (!Float.isFinite(forwards) || !Float.isFinite(sideways)) return;
+
             player.vehicleData.nextVehicleForward = forwards;
             player.vehicleData.nextVehicleHorizontal = sideways;
 
-            this.tickPlayerWorld(player);
+            tickPlayerWorld(player);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_INPUT) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
@@ -85,11 +91,12 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             if (player == null || !player.inVehicle() || player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2)) return;
 
             // player_input is not sent every tick, so we need to stick to this packet
-            this.tickPlayerWorld(player);
+            tickPlayerWorld(player);
         }
     }
 
-    private void tickPlayerWorld(GrimPlayer player) {
+    private static void tickPlayerWorld(@NotNull GrimPlayer player) {
+        Objects.requireNonNull(player, "player");
         PacketEntity riding = player.compensatedEntities.self.getRiding();
 
         // Multiple steer vehicles in a row, the player is not in control of their vehicle

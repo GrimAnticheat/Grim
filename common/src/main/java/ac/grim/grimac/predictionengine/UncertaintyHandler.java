@@ -62,6 +62,7 @@ public class UncertaintyHandler {
     public boolean isOrWasNearGlitchyBlock = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
+    public boolean couldHaveHiddenStuckReset = false;
     // Give horizontal lenience if the last movement reset velocity because 0.03 becomes unknown then
     public boolean lastMovementWasUnknown003VectorReset = false;
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
@@ -76,6 +77,7 @@ public class UncertaintyHandler {
     public SimpleCollisionBox fishingRodPullBox = null;
     public boolean shouldSimulateStuckSpeed = false;
     public int stuckSpeedMultiplierMask = StuckSpeed.NONE.getIndex();
+    public int minimumStuckSpeedMultiplierMask = StuckSpeed.NONE.getIndex();
 
     public final LastInstance lastFlyingTicks;
     public final LastInstance lastFlyingStatusChange;
@@ -157,18 +159,19 @@ public class UncertaintyHandler {
             entityBox.maxY -= height;
             entityBox.expand(-width / 2, 0, -width / 2);
 
-            Vector3dm maxLocation = new Vector3dm(entityBox.maxX, entityBox.maxY, entityBox.maxZ);
-            Vector3dm minLocation = new Vector3dm(entityBox.minX, entityBox.minY, entityBox.minZ);
+            double minX = (entityBox.minX - player.lastX) * 0.1;
+            double minY = (entityBox.minY - (player.lastY + 0.8 * 1.8)) * 0.1;
+            double minZ = (entityBox.minZ - player.lastZ) * 0.1;
+            fishingRodPullBox.minX = Math.min(0, minX);
+            fishingRodPullBox.minY = Math.min(0, minY);
+            fishingRodPullBox.minZ = Math.min(0, minZ);
 
-            Vector3dm diff = minLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
-            fishingRodPullBox.minX = Math.min(0, diff.getX());
-            fishingRodPullBox.minY = Math.min(0, diff.getY());
-            fishingRodPullBox.minZ = Math.min(0, diff.getZ());
-
-            diff = maxLocation.subtract(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ).multiply(0.1);
-            fishingRodPullBox.maxX = Math.max(0, diff.getX());
-            fishingRodPullBox.maxY = Math.max(0, diff.getY());
-            fishingRodPullBox.maxZ = Math.max(0, diff.getZ());
+            double maxX = (entityBox.maxX - player.lastX) * 0.1;
+            double maxY = (entityBox.maxY - (player.lastY + 0.8 * 1.8)) * 0.1;
+            double maxZ = (entityBox.maxZ - player.lastZ) * 0.1;
+            fishingRodPullBox.maxX = Math.max(0, maxX);
+            fishingRodPullBox.maxY = Math.max(0, maxY);
+            fishingRodPullBox.maxZ = Math.max(0, maxZ);
         }
 
         fishingRodPulls.clear();
@@ -211,6 +214,14 @@ public class UncertaintyHandler {
         fireworksBox = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
+    public boolean isCertainlyStuck(VectorData data) {
+        return player.isForceStuckSpeed() && !player.inVehicle() && minimumStuckSpeedMultiplierMask != StuckSpeed.NONE.getIndex() && data.stuckSpeedMultiplier != StuckSpeed.NONE;
+    }
+
+    public boolean isCertainlyStuckVertically(VectorData data) {
+        return isCertainlyStuck(data) && data.stuckSpeedMultiplier.getY() < 1 && !player.pointThreeEstimator.controlsVerticalMovement() && player.pointThreeEstimator.canPredictNextVerticalMovement();
+    }
+
     public double getOffsetHorizontal(VectorData data) {
         double threshold = player.getMovementThreshold();
 
@@ -246,6 +257,11 @@ public class UncertaintyHandler {
             pointThree = (0.99 * (threshold * 2)) + threshold;
         }
 
+        // Stuck speed resets velocity every tick, so only the hidden position change is unknown
+        if (explicit003 && isCertainlyStuck(data)) {
+            pointThree = Math.min(pointThree, threshold);
+        }
+
         return pointThree;
     }
 
@@ -259,7 +275,10 @@ public class UncertaintyHandler {
 
     public double getVerticalOffset(VectorData data) {
         // We don't know if the player was pressing jump or not
-        if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))
+        // In water and lava the jump key adds 0.04 even in the air. On the tick the player lands on a bouncy block both
+        // movements end on the block, but the bounce carries the difference into the next tick. That tick starts on the
+        // block (isSteppingOnBouncyBlock), however far above it the landing tick started.
+        if (influencedByBouncyBlock() && (player.wasTouchingWater || player.wasTouchingLava))
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
@@ -324,15 +343,14 @@ public class UncertaintyHandler {
         // This bounding box can be infinitely large without crashing the server.
         // This works by the proof that if you collide with an object, you will stop near the object
         SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
-        return isSteppingNearShulker || regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
+        // Entities in our own vehicle stack move with us and can't be collided with (vanilla's isPassengerOfSameVehicle)
+        PacketEntity root = player.compensatedEntities.self.getRootVehicle();
+        return isSteppingNearShulker || regularHardCollision(expandedBB, root) || striderCollision(expandedBB, root) || boatCollision(expandedBB, root);
     }
 
-    private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
-        final PacketEntity riding = player.compensatedEntities.self.getRiding();
+    private boolean regularHardCollision(SimpleCollisionBox expandedBB, PacketEntity root) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            // Passengers of our own vehicle move with it and can't be collided with, don't give them lenience
-            if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && entity != riding
-                    && (riding == null || !riding.hasPassenger(entity))
+            if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && entity.getRootVehicle() != root
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -341,27 +359,27 @@ public class UncertaintyHandler {
         return false;
     }
 
-    private boolean striderCollision(SimpleCollisionBox expandedBB) {
+    private boolean striderCollision(SimpleCollisionBox expandedBB, PacketEntity root) {
         // Stiders can walk on top of other striders
-        if (player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider) {
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.getType() == EntityTypes.STRIDER && entity != player.compensatedEntities.self.getRiding()
-                        && !entity.hasPassenger(entity) && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
-                    return true;
-                }
+        if (!(player.compensatedEntities.self.getRiding() instanceof PacketEntityStrider)) return false;
+
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.getType() == EntityTypes.STRIDER && entity.getRootVehicle() != root
+                    && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                return true;
             }
         }
 
         return false;
     }
 
-    private boolean boatCollision(SimpleCollisionBox expandedBB) {
+    private boolean boatCollision(SimpleCollisionBox expandedBB, PacketEntity root) {
         // Boats can collide with quite literally anything
         final PacketEntity riding = player.compensatedEntities.self.getRiding();
         if (riding == null || !riding.isBoat) return false;
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity != riding && entity.isPushable() && !riding.hasPassenger(entity)
+            if (entity.isPushable() && entity.getRootVehicle() != root
                     && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
