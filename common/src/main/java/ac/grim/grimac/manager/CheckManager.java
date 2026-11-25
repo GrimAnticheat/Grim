@@ -143,7 +143,7 @@ public class CheckManager implements BasicReloadable {
                 .put(MultiActionsC.class, new MultiActionsC(player))
                 .put(MultiActionsD.class, new MultiActionsD(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
-//                .put(PacketOrderP.class, new PacketOrderP(player))
+                .put(PacketOrderP.class, new PacketOrderP(player))
                 .put(VehicleD.class, new VehicleD(player))
                 .put(VehicleE.class, new VehicleE(player))
                 .put(VehicleF.class, new VehicleF(player))
