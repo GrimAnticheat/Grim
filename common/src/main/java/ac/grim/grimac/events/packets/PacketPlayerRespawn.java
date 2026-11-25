@@ -23,6 +23,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -46,6 +47,8 @@ import java.util.Objects;
  */
 // TODO update for 1.20.2-
 public class PacketPlayerRespawn extends PacketListenerAbstract {
+
+    private static final boolean IGNORE_SAME_VALUE_HEALTH_UPDATE = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9);
 
     private static final byte KEEP_ATTRIBUTES = 1;
     private static final byte KEEP_TRACKED_DATA = 2;
@@ -80,11 +83,11 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
-            //
+
             if (player.packetStateData.lastFood == health.getFood()
                     && player.packetStateData.lastHealth == health.getHealth()
                     && player.packetStateData.lastSaturation == health.getFoodSaturation()
-                    && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
+                    && IGNORE_SAME_VALUE_HEALTH_UPDATE)
                 return;
 
             player.packetStateData.lastFood = health.getFood();
@@ -94,9 +97,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.sendTransaction();
 
             if (health.getFood() == 20) { // Split so transaction before packet
-                player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get(), () -> player.food = 20);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.food = 20);
             } else { // Split so transaction after packet
-                player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get() + 1, () -> player.food = health.getFood());
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.food = health.getFood());
             }
 
             if (health.getHealth() <= 0) {
@@ -165,7 +168,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.isInBed = false;
                 player.packetStateData.setSlowedByUsingItem(false);
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
-                player.packetStateData.lastClaimedPosition = new Vector3d();
+                player.packetStateData.lastClaimedPosition = Vector3d.zero();
                 player.filterMojangStupidityOnMojangStupidity.zero();
 
                 player.checkManager.get(BadPacketsM.class).onRespawn();
@@ -246,7 +249,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
         }
     }
 
-    private boolean isWorldChange(GrimPlayer player, WrapperPlayServerRespawn respawn) {
+    private static boolean isWorldChange(@NotNull GrimPlayer player, @NotNull WrapperPlayServerRespawn respawn) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_16)) {
             return !Objects.equals(respawn.getWorldName().orElse(null), player.worldName);
         }

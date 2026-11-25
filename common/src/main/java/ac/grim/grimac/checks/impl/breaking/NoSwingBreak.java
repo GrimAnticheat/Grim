@@ -3,14 +3,14 @@ package ac.grim.grimac.checks.impl.breaking;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockBreakListener;
-import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
 @CheckData(name = "NoSwingBreak", stableKey = "grim.breaking.no_swing_break", description = "Did not swing while breaking block", experimental = true)
-public class NoSwingBreak extends Check implements BlockBreakListener, PreViaPacketReceiveListener {
+public class NoSwingBreak extends Check implements BlockBreakListener, PacketReceiveListener {
     private boolean sentAnimation;
     private boolean sentBreak;
 
@@ -26,7 +26,7 @@ public class NoSwingBreak extends Check implements BlockBreakListener, PreViaPac
     }
 
     @Override
-    public void onPreViaPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(PacketReceiveEvent event) {
         if (isAnimation(event.getPacketType())) {
             sentAnimation = true;
         }

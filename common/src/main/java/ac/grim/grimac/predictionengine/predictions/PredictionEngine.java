@@ -97,10 +97,11 @@ public class PredictionEngine {
 
         player.skippedTickInActualMovement = false;
 
+        float stepUpHeight = player.getMaxUpStep();
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector3dm primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
 
-            Vector3dm bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
+            Vector3dm bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(stepUpHeight, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
             // This is quite a good optimization :)
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion()) {
@@ -322,6 +323,7 @@ public class PredictionEngine {
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
         // Swim hop, riptide bounce, climbing, slime block bounces, knockback
         Set<VectorData> velocities = player.getPossibleVelocities();
+        addHiddenStuckResetToPossibilities(player, velocities);
         // Packet stuff is done first
         addExplosionToPossibilities(player, velocities);
 
@@ -342,6 +344,18 @@ public class PredictionEngine {
         addJumpsToPossibilities(player, velocities);
 
         return velocities;
+    }
+
+    // Stuck speed resets velocity to zero. If that happened in a hidden 0.03 tick, the player starts this tick
+    // from zero velocity after one or two ticks of gravity instead of the velocity we simulated
+    private void addHiddenStuckResetToPossibilities(GrimPlayer player, Set<VectorData> velocities) {
+        if (!player.uncertaintyHandler.couldHaveHiddenStuckReset) return;
+
+        Vector3dm reset = new Vector3dm();
+        for (int ticks = 0; ticks < 2; ticks++) {
+            PredictionEngineNormal.staticVectorEndOfTick(player, reset);
+            velocities.add(new VectorData(reset.clone(), VectorData.VectorType.Lenience));
+        }
     }
 
     private void addNonEffectiveAI(GrimPlayer player, Set<VectorData> data) {
@@ -546,6 +560,11 @@ public class PredictionEngine {
         Vector3dm min = new Vector3dm(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
         Vector3dm max = new Vector3dm(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty, player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
 
+        // Stuck speed resets velocity every tick, so hidden ticks only move by scaled gravity
+        if (player.uncertaintyHandler.isCertainlyStuckVertically(vector) && !player.lastOnGround && !player.uncertaintyHandler.onGroundUncertain && !player.uncertaintyHandler.lastPacketWasGroundPacket) {
+            uncertainty.setY(0);
+        }
+
         Vector3dm minVector = vector.vector.clone().add(min.subtract(uncertainty));
         Vector3dm maxVector = vector.vector.clone().add(max.add(uncertainty));
 
@@ -584,7 +603,8 @@ public class PredictionEngine {
         }
 
         // Hidden slime block bounces by missing idle tick and 0.03
-        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
+        // Not for ridden mobs, they move every tick so the bounce is never hidden
+        if (player.uncertaintyHandler.influencedByBouncyBlock() && !(player.inVehicle() && player.compensatedEntities.self.getRiding().isLivingEntity)) {
             if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty != 0 && !vector.isJump()) { // jumping overrides slime block
                 if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty > maxVector.getY()) {
                     maxVector.setY(player.uncertaintyHandler.thisTickSlimeBlockUncertainty);
@@ -686,7 +706,7 @@ public class PredictionEngine {
         // TODO: Attempt to fix mojang's netcode here
         if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(1)) {
             float airDrag = BlockProperties.getModifiedAirDrag(0.91F, player);
-            double trueFriction = player.lastOnGround ? player.friction * airDrag : airDrag;
+            double trueFriction = player.lastOnGround ? player.friction : airDrag;
             if (player.wasTouchingLava) trueFriction = 0.5;
             if (player.wasTouchingWater) trueFriction = 0.96;
 
@@ -791,7 +811,7 @@ public class PredictionEngine {
 
                             if (player.uncertaintyHandler.shouldSimulateStuckSpeed) {
                                 // only simulate no stuck speed if player is leaving
-                                if (player.uncertaintyHandler.stuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
+                                if (player.uncertaintyHandler.minimumStuckSpeedMultiplierMask == 0 || !player.isForceStuckSpeed())
                                     addStuckSpeedResult(player, returnVectors, result, null, loopUsingItem == 1);
                                 addStuckSpeedResult(player, returnVectors, result, player.stuckSpeedMultiplier, loopUsingItem == 1);
                                 addPossibleStuckSpeedResults(player, returnVectors, result, loopUsingItem == 1);

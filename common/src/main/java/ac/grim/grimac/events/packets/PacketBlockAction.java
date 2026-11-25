@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockAction;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tracks client-side block actions from the packets the client receives.
@@ -32,7 +33,7 @@ public class PacketBlockAction extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
+    public void onPacketSend(@NotNull PacketSendEvent event) {
         if (event.getPacketType() != PacketType.Play.Server.BLOCK_ACTION) return;
 
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -46,8 +47,7 @@ public class PacketBlockAction extends PacketListenerAbstract {
 
         player.latencyUtils.addRealTimeTask(transaction, () -> {
             WrappedBlockState existing = player.compensatedWorld.getBlock(blockPos);
-            PistonData piston = PistonBlockEvent.handle(
-                    player, blockPos.getX(), blockPos.getY(), blockPos.getZ(), actionId, transaction);
+            PistonData piston = PistonBlockEvent.handle(player, blockPos.getX(), blockPos.getY(), blockPos.getZ(), actionId, transaction);
             if (piston != null) {
                 player.compensatedWorld.activePistons.add(piston);
             } else if (Materials.isShulker(existing.getType())) {

@@ -67,7 +67,7 @@ dependencies {
     api(libs.snakeyaml)
     api(libs.fastutil)
     api(libs.adventure.text.minimessage)
-    api(libs.jetbrains.annotations)
+    compileOnly(libs.jetbrains.annotations)
     api(libs.hikaricp)
     runtimeOnly(libs.slf4j.jdk14)
     api(libs.grim.api)

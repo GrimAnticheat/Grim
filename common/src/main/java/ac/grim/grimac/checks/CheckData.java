@@ -8,9 +8,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface CheckData {
-    String DEFAULT_DESCRIPTION = "No description provided";
-    double DEFAULT_DECAY = 0.05;
-    double DEFAULT_SETBACK = 25;
 
     String name();
 
@@ -18,7 +15,7 @@ public @interface CheckData {
 
     String configName() default "DEFAULT";
 
-    String description() default DEFAULT_DESCRIPTION;
+    String description() default "No description provided";
 
     /**
      * Canonical cross-version identity. Dot-separated, lower snake-case
@@ -28,9 +25,9 @@ public @interface CheckData {
      */
     String stableKey();
 
-    double decay() default DEFAULT_DECAY;
+    double decay() default 0.05;
 
-    double setback() default DEFAULT_SETBACK;
+    double setback() default 25;
 
     boolean experimental() default false;
 

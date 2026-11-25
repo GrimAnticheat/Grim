@@ -160,6 +160,12 @@ VehicleTimer:
     # Celuje w timer 1.005
     setbackvl: 10
 
+FastBreak:
+    # Ile milisekund przewagi ze zbyt szybkiego niszczenia bloków przed oflagowaniem
+    break-threshold: 1000
+    # Ile milisekund przewagi ze zbyt wczesnego rozpoczęcia niszczenia bloku po poprzednim przed oflagowaniem
+    delay-threshold: 1000
+
 PacketOrderI:
     # Włącz, jeśli gracze są oznaczani za używanie modów do animacji z 1.7.
     exempt-placing-while-digging: false
