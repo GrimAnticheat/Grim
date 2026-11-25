@@ -228,7 +228,7 @@ public class CheckManager implements BasicReloadable {
                 .put(PacketOrderM.class, new PacketOrderM(player))
                 .put(PacketOrderN.class, new PacketOrderN(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
-//                .put(PacketOrderP.class, new PacketOrderP(player))
+                .put(PacketOrderP.class, new PacketOrderP(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
 
                 // place
