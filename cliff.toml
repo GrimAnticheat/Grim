@@ -21,7 +21,6 @@ trim = true
 # Your previous settings here are perfect, no changes needed
 filter_unconventional = false
 skip_unconventional = false
-remote = "https://github.com/GrimAnticheat/Grim"
 commit_parsers = [
     { message = "^feat", group = "🚀 Features" },
     { message = "^fix", group = "🐛 Fixes" },
@@ -45,3 +44,8 @@ commit_preprocessors = [
     { pattern = 'src/.*', group = "⚙️ Core Engine" },
 ]
 sort_commits = "oldest"
+
+[remote.github]
+owner = "GrimAnticheat"
+repo = "Grim"
+http_timeout = "60s"

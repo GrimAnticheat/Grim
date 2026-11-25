@@ -4,8 +4,10 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.RemoteConsoleCommandSender;
@@ -18,11 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 public class BukkitSenderFactory extends SenderFactory<CommandSender> implements SenderMapper<CommandSender, Sender> {
-    private final BukkitAudiences audiences;
-
-    public BukkitSenderFactory() {
-        this.audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
-    }
+    private final BukkitAudiences audiences = BukkitAudiences.create(GrimACBukkitLoaderPlugin.LOADER);
 
     @Override
     protected String getName(CommandSender sender) {
@@ -43,13 +41,19 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
     protected void sendMessage(CommandSender sender, Component message) {
         // we can safely send async for players and the console - otherwise, send it sync
         if (sender instanceof Player || sender instanceof ConsoleCommandSender || sender instanceof RemoteConsoleCommandSender) {
-            this.audiences.sender(sender).sendMessage(message);
+            audience(sender).sendMessage(message);
         } else {
             GrimAPI.INSTANCE.getScheduler().getGlobalRegionScheduler().run(
                     GrimAPI.INSTANCE.getGrimPlugin(),
-                    () -> this.audiences.sender(sender).sendMessage(message)
+                    () -> audience(sender).sendMessage(message)
             );
         }
+    }
+
+    private Audience audience(CommandSender sender) {
+        // Paper can provide the same Adventure API as a lite build. Use its native
+        // implementation: adventure-platform 4.x relies on overloads removed in Adventure 5.
+        return Audience.class.isInstance(sender) ? Audience.class.cast(sender) : this.audiences.sender(sender);
     }
 
     @Override
@@ -64,7 +68,7 @@ public class BukkitSenderFactory extends SenderFactory<CommandSender> implements
 
     @Override
     protected void performCommand(CommandSender sender, String command) {
-        throw new UnsupportedOperationException();
+        Bukkit.dispatchCommand(sender, command);
     }
 
     @Override

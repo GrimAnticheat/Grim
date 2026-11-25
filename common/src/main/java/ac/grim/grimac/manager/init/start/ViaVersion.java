@@ -12,7 +12,6 @@ public class ViaVersion implements StartableInitable {
     @Override
     public void start() {
         if (!ViaVersionUtil.isAvailable) return;
-        ViaVersionUtil.injectHooks();
 
         ServerVersion serverVersion = PacketEvents.getAPI().getServerManager().getVersion();
 

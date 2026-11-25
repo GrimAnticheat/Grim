@@ -182,6 +182,12 @@ VehicleTimer:
     setbackvl: 10
     # VL达到多少时回弹？
 
+FastBreak:
+    # 破坏方块过快累计多少毫秒优势后才判定
+    break-threshold: 1000
+    # 在上一个方块之后过早开始破坏下一个方块，累计多少毫秒优势后才判定
+    delay-threshold: 1000
+
 PacketOrderI:
     # 如果玩家因使用1.7动画模组而误判，则启用此项
     exempt-placing-while-digging: false
@@ -219,6 +225,9 @@ debug-pipeline-on-join: false
 # 启用实验性检查
 experimental-checks: false
 
+# 在玩家之间共享相同的区块分区以节省内存（写入时复制）。
+experimental-chunk-sharing: false
+
 # 取消有问题的格挡
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
@@ -247,5 +256,13 @@ max-ping-firework-boost: 1000
 #                   拒绝加载并立即报错，而不是悄悄合并到错误的键。
 #   config-version: 每次发生破坏性结构变更都会递增。下次启动时，旧配置会由
 #                   内置 updater 自动迁移。
+# 无论是否安装 LuckPerms，玩家加入服务器以及 Grim 重载时，Grim 都会刷新缓存的权限。
+# 在常规配置中，LuckPerms 的事件钩子也会立即刷新缓存的 Grim 权限。
+# 只有当在线权限变化没有被这些事件覆盖时，才需要这个定期兜底刷新，
+# 例如自定义 LuckPerms context 没有调用 signalContextUpdate、Fabric context
+# 存在缺口，或非 LuckPerms 权限提供器会在运行中改变权限。
+# 设为 -1 可禁用轮询。设为正数则每 X tick 刷新一次。
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

@@ -12,4 +12,9 @@ public class PacketEntityShulker extends PacketEntity {
     public PacketEntityShulker(GrimPlayer player, UUID uuid, EntityType type, double x, double y, double z) {
         super(player, uuid, type, x, y, z);
     }
+
+    @Override
+    public double clampScale(double scale) {
+        return Math.min(scale, 3);
+    }
 }

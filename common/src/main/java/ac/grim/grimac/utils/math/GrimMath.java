@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.math;
 
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
@@ -115,8 +116,8 @@ public class GrimMath {
     }
 
     @Contract(pure = true)
-    public static int sign(double x) {
-        return x == 0.0 ? 0 : x > 0.0 ? 1 : -1;
+    public static int sign(double value) {
+        return value == 0.0 ? 0 : value > 0.0 ? 1 : -1;
     }
 
     @Contract(pure = true)
@@ -173,6 +174,12 @@ public class GrimMath {
     @Contract(pure = true)
     public static float radians(float degrees) {
         return degrees * DEGREES_TO_RADIANS;
+    }
+
+    @Contract(pure = true)
+    public static float movementInputYawRadians(float yaw, ClientVersion version) {
+        // Before 1.9, moveFlying rounds the multiplication by PI before dividing by 180.
+        return version.isOlderThan(ClientVersion.V_1_9) ? yaw * (float) Math.PI / 180.0F : radians(yaw);
     }
 
     private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{

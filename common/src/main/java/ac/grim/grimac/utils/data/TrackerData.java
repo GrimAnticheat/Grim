@@ -7,7 +7,7 @@ import lombok.Data;
 public class TrackerData {
     private double x, y, z;
     private float xRot, yRot;
-    private EntityType entityType;
+    private final EntityType entityType;
     private int lastTransactionHung;
     private int legacyPointEightMountedUpon;
 

@@ -11,7 +11,7 @@ public record CommandRegister(CommandService service) implements StartableInitab
             if (service != null) {
                 service.registerCommands();
             }
-        } catch (Throwable t) {
+        } catch (RuntimeException t) {
             // This is the ultimate safety net. If command registration fails, Grim keeps running.
             LogUtil.error("Failed to register commands! Grim will run without command support.", t);
         }

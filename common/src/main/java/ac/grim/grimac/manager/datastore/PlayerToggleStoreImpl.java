@@ -202,21 +202,21 @@ public final class PlayerToggleStoreImpl implements PlayerToggleStore {
     }
 
     private static AtomicReference<TogglePair> refFor(ToggleSlot s, String key) {
-        switch (key) {
-            case KEY_ALERTS: return s.alerts;
-            case KEY_VERBOSE: return s.verbose;
-            case KEY_BRANDS: return s.brands;
-            default: return null;
-        }
+        return switch (key) {
+            case KEY_ALERTS -> s.alerts;
+            case KEY_VERBOSE -> s.verbose;
+            case KEY_BRANDS -> s.brands;
+            default -> null;
+        };
     }
 
     private static AtomicBoolean dirtyFor(ToggleSlot s, String key) {
-        switch (key) {
-            case KEY_ALERTS: return s.alertsDirty;
-            case KEY_VERBOSE: return s.verboseDirty;
-            case KEY_BRANDS: return s.brandsDirty;
-            default: return null;
-        }
+        return switch (key) {
+            case KEY_ALERTS -> s.alertsDirty;
+            case KEY_VERBOSE -> s.verboseDirty;
+            case KEY_BRANDS -> s.brandsDirty;
+            default -> null;
+        };
     }
 
     private void persist(UUID uuid, String key, boolean value) {

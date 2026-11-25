@@ -2,6 +2,9 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.AbstractCheck;
+import ac.grim.grimac.api.AbstractProcessor;
+import ac.grim.grimac.api.common.BasicReloadable;
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -42,6 +45,7 @@ import ac.grim.grimac.events.packets.PacketChangeGameState;
 import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.events.packets.PacketPlayerAbilities;
 import ac.grim.grimac.events.packets.PacketWorldBorder;
+import ac.grim.grimac.internal.storage.verbose.VerboseRegistry;
 import ac.grim.grimac.manager.init.start.SuperDebug;
 import ac.grim.grimac.platform.api.permissions.PermissionDefaultValue;
 import ac.grim.grimac.player.GrimPlayer;
@@ -57,44 +61,63 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
-import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CheckManager {
+public class CheckManager implements BasicReloadable {
     private static final AtomicBoolean initedAtomic = new AtomicBoolean(false);
     private static boolean inited;
-    public final ClassToInstanceMap<AbstractCheck> allChecks;
-    private final ClassToInstanceMap<PacketCheck> packetChecks;
-    private final ClassToInstanceMap<PositionCheck> positionChecks;
-    private final ClassToInstanceMap<RotationCheck> rotationChecks;
-    private final ClassToInstanceMap<VehicleCheck> vehicleChecks;
-    private final ClassToInstanceMap<PacketCheck> prePredictionChecks;
-    private final ClassToInstanceMap<BlockBreakCheck> blockBreakChecks;
-    private final ClassToInstanceMap<BlockPlaceCheck> blockPlaceChecks;
-    private final ClassToInstanceMap<PostPredictionCheck> postPredictionChecks;
-    @Getter
-    private final PacketEntityReplication packetEntityReplication;
+    public final ClassToInstanceMap<AbstractProcessor> processors;
+    public final Collection<AbstractCheck> checks;
 
-    private final List<PacketCheck> packetChecksValues;
-    private final List<PositionCheck> positionChecksValues;
-    private final List<RotationCheck> rotationChecksValues;
-    private final List<VehicleCheck> vehicleChecksValues;
-    private final List<PacketCheck> prePredictionChecksValues;
-    private final List<BlockBreakCheck> blockBreakChecksValues;
-    private final List<BlockPlaceCheck> blockPlaceChecksValues;
-    private final List<PostPredictionCheck> postPredictionChecksValues;
+    private final PreViaPacketReceiveListener[] preViaPacketReceiveListeners;
+    private final PreViaPacketSendListener[] preViaPacketSendListeners;
+    private final PacketReceiveListener[] packetReceiveListeners;
+    private final PacketSendListener[] packetSendListeners;
+    private final PositionListener[] positionListeners;
+    private final RotationListener[] rotationListeners;
+    private final VehicleListener[] vehicleListeners;
+    private final PrePredictionPacketReceiveListener[] prePredictionPacketReceiveListeners;
+    private final BlockBreakListener[] blockBreakListeners;
+    private final BlockPlaceListener[] blockPlaceListeners;
+    private final PostFlyingBlockPlaceListener[] postFlyingBlockPlaceListeners;
+    private final PostFlyingBlockBreakListener[] postFlyingBlockBreakListeners;
+    private final PostPredictionListener[] postPredictionListeners;
 
     public CheckManager(GrimPlayer player) {
-        packetEntityReplication = new PacketEntityReplication(player);
-
-        packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
+        processors = new ImmutableClassToInstanceMap.Builder<AbstractProcessor>()
                 .put(CompensatedCameraEntity.class, player.cameraEntity)
+                .put(ChatA.class, new ChatA(player))
+                .put(ChatB.class, new ChatB(player))
+                .put(ChatC.class, new ChatC(player))
+                .put(ChatD.class, new ChatD(player))
+                .put(BadPacketsA.class, new BadPacketsA(player))
+                .put(BadPacketsC.class, new BadPacketsC(player))
+                .put(BadPacketsF.class, new BadPacketsF(player))
+                .put(BadPacketsG.class, new BadPacketsG(player))
+                .put(BadPacketsI.class, new BadPacketsI(player))
+                .put(BadPacketsK.class, new BadPacketsK(player))
+                .put(BadPacketsM.class, new BadPacketsM(player))
+                .put(BadPacketsT.class, new BadPacketsT(player))
+                .put(BadPacketsY.class, new BadPacketsY(player))
+                .put(BadPacketsZ.class, new BadPacketsZ(player))
+                .put(PacketOrderB.class, new PacketOrderB(player))
+                .put(PacketOrderC.class, new PacketOrderC(player))
+                .put(PacketOrderD.class, new PacketOrderD(player))
+                .put(SelfInteract.class, new SelfInteract(player))
+                .put(MultiActionsA.class, new MultiActionsA(player))
+                .put(MultiActionsE.class, new MultiActionsE(player))
+                .put(VehicleA.class, new VehicleA(player))
+                .put(VehicleB.class, new VehicleB(player))
+
+        // TODO: migrate the rest of these to pre-via
                 .put(PacketOrderProcessor.class, player.packetOrderProcessor)
                 .put(Reach.class, new Reach(player))
-                .put(PacketEntityReplication.class, packetEntityReplication)
+                .put(PacketEntityReplication.class, player.packetEntityReplication)
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
                 .put(CompensatedInventory.class, player.inventory)
                 .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
@@ -103,47 +126,24 @@ public class CheckManager {
                 .put(TeamHandler.class, new TeamHandler(player))
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFall.class, new NoFall(player))
-                .put(ChatA.class, new ChatA(player))
-                .put(ChatB.class, new ChatB(player))
-                .put(ChatC.class, new ChatC(player))
-                .put(ChatD.class, new ChatD(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
-                .put(BadPacketsA.class, new BadPacketsA(player))
-                .put(BadPacketsB.class, new BadPacketsB(player))
-                .put(BadPacketsC.class, new BadPacketsC(player))
                 .put(BadPacketsD.class, new BadPacketsD(player))
                 .put(BadPacketsE.class, new BadPacketsE(player))
-                .put(BadPacketsF.class, new BadPacketsF(player))
-                .put(BadPacketsG.class, new BadPacketsG(player))
-                .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsJ.class, new BadPacketsJ(player))
-                .put(BadPacketsK.class, new BadPacketsK(player))
                 .put(BadPacketsL.class, new BadPacketsL(player))
-                .put(BadPacketsM.class, new BadPacketsM(player))
                 .put(BadPacketsO.class, new BadPacketsO(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
                 .put(BadPacketsR.class, new BadPacketsR(player))
                 .put(BadPacketsS.class, new BadPacketsS(player))
-                .put(BadPacketsT.class, new BadPacketsT(player))
+                .put(InvalidInteractCursor.class, new InvalidInteractCursor(player))
                 .put(BadPacketsU.class, new BadPacketsU(player))
                 .put(BadPacketsV.class, new BadPacketsV(player))
-                .put(BadPacketsY.class, new BadPacketsY(player))
-                .put(BadPacketsZ.class, new BadPacketsZ(player))
-                .put(SelfInteract.class, new SelfInteract(player))
-                .put(MultiActionsA.class, new MultiActionsA(player))
                 .put(MultiActionsC.class, new MultiActionsC(player))
                 .put(MultiActionsD.class, new MultiActionsD(player))
-                .put(MultiActionsE.class, new MultiActionsE(player))
-                .put(PacketOrderB.class, new PacketOrderB(player))
-                .put(PacketOrderC.class, new PacketOrderC(player))
-                .put(PacketOrderD.class, new PacketOrderD(player))
                 .put(PacketOrderO.class, new PacketOrderO(player))
                 .put(PacketOrderP.class, new PacketOrderP(player))
-                .put(SprintA.class, new SprintA(player))
-                .put(VehicleA.class, new VehicleA(player))
-                .put(VehicleB.class, new VehicleB(player))
                 .put(VehicleD.class, new VehicleD(player))
                 .put(VehicleE.class, new VehicleE(player))
                 .put(VehicleF.class, new VehicleF(player))
@@ -154,22 +154,14 @@ public class CheckManager {
                 .put(CrashH.class, new CrashH(player))
                 .put(CrashI.class, new CrashI(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
-                .build();
 
-        positionChecks = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))
                 .put(CompensatedCooldown.class, new CompensatedCooldown(player))
-                .build();
-        rotationChecks = new ImmutableClassToInstanceMap.Builder<RotationCheck>()
                 .put(AimProcessor.class, new AimProcessor(player))
                 .put(AimModulo360.class, new AimModulo360(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
-                .build();
-        vehicleChecks = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))
-                .build();
 
-        postPredictionChecks = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
                 .put(NegativeTimer.class, new NegativeTimer(player))
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
@@ -192,6 +184,7 @@ public class CheckManager {
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(BadPacketsX.class, new BadPacketsX(player))
                 .put(NoSlow.class, new NoSlow(player))
+                .put(SprintA.class, new SprintA(player))
                 .put(SprintB.class, new SprintB(player))
                 .put(SprintC.class, new SprintC(player))
                 .put(SprintD.class, new SprintD(player))
@@ -213,11 +206,9 @@ public class CheckManager {
                 .put(CompensatedFireworks.class, player.fireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
                 .put(LastInstanceManager.class, player.lastInstanceManager)
-                .build();
 
-        blockPlaceChecks = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
-                .put(InvalidPlaceA.class, new InvalidPlaceA(player))
-                .put(InvalidPlaceB.class, new InvalidPlaceB(player))
+                .put(InvalidPlaceCursor.class, new InvalidPlaceCursor(player))
+                .put(InvalidPlaceFace.class, new InvalidPlaceFace(player))
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .put(MultiPlace.class, new MultiPlace(player))
                 .put(MultiActionsF.class, new MultiActionsF(player))
@@ -231,18 +222,14 @@ public class CheckManager {
                 .put(PacketOrderN.class, new PacketOrderN(player))
                 .put(DuplicateRotPlace.class, new DuplicateRotPlace(player))
                 .put(GhostBlockMitigation.class, new GhostBlockMitigation(player))
-                .build();
 
-        prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(Timer.class, new Timer(player))
                 .put(TickTimer.class, new TickTimer(player))
                 .put(TimerLimit.class, new TimerLimit(player))
                 .put(CrashA.class, new CrashA(player))
                 .put(CrashC.class, new CrashC(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
-                .build();
 
-        blockBreakChecks = new ImmutableClassToInstanceMap.Builder<BlockBreakCheck>()
                 .put(AirLiquidBreak.class, new AirLiquidBreak(player))
                 .put(WrongBreak.class, new WrongBreak(player))
                 .put(RotationBreak.class, new RotationBreak(player))
@@ -254,211 +241,207 @@ public class CheckManager {
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
                 .put(MultiActionsB.class, new MultiActionsB(player))
-                .build();
 
         // All checks that have no listeners, generally invoked by other code to flag
         // TODO migrate more checks to here
-        ClassToInstanceMap<AbstractCheck> noneModules = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
-                // BadPacketsN/W + VehicleC + TransactionOrder are packet checks with no listener
+                // BadPacketsB/N/W, VehicleC, and TransactionOrder are packet checks with no listener
+                .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsN.class, new BadPacketsN(player))
-                .put(BadPacketsW.class, new BadPacketsW(player))
+                .put(InvalidInteractTarget.class, new InvalidInteractTarget(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(VehicleC.class, new VehicleC(player))
                 .put(Hitboxes.class, new Hitboxes(player)) // Hitboxes is invoked by Reach
                 .build();
 
-        allChecks = new ImmutableClassToInstanceMap.Builder<AbstractCheck>()
-                .putAll(packetChecks)
-                .putAll(positionChecks)
-                .putAll(rotationChecks)
-                .putAll(vehicleChecks)
-                .putAll(postPredictionChecks)
-                .putAll(blockPlaceChecks)
-                .putAll(prePredictionChecks)
-                .putAll(blockBreakChecks)
-                .putAll(noneModules)
-                .build();
+        ArrayList<AbstractCheck> checks = new ArrayList<>();
+        ArrayList<PreViaPacketReceiveListener> preViaPacketReceiveListeners = new ArrayList<>();
+        ArrayList<PreViaPacketSendListener> preViaPacketSendListeners = new ArrayList<>();
+        ArrayList<PacketReceiveListener> packetReceiveListeners = new ArrayList<>();
+        ArrayList<PacketSendListener> packetSendListeners = new ArrayList<>();
+        ArrayList<PrePredictionPacketReceiveListener> prePredictionPacketReceiveListeners = new ArrayList<>();
+        ArrayList<PositionListener> positionListeners = new ArrayList<>();
+        ArrayList<RotationListener> rotationListeners = new ArrayList<>();
+        ArrayList<VehicleListener> vehicleListeners = new ArrayList<>();
+        ArrayList<PostPredictionListener> postPredictionListeners = new ArrayList<>();
+        ArrayList<BlockPlaceListener> blockPlaceListeners = new ArrayList<>();
+        ArrayList<PostFlyingBlockPlaceListener> postFlyingBlockPlaceListeners = new ArrayList<>();
+        ArrayList<BlockBreakListener> blockBreakListeners = new ArrayList<>();
+        ArrayList<PostFlyingBlockBreakListener> postFlyingBlockBreakListeners = new ArrayList<>();
 
-        packetChecksValues = new ArrayList<>(packetChecks.values());
-        positionChecksValues = new ArrayList<>(positionChecks.values());
-        rotationChecksValues = new ArrayList<>(rotationChecks.values());
-        vehicleChecksValues = new ArrayList<>(vehicleChecks.values());
-        prePredictionChecksValues = new ArrayList<>(prePredictionChecks.values());
-        blockBreakChecksValues = new ArrayList<>(blockBreakChecks.values());
-        blockPlaceChecksValues = new ArrayList<>(blockPlaceChecks.values());
-        postPredictionChecksValues = new ArrayList<>(postPredictionChecks.values());
+        for (AbstractProcessor processor : processors.values()) {
+            if (processor instanceof AbstractCheck abstractCheck) {
+                checks.add(abstractCheck);
+                if (processor instanceof Check grimCheck && !grimCheck.isApplicable()) continue;
+            }
+
+            if (processor instanceof PacketReceiveListener packetReceiveListener) packetReceiveListeners.add(packetReceiveListener);
+            if (processor instanceof PrePredictionPacketReceiveListener prePredictionPacketReceiveListener) prePredictionPacketReceiveListeners.add(prePredictionPacketReceiveListener);
+            if (processor instanceof PreViaPacketReceiveListener preViaPacketReceiveListener) preViaPacketReceiveListeners.add(preViaPacketReceiveListener);
+            if (processor instanceof PacketSendListener packetSendListener) packetSendListeners.add(packetSendListener);
+            if (processor instanceof PreViaPacketSendListener preViaPacketSendListener) preViaPacketSendListeners.add(preViaPacketSendListener);
+            if (processor instanceof PositionListener positionListener) positionListeners.add(positionListener);
+            if (processor instanceof RotationListener rotationListener) rotationListeners.add(rotationListener);
+            if (processor instanceof VehicleListener vehicleListener) vehicleListeners.add(vehicleListener);
+            if (processor instanceof PostPredictionListener postPredictionListener) postPredictionListeners.add(postPredictionListener);
+            if (processor instanceof BlockPlaceListener blockPlaceListener) blockPlaceListeners.add(blockPlaceListener);
+            if (processor instanceof PostFlyingBlockPlaceListener postFlyingBlockPlaceListener) postFlyingBlockPlaceListeners.add(postFlyingBlockPlaceListener);
+            if (processor instanceof BlockBreakListener blockBreakListener) blockBreakListeners.add(blockBreakListener);
+            if (processor instanceof PostFlyingBlockBreakListener postFlyingBlockBreakListener) postFlyingBlockBreakListeners.add(postFlyingBlockBreakListener);
+        }
+
+        checks.trimToSize();
+        this.checks = Collections.unmodifiableCollection(checks);
+        this.preViaPacketReceiveListeners = preViaPacketReceiveListeners.toArray(new PreViaPacketReceiveListener[preViaPacketReceiveListeners.size()]);
+        this.preViaPacketSendListeners = preViaPacketSendListeners.toArray(new PreViaPacketSendListener[preViaPacketSendListeners.size()]);
+        this.packetReceiveListeners = packetReceiveListeners.toArray(new PacketReceiveListener[packetReceiveListeners.size()]);
+        this.packetSendListeners = packetSendListeners.toArray(new PacketSendListener[packetSendListeners.size()]);
+        this.prePredictionPacketReceiveListeners = prePredictionPacketReceiveListeners.toArray(new PrePredictionPacketReceiveListener[prePredictionPacketReceiveListeners.size()]);
+        this.positionListeners = positionListeners.toArray(new PositionListener[positionListeners.size()]);
+        this.rotationListeners = rotationListeners.toArray(new RotationListener[rotationListeners.size()]);
+        this.vehicleListeners = vehicleListeners.toArray(new VehicleListener[vehicleListeners.size()]);
+        this.postPredictionListeners = postPredictionListeners.toArray(new PostPredictionListener[postPredictionListeners.size()]);
+        this.blockPlaceListeners = blockPlaceListeners.toArray(new BlockPlaceListener[blockPlaceListeners.size()]);
+        this.postFlyingBlockPlaceListeners = postFlyingBlockPlaceListeners.toArray(new PostFlyingBlockPlaceListener[postFlyingBlockPlaceListeners.size()]);
+        this.blockBreakListeners = blockBreakListeners.toArray(new BlockBreakListener[blockBreakListeners.size()]);
+        this.postFlyingBlockBreakListeners = postFlyingBlockBreakListeners.toArray(new PostFlyingBlockBreakListener[postFlyingBlockBreakListeners.size()]);
 
         init();
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends AbstractCheck> T getCheck(Class<T> check) {
-        return (T) allChecks.get(check);
+    private void registerBuiltInVerboseTemplates() {
+        VerboseRegistry registry = GrimAPI.INSTANCE.getDataStoreLifecycle().verboseRegistry();
+        if (registry == null) return;
+        registry.registerTemplates(() -> {
+            for (AbstractCheck check : checks) {
+                if (check instanceof Check grimCheck) {
+                    grimCheck.registerVerboseTemplates(registry);
+                }
+            }
+        });
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends PositionCheck> T getPositionCheck(Class<T> check) {
-        return (T) positionChecks.get(check);
+    @Override
+    public void reload() {
+        for (AbstractProcessor processor : processors.values()) {
+            processor.reload();
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends RotationCheck> T getRotationCheck(Class<T> check) {
-        return (T) rotationChecks.get(check);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends BlockPlaceCheck> T getBlockPlaceCheck(Class<T> check) {
-        return (T) blockPlaceChecks.get(check);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends PacketCheck> T getPacketCheck(Class<T> check) {
-        return (T) packetChecks.get(check);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends PacketCheck> T getPrePredictionCheck(Class<T> check) {
-        return (T) prePredictionChecks.get(check);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends PostPredictionCheck> T getPostPredictionCheck(Class<T> check) {
-        return (T) postPredictionChecks.get(check);
+    public <T extends AbstractProcessor> T get(@NotNull Class<T> check) {
+        return processors.getInstance(check);
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
-        for (PacketCheck check : prePredictionChecksValues) {
-            check.onPacketReceive(packet);
+        for (PrePredictionPacketReceiveListener check : prePredictionPacketReceiveListeners) {
+            check.onPrePredictionPacketReceive(packet);
         }
     }
 
     public void onPacketReceive(final PacketReceiveEvent packet) {
-        for (PacketCheck check : packetChecksValues) {
+        for (PacketReceiveListener check : packetReceiveListeners) {
             check.onPacketReceive(packet);
         }
-        for (PostPredictionCheck check : postPredictionChecksValues) {
-            check.onPacketReceive(packet);
-        }
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
-            check.onPacketReceive(packet);
-        }
-        for (BlockBreakCheck check : blockBreakChecksValues) {
-            check.onPacketReceive(packet);
+    }
+
+    public void onPreViaPacketReceive(final PacketReceiveEvent packet) {
+        for (PreViaPacketReceiveListener check : preViaPacketReceiveListeners) {
+            check.onPreViaPacketReceive(packet);
         }
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
-        for (PacketCheck check : prePredictionChecksValues) {
-            check.onPacketSend(packet);
-        }
-        for (PacketCheck check : packetChecksValues) {
-            check.onPacketSend(packet);
-        }
-        for (PostPredictionCheck check : postPredictionChecksValues) {
-            check.onPacketSend(packet);
-        }
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
-            check.onPacketSend(packet);
-        }
-        for (BlockBreakCheck check : blockBreakChecksValues) {
+        for (PacketSendListener check : packetSendListeners) {
             check.onPacketSend(packet);
         }
     }
 
+    public void onPreViaPacketSend(final PacketSendEvent packet) {
+        for (PreViaPacketSendListener check : preViaPacketSendListeners) {
+            check.onPreViaPacketSend(packet);
+        }
+    }
+
     public void onPositionUpdate(final PositionUpdate position) {
-        for (PositionCheck check : positionChecksValues) {
+        for (PositionListener check : positionListeners) {
             check.onPositionUpdate(position);
         }
     }
 
     public void onRotationUpdate(final RotationUpdate rotation) {
-        for (RotationCheck check : rotationChecksValues) {
-            check.process(rotation);
-        }
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
+        for (RotationListener check : rotationListeners) {
             check.process(rotation);
         }
     }
 
     public void onVehiclePositionUpdate(final VehiclePositionUpdate update) {
-        for (VehicleCheck check : vehicleChecksValues) {
+        for (VehicleListener check : vehicleListeners) {
             check.process(update);
         }
     }
 
     public void onPredictionFinish(final PredictionComplete complete) {
-        for (PostPredictionCheck check : postPredictionChecksValues) {
-            check.onPredictionComplete(complete);
-        }
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
-            check.onPredictionComplete(complete);
-        }
-        for (BlockBreakCheck check : blockBreakChecksValues) {
+        for (PostPredictionListener check : postPredictionListeners) {
             check.onPredictionComplete(complete);
         }
     }
 
     public void onBlockPlace(final BlockPlace place) {
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
+        for (BlockPlaceListener check : blockPlaceListeners) {
             check.onBlockPlace(place);
         }
     }
 
     public void onPostFlyingBlockPlace(final BlockPlace place) {
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
+        for (PostFlyingBlockPlaceListener check : postFlyingBlockPlaceListeners) {
             check.onPostFlyingBlockPlace(place);
         }
     }
 
     public void onBlockBreak(final BlockBreak blockBreak) {
-        for (BlockBreakCheck check : blockBreakChecksValues) {
-            check.onBlockBreak(blockBreak);
-        }
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
+        for (BlockBreakListener check : blockBreakListeners) {
             check.onBlockBreak(blockBreak);
         }
     }
 
     public void onPostFlyingBlockBreak(final BlockBreak blockBreak) {
-        for (BlockBreakCheck check : blockBreakChecksValues) {
-            check.onPostFlyingBlockBreak(blockBreak);
-        }
-        for (BlockPlaceCheck check : blockPlaceChecksValues) {
+        for (PostFlyingBlockBreakListener check : postFlyingBlockBreakListeners) {
             check.onPostFlyingBlockBreak(blockBreak);
         }
     }
 
     public ExplosionHandler getExplosionHandler() {
-        return getPostPredictionCheck(ExplosionHandler.class);
+        return get(ExplosionHandler.class);
     }
 
     public NoFall getNoFall() {
-        return getPacketCheck(NoFall.class);
+        return get(NoFall.class);
     }
 
     public KnockbackHandler getKnockbackHandler() {
-        return getPostPredictionCheck(KnockbackHandler.class);
+        return get(KnockbackHandler.class);
     }
 
     public CompensatedCooldown getCompensatedCooldown() {
-        return getPositionCheck(CompensatedCooldown.class);
+        return get(CompensatedCooldown.class);
     }
 
     public NoSlow getNoSlow() {
-        return getPostPredictionCheck(NoSlow.class);
+        return get(NoSlow.class);
     }
 
     public SetbackTeleportUtil getSetbackUtil() {
-        return getPostPredictionCheck(SetbackTeleportUtil.class);
+        return get(SetbackTeleportUtil.class);
     }
 
     public DebugHandler getDebugHandler() {
-        return getPostPredictionCheck(DebugHandler.class);
+        return get(DebugHandler.class);
     }
 
     private void init() {
         if (inited || initedAtomic.getAndSet(true)) return;
         inited = true;
+
+        registerBuiltInVerboseTemplates();
 
         final String[] permissions = {
                 "grim.exempt.",
@@ -466,12 +449,11 @@ public class CheckManager {
                 "grim.nomodifypacket.",
         };
 
-        for (final AbstractCheck check : allChecks.values()) {
+        for (final AbstractCheck check : checks) {
             if (check.getConfigName() == null) continue;
             final String id = check.getConfigName().toLowerCase();
             for (String permissionName : permissions) {
-                permissionName += id;
-                GrimAPI.INSTANCE.getPermissionManager().registerPermission(permissionName, PermissionDefaultValue.FALSE);
+                GrimAPI.INSTANCE.getPermissionManager().registerPermission(permissionName + id, PermissionDefaultValue.FALSE);
             }
         }
     }

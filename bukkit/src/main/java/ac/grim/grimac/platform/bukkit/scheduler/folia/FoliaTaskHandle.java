@@ -13,7 +13,7 @@ public class FoliaTaskHandle implements TaskHandle {
 
     @Contract(pure = true)
     public FoliaTaskHandle(@NotNull ScheduledTask task) {
-        this.task = Objects.requireNonNull(task);
+        this.task = Objects.requireNonNull(task, "task");
     }
 
     @Override

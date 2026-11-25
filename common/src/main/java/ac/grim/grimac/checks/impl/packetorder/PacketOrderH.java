@@ -2,30 +2,39 @@ package ac.grim.grimac.checks.impl.packetorder;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PostPredictionListener;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
+import org.jetbrains.annotations.NotNull;
 
-@CheckData(name = "PacketOrderH", stableKey = "grim.packetorder.sneak_sprint_order", experimental = true)
-public class PacketOrderH extends Check implements PostPredictionCheck {
+@CheckData(name = "PacketOrderH", stableKey = "grim.packetorder.sneak_sprint_order", description = "Sent sprinting and sneaking state changes in an invalid packet order", experimental = true)
+public class PacketOrderH extends Check implements PreViaPacketReceiveListener, PostPredictionListener {
+
+    private int invalid;
+
     public PacketOrderH(final GrimPlayer player) {
         super(player);
     }
 
-    private int invalid;
+    @Override
+    public boolean isApplicable() {
+        // sneaking is set by input packet in 1.21.6+
+        return player.getClientVersion().isOlderThan(ClientVersion.V_1_21_6);
+    }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPreViaPacketReceive(@NotNull PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
             switch (new WrapperPlayClientEntityAction(event).getAction()) {
                 case START_SPRINTING, STOP_SPRINTING -> {
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) && player.packetOrderProcessor.isSneaking()) {
                         if (!player.canSkipTicks()) {
-                            flagAndAlert();
+                            flag();
                         } else {
                             invalid++;
                         }
@@ -34,7 +43,7 @@ public class PacketOrderH extends Check implements PostPredictionCheck {
                 case START_SNEAKING, STOP_SNEAKING -> {
                     if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.packetOrderProcessor.isSprinting()) {
                         if (!player.canSkipTicks()) {
-                            flagAndAlert();
+                            flag();
                         } else {
                             invalid++;
                         }
@@ -50,7 +59,7 @@ public class PacketOrderH extends Check implements PostPredictionCheck {
 
         if (player.isTickingReliablyFor(3)) {
             for (; invalid >= 1; invalid--) {
-                flagAndAlert();
+                flag();
             }
         }
 

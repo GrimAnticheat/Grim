@@ -12,7 +12,7 @@ public class BukkitConversionUtils {
     @Contract("null -> null; !null -> new")
     public static org.bukkit.Location toBukkitLocation(Location location) {
         if (location == null) return null;
-        return new org.bukkit.Location(((BukkitPlatformWorld) location.getWorld()).getBukkitWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        return new org.bukkit.Location(((BukkitPlatformWorld) location.getWorld()).bukkitWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
     /**

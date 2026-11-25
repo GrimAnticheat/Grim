@@ -1,7 +1,6 @@
 package ac.grim.grimac.command;
 
 import ac.grim.grimac.platform.api.sender.Sender;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
@@ -24,10 +23,7 @@ public class CommandUtils {
         return new SenderSuggestionProvider(Collections.unmodifiableList(suggestions));
     }
 
-    @RequiredArgsConstructor
-    private class SenderSuggestionProvider implements SuggestionProvider<Sender> {
-        private final List<Suggestion> suggestions;
-
+    private record SenderSuggestionProvider(List<Suggestion> suggestions) implements SuggestionProvider<Sender> {
         @Override
         public @NotNull CompletableFuture<? extends @NotNull Iterable<? extends @NotNull Suggestion>> suggestionsFuture(@NotNull CommandContext context, @NotNull CommandInput input) {
             return CompletableFuture.completedFuture(suggestions);

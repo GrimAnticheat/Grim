@@ -98,7 +98,7 @@ database:
   # Tag di visualizzazione stampato sui nuovi record di sessione. Mostrato
   # nella riga di intestazione di sessione di `/grim history`. Modificabile
   # in sicurezza durante l'operatività.
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # Marcatori di schema — vedi il commento di intestazione in config.yml.
 config-flavor: V2

@@ -160,6 +160,12 @@ VehicleTimer:
     # Hedef 1.005 timer
     setbackvl: 10
 
+FastBreak:
+    # İşaretlemeden önce blokları çok hızlı kırmaktan kaç milisaniye avantaj sağlanabilir
+    break-threshold: 1000
+    # İşaretlemeden önce bir önceki bloktan hemen sonra yeni bloğu kırmaya başlamaktan kaç milisaniye avantaj sağlanabilir
+    delay-threshold: 1000
+
 PacketOrderI:
     # Oyuncular 1.7 animasyon modlarını kullandıkları için işaretleniyorsa etkinleştirin
     exempt-placing-while-digging: false
@@ -199,6 +205,9 @@ debug-pipeline-on-join: false
 # Deneysel kontrolleri etkinleştir
 experimental-checks: false
 
+# Bellek tasarrufu için aynı chunk bölümlerini oyuncular arasında paylaşır (yazma sırasında kopyalama).
+experimental-chunk-sharing: false
+
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
@@ -227,5 +236,16 @@ max-ping-firework-boost: 1000
 #   config-version: her geriye dönük uyumsuz biçim değişikliğinde artırılır.
 #                   Eski config'ler bir sonraki başlatmada, pakete dahil
 #                   updater tarafından otomatik taşınır.
+# LuckPerms kurulu olsun ya da olmasın, bir oyuncu katıldığında ve Grim yeniden
+# yüklendiğinde Grim önbellekteki izinleri her zaman yeniler.
+# LuckPerms olay hook'ları normal kurulumlarda önbellekteki Grim izinlerini de
+# anında yeniler.
+# Bu periyodik yedek yalnızca bu olayların kapsamadığı çevrim içi izin
+# değişiklikleri için gereklidir; örneğin signalContextUpdate çağırmayan özel bir
+# LuckPerms context'i, Fabric context boşlukları veya LuckPerms dışında izinleri
+# canlı olarak değiştiren bir izin sağlayıcısı.
+# Yoklamayı devre dışı bırakmak için -1 kullanın. Her X tick'te yenilemek için pozitif bir değer kullanın.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

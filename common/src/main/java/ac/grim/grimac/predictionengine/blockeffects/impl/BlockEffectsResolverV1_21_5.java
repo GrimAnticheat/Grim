@@ -6,6 +6,7 @@ import ac.grim.grimac.predictionengine.blockeffects.BlockEffectsResolver;
 import ac.grim.grimac.predictionengine.blockeffects.BlockStepVisitor;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -24,7 +25,7 @@ public class BlockEffectsResolverV1_21_5 implements BlockEffectsResolver {
     public static final BlockEffectsResolver INSTANCE = new BlockEffectsResolverV1_21_5();
 
     @Override
-    public void applyEffectsFromBlocks(GrimPlayer player, List<GrimPlayer.Movement> movements) {
+    public void applyEffectsFromBlocks(GrimPlayer player, Vector3dm clientVelocity, boolean onlyApplyVelocity, List<GrimPlayer.Movement> movements) {
         LongSet visitedBlocks = player.visitedBlocks;
 
         for (GrimPlayer.Movement movement : movements) {
@@ -35,19 +36,19 @@ public class BlockEffectsResolverV1_21_5 implements BlockEffectsResolver {
                     double value = axis.get(to);
                     if (value != 0.0) {
                         Vector3d vector = BlockCollisions.relative(from, axis.getPositive(), value);
-                        checkInsideBlocks(player, from, vector, visitedBlocks);
+                        checkInsideBlocks(player, clientVelocity, onlyApplyVelocity, from, vector, visitedBlocks);
                         from = vector;
                     }
                 }
             } else {
-                checkInsideBlocks(player, movement.from(), movement.to(), visitedBlocks);
+                checkInsideBlocks(player, clientVelocity, onlyApplyVelocity, movement.from(), movement.to(), visitedBlocks);
             }
         }
 
         visitedBlocks.clear();
     }
 
-    private static void checkInsideBlocks(GrimPlayer player, Vector3d from, Vector3d to, LongSet visitedBlocks) {
+    private static void checkInsideBlocks(GrimPlayer player, Vector3dm clientVelocity, boolean onlyApplyVelocity, Vector3d from, Vector3d to, LongSet visitedBlocks) {
         SimpleCollisionBox boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, to.x, to.y, to.z).expand(-1.0E-5F);
         forEachBlockIntersectedBetween(from, to, boundingBox, (blockPos, i) -> {
             WrappedBlockState blockState = player.compensatedWorld.getBlock(blockPos);
@@ -58,7 +59,7 @@ public class BlockEffectsResolverV1_21_5 implements BlockEffectsResolver {
             }
 
             if (visitedBlocks.add(GrimMath.asLong(blockPos))) {
-                Collisions.onInsideBlock(player, blockType, blockState, blockPos.x, blockPos.y, blockPos.z, true);
+                Collisions.onInsideBlock(player, clientVelocity, onlyApplyVelocity, blockType, blockState, blockPos.x, blockPos.y, blockPos.z, true);
             }
 
             return true;
@@ -123,7 +124,7 @@ public class BlockEffectsResolverV1_21_5 implements BlockEffectsResolver {
             }
 
             Optional<Vector3d> collisionPoint = BlockCollisions.clip(currentX, currentY, currentZ, currentX + 1, currentY + 1, currentZ + 1, start, end);
-            if (!collisionPoint.isEmpty()) {
+            if (collisionPoint.isPresent()) {
                 Vector3d collisionVec = collisionPoint.get();
                 double clampedX = GrimMath.clamp(collisionVec.x, currentX + 1.0E-5F, currentX + 1.0 - 1.0E-5F);
                 double clampedY = GrimMath.clamp(collisionVec.y, currentY + 1.0E-5F, currentY + 1.0 - 1.0E-5F);

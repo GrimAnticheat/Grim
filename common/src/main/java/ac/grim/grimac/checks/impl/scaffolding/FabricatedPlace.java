@@ -1,7 +1,9 @@
 package ac.grim.grimac.checks.impl.scaffolding;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
+import ac.grim.grimac.checks.type.BlockPlaceListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -9,7 +11,8 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3f;
 
 @CheckData(name = "FabricatedPlace", stableKey = "grim.scaffolding.fabricated_place", description = "Sent out of bounds cursor position")
-public class FabricatedPlace extends BlockPlaceCheck {
+public class FabricatedPlace extends BlockPlaceCheck implements BlockPlaceListener {
+    private static final Verbose V = Verbose.of("cursor={cursor} limit={f64:%.16f}");
 
     /**
      * MAX_DOUBLE_ERROR:
@@ -61,8 +64,9 @@ public class FabricatedPlace extends BlockPlaceCheck {
                 cursor.getZ() < minBound - MAX_DOUBLE_ERROR) {
 
             // Alert logic
-            String debug = String.format("cursor=%s limit=%.16f", cursor, minBound - MAX_DOUBLE_ERROR);
-            if (flagAndAlert(debug) && shouldModifyPackets() && shouldCancel()) {
+            double limit = minBound - MAX_DOUBLE_ERROR;
+            var buf = V.write(verbose()).cursor(cursor.x, cursor.y, cursor.z).f64(limit);
+            if (flag(buf) && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }
             return;
@@ -84,8 +88,9 @@ public class FabricatedPlace extends BlockPlaceCheck {
                 cursor.getZ() > maxBound + upperTolerance) {
 
             // Alert logic
-            String debug = String.format("cursor=%s limit=%.16f", cursor, maxBound + upperTolerance);
-            if (flagAndAlert(debug) && shouldModifyPackets() && shouldCancel()) {
+            double limit = maxBound + upperTolerance;
+            var buf = V.write(verbose()).cursor(cursor.x, cursor.y, cursor.z).f64(limit);
+            if (flag(buf) && shouldModifyPackets() && shouldCancel()) {
                 place.resync();
             }
         }

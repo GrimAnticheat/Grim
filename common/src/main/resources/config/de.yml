@@ -163,6 +163,12 @@ VehicleTimer:
 VehicleC:
     setbackvl: 25
 
+FastBreak:
+    # Wie viele Millisekunden Vorteil durch zu schnelles Abbauen von Blöcken, bevor markiert wird
+    break-threshold: 1000
+    # Wie viele Millisekunden Vorteil durch zu frühes Beginnen des nächsten Blocks nach dem letzten, bevor markiert wird
+    delay-threshold: 1000
+
 PacketOrderI:
     # Aktivieren, wenn Spieler markiert werden, weil sie 1.7-Animationsmods verwenden
     exempt-placing-while-digging: false
@@ -199,6 +205,9 @@ debug-pipeline-on-join: false
 # Aktiviert experimentelle Prüfungen
 experimental-checks: false
 
+# Teilt identische Chunk-Sektionen zwischen Spielern, um Speicher zu sparen (Copy-on-Write bei Änderung).
+experimental-chunk-sharing: false
+
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
@@ -227,5 +236,16 @@ max-ping-firework-boost: 1000
 #   config-version: wird bei jeder inkompatiblen Schemaänderung erhöht. Alte
 #                   Configs werden beim nächsten Start automatisch vom
 #                   mitgelieferten Updater migriert.
+# Grim aktualisiert zwischengespeicherte Berechtigungen immer, wenn ein Spieler beitritt
+# und wenn Grim neu geladen wird, unabhängig davon, ob LuckPerms installiert ist.
+# LuckPerms-Event-Hooks aktualisieren zwischengespeicherte Grim-Berechtigungen
+# in normalen Setups ebenfalls sofort.
+# Dieser periodische Fallback wird nur für Online-Berechtigungsänderungen benötigt,
+# die nicht von diesen Events abgedeckt werden, z. B. ein benutzerdefinierter
+# LuckPerms-Kontext, der signalContextUpdate nicht aufruft, Lücken bei Fabric-Kontexten
+# oder ein Nicht-LuckPerms-Berechtigungsanbieter, der Berechtigungen live ändert.
+# Setze auf -1, um Polling zu deaktivieren. Setze einen positiven Wert, um alle X Ticks zu aktualisieren.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

@@ -88,7 +88,9 @@ public interface Sender {
      *
      * @return if the sender is a player
      */
-    boolean isPlayer();
+    default boolean isPlayer() {
+        return getPlatformPlayer() != null;
+    }
 
     /**
      * Gets whether this sender is still valid and receiving messages.

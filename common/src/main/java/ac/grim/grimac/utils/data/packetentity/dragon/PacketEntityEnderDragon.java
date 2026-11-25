@@ -31,4 +31,8 @@ public final class PacketEntityEnderDragon extends PacketEntity {
         }
     }
 
+    @Override
+    public double clampScale(double scale) {
+        return 1;
+    }
 }

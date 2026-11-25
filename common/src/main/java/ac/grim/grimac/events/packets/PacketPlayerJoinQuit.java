@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.datastore.PlayerToggleStore;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.functions.ObjBooleanConsumer;
 import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
@@ -12,40 +13,41 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.BiConsumer;
-
 
 public class PacketPlayerJoinQuit extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Login.Server.LOGIN_SUCCESS) {
-            // Do this after send to avoid sending packets before the PLAY state
-            event.getTasksAfterSend().add(() -> {
-                GrimAPI.INSTANCE.getPlayerDataManager().addUser(event.getUser());
-                // Prefetch the player's persisted alerts/verbose/brands toggles so onUserLogin can apply them immediately instead of falling back to the permission-default when the read hasn't completed in time.
-                //
-                // Runs on the backend's reader executor: never blocks this Netty thread. By the time onUserLogin fires (after chunk load / resource pack / motd) the prefetch has typically settled, and onUserLogin reads from the in-memory cache. A slow DB or a brand-new player with no row yet falls through to the permission-default.
-                UUID uuid = event.getUser().getUUID();
-                if (uuid != null) {
-                    GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore().prefetch(uuid);
-                }
-            });
-        }
+        if (event.getPacketType() != PacketType.Login.Server.LOGIN_SUCCESS) return;
+
+        // Do this after send to avoid sending packets before the PLAY state
+        event.getTasksAfterSend().add(() -> {
+            GrimAPI.INSTANCE.getPlayerDataManager().addUser(event.getUser());
+            // Prefetch the player's persisted alerts/verbose/brands toggles so onUserLogin can apply them immediately instead of falling back to the permission-default when the read hasn't completed in time.
+            //
+            // Runs on the backend's reader executor: never blocks this Netty thread. By the time onUserLogin fires (after chunk load / resource pack / motd) the prefetch has typically settled, and onUserLogin reads from the in-memory cache. A slow DB or a brand-new player with no row yet falls through to the permission-default.
+            UUID uuid = event.getUser().getUUID();
+            if (uuid != null) {
+                GrimAPI.INSTANCE.getDataStoreLifecycle().playerToggleStore().prefetch(uuid);
+            }
+        });
     }
 
     @Override
     public void onUserConnect(UserConnectEvent event) {
         // Player connected too soon, perhaps late bind is off
         // Don't kick everyone on reload
-        if (event.getUser().getConnectionState() == ConnectionState.PLAY && !GrimAPI.INSTANCE.getPlayerDataManager().exemptUsers.contains(event.getUser())) {
+        if (event.getUser().getConnectionState() == ConnectionState.PLAY && !GrimAPI.INSTANCE.getPlayerDataManager().isExemptUser(event.getUser())) {
             event.setCancelled(true);
         }
     }
 
     @Override
     public void onUserLogin(UserLoginEvent event) {
-        Object nativePlayerObject = Objects.requireNonNull(event.getPlayer());
+        // fake channel (NPC / spoofer / EmbeddedChannel) — no PacketUser, nothing to track
+        if (event.getUser() == null) return;
+
+        Object nativePlayerObject = Objects.requireNonNull(event.getPlayer(), "nativePlayerObject");
 
         // This will never throw a NPE because code is run in OnUserConnect -> onPacketSend -> OnUserLogin order
         // And the user will be added to the map before the getPlayer() method call
@@ -100,8 +102,8 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
                                     @NotNull String permTogglePath,
                                     @NotNull String permEnableOnJoin,
                                     @NotNull String permSilentJoin,
-                                    @NotNull BiConsumer<PlatformPlayer, Boolean> toggle,
-                                    @NotNull BiConsumer<PlatformPlayer, Boolean> applySilent) {
+                                    @NotNull ObjBooleanConsumer<PlatformPlayer> toggle,
+                                    @NotNull ObjBooleanConsumer<PlatformPlayer> applySilent) {
         if (!platformPlayer.hasPermission(permTogglePath)) return;
 
         UUID uuid = platformPlayer.getUniqueId();

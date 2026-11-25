@@ -2,14 +2,14 @@ package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
 
-@CheckData(name = "BadPacketsS", stableKey = "grim.badpackets.window_confirmation_not_accepted")
-public class BadPacketsS extends Check implements PacketCheck {
+@CheckData(name = "BadPacketsS", stableKey = "grim.badpackets.window_confirmation_not_accepted", description = "Sent a window confirmation packet marked as not accepted")
+public class BadPacketsS extends Check implements PacketReceiveListener {
     public BadPacketsS(GrimPlayer player) {
         super(player);
     }
@@ -18,7 +18,7 @@ public class BadPacketsS extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION
                 && !new WrapperPlayClientWindowConfirmation(event).isAccepted()
-                && flagAndAlert() && shouldModifyPackets()) {
+                && flag() && shouldModifyPackets()) {
             event.setCancelled(true);
             player.onPacketCancel();
         }

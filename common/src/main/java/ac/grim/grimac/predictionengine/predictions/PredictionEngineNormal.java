@@ -5,8 +5,10 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
+import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -20,6 +22,11 @@ import java.util.Set;
 public class PredictionEngineNormal extends PredictionEngine {
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector3dm vector) {
+        staticVectorEndOfTick(player, vector, vector.getY());
+    }
+
+    // Vanilla checks slow falling against the Y from before climbing sets it to 0.2
+    public static void staticVectorEndOfTick(GrimPlayer player, Vector3dm vector, double fallingY) {
         double adjustedY = vector.getY();
         final OptionalInt levitation = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.LEVITATION);
         if (levitation.isPresent()) {
@@ -27,17 +34,22 @@ public class PredictionEngineNormal extends PredictionEngine {
             // Reset fall distance with levitation
             player.fallDistance = 0;
         } else if (player.hasGravity) {
-            adjustedY -= player.gravity;
+            double gravity = player.compensatedEntities.self.getAttributeValue(Attributes.GRAVITY);
+            if (fallingY <= 0 && player.compensatedEntities.getSlowFallingAmplifier().isPresent()) {
+                gravity = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5) ? 0.01 : Math.min(gravity, 0.01);
+            }
+
+            adjustedY -= gravity;
         }
 
         vector.setX(vector.getX() * player.friction);
-        vector.setY(adjustedY * 0.98F);
+        vector.setY(adjustedY * BlockProperties.getModifiedAirDrag(0.98F, player));
         vector.setZ(vector.getZ() * player.friction);
     }
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        if (player.supportsEndTick() && !player.packetStateData.knownInput.jump()) {
+        if (player.supportsEndTickPreVia() && !player.packetStateData.knownInput.jump()) {
             return;
         }
 
@@ -51,7 +63,9 @@ public class PredictionEngineNormal extends PredictionEngine {
                 // And 0.03 didn't affect onGround status
                 // The player cannot jump
                 final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
-                if (((jumpBoost.isEmpty() || jumpBoost.getAsInt() >= 0) && player.onGround) || !player.lastOnGround)
+                // player can jump and fall down within 0.03 (jumping in cobweb <=1.18.1) and we will never see that the player even moved
+                boolean leftGroundWithoutPosition = player.uncertaintyHandler.onGroundUncertain && !player.clientClaimsLastOnGround;
+                if (((jumpBoost.isEmpty() || jumpBoost.getAsInt() >= 0) && player.onGround) || (!player.lastOnGround && !leftGroundWithoutPosition))
                     return;
 
                 JumpPower.jumpFromGround(player, jump);
@@ -87,7 +101,7 @@ public class PredictionEngineNormal extends PredictionEngine {
                 || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
             Vector3dm ladderVelocity = player.clientVelocity.clone().setY(0.2);
-            staticVectorEndOfTick(player, ladderVelocity);
+            staticVectorEndOfTick(player, ladderVelocity, player.clientVelocity.getY());
             player.lastWasClimbing = ladderVelocity.getY();
         }
 

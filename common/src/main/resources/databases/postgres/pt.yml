@@ -17,6 +17,22 @@ postgres:
   user: "postgres"
   password: ""
 
+  # HikariCP connection pool settings. These only apply to SQL backends
+  # that use Hikari internally.
+  pool-settings:
+    # Maximum physical database connections this Grim instance can keep open.
+    maximum-pool-size: 5
+    # Minimum idle connections kept warm. Keep equal to maximum-pool-size
+    # for a fixed-size pool, or lower it if your database has tight limits.
+    minimum-idle: 5
+    # Retire connections after this many milliseconds. 1800000 is Hikari's
+    # default 30 minutes; use 0 only if your database/proxy handles lifetime.
+    maximum-lifetime-ms: 1800000
+    # Periodically ping idle connections. 0 disables keepalive.
+    keepalive-time-ms: 0
+    # Maximum time to wait for a connection from the pool before failing.
+    connection-timeout-ms: 5000
+
   # Parâmetros de URL extras anexados após `?`. Deixe vazio salvo se
   # precisar de algo específico.
   extra-jdbc-params: ""
@@ -34,4 +50,4 @@ postgres:
 
 # Marcadores de esquema — ver o comentário do cabeçalho em config.yml.
 config-flavor: V2
-config-version: 1
+config-version: 2

@@ -26,8 +26,11 @@ public final class BoundingBoxSize {
     }
 
     private static float getWidthMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
-        final EntityType type = packetEntity.type;
-        if (type == EntityTypes.AXOLOTL) {
+        final EntityType type = packetEntity.getType();
+        if (type == EntityTypes.CUSHION) {
+            return 1.0F;
+        } else if (type == EntityTypes.AXOLOTL) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.375f;
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby ? 0.5f : 0.75f;
         } else if (type == EntityTypes.PANDA) {
             return 1.3f;
@@ -37,9 +40,8 @@ public final class BoundingBoxSize {
             return 0.7f;
         } else if (type == EntityTypes.WITHER_SKELETON) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.7f : 0.72f;
-        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET) {
-            return 0.3125f;
         } else if (type == EntityTypes.HOGLIN || type == EntityTypes.ZOGLIN) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.75f;
             return 1.3964844f;
         } else if (type == EntityTypes.SKELETON_HORSE || type == EntityTypes.ZOMBIE_HORSE || type == EntityTypes.HORSE || type == EntityTypes.DONKEY || type == EntityTypes.MULE) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.3964844f : 1.4f;
@@ -54,6 +56,10 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.RABBIT) {
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) return packetEntity.isBaby ? 0.24f : 0.49F;
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.4f : 0.6f;
+        } else if (type == EntityTypes.FOX && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) {
+            return 0.36f;
+        } else if (type == EntityTypes.GOAT && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) {
+            return 0.45f;
         } else if (type == EntityTypes.CREAKING || type == EntityTypes.STRIDER || type == EntityTypes.COW || type == EntityTypes.SHEEP || type == EntityTypes.MOOSHROOM || type == EntityTypes.PIG || type == EntityTypes.LLAMA || type == EntityTypes.DOLPHIN || type == EntityTypes.WITHER || type == EntityTypes.TRADER_LLAMA || type == EntityTypes.WARDEN || type == EntityTypes.GOAT) {
             return 0.9f;
         } else if (type == EntityTypes.PHANTOM) {
@@ -62,13 +68,13 @@ public final class BoundingBoxSize {
             }
 
             return 1.5f;
-        } else if (packetEntity instanceof PacketEntityGuardian packetEntityGuardian) { // TODO: 2.35 * guardian?
-            return packetEntityGuardian.isElder ? 1.9975f : 0.85f;
+        } else if (packetEntity instanceof PacketEntityGuardian guardian) { // TODO: 2.35 * guardian?
+            return guardian.isElder ? 1.9975f : 0.85f;
         } else if (type == EntityTypes.END_CRYSTAL) {
             return 2f;
         } else if (type == EntityTypes.ENDER_DRAGON) {
             return 16f;
-        } else if (type == EntityTypes.FIREBALL) {
+        } else if (type == EntityTypes.FIREBALL || type == EntityTypes.DRAGON_FIREBALL) {
             return 1f;
         } else if (type == EntityTypes.GHAST) {
             return 4f;
@@ -78,36 +84,46 @@ public final class BoundingBoxSize {
             return 0.85f;
         } else if (type == EntityTypes.IRON_GOLEM) {
             return 1.4f;
+        } else if (type == EntityTypes.SULFUR_CUBE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2)) {
+            if (packetEntity instanceof PacketEntitySizeable sizeable) {
+                return 0.49f * sizeable.size;
+            }
+
+            return 0.49f;
         } else if (type == EntityTypes.MAGMA_CUBE) {
             if (packetEntity instanceof PacketEntitySizeable sizeable) {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size)
-                        : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
             return 0.98f;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
             return 0.98f;
         } else if (type == EntityTypes.PLAYER || type == EntityTypes.MANNEQUIN) {
-            return 0.6f;
+            float width = packetEntity.currentPose.width;
+            if (packetEntity.transitionalPose != null) {
+                width = Math.max(width, packetEntity.transitionalPose.width);
+            }
+
+            return width;
         } else if (type == EntityTypes.POLAR_BEAR) {
             return 1.4f;
         } else if (type == EntityTypes.RAVAGER) {
             return 1.95f;
         } else if (type == EntityTypes.SHULKER) {
             return 1f;
-        } else if (type == EntityTypes.SLIME) {
+        } else if (type == EntityTypes.SLIME || (player.getClientVersion().isOlderThan(ClientVersion.V_26_2) && type == EntityTypes.SULFUR_CUBE)) {
             if (packetEntity instanceof PacketEntitySizeable sizeable) {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size) : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
-            return 0.3125f;
-        } else if (type == EntityTypes.SMALL_FIREBALL) {
             return 0.3125f;
         } else if (type == EntityTypes.SPIDER) {
             return 1.4f;
@@ -120,19 +136,27 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.SNIFFER) {
             return 1.9f;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.95f;
             return 1.7f;
-        } else if (type == EntityTypes.WIND_CHARGE) {
-            return 0.3125f;
         } else if (type == EntityTypes.ARMOR_STAND) {
             return 0.5F;
         } else if (type == EntityTypes.FALLING_BLOCK) {
             return 0.98F;
-        } else if (type == EntityTypes.FIREWORK_ROCKET) {
-            return 0.25F;
-        } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.ZOMBIE || type == EntityTypes.VILLAGER || type == EntityTypes.ZOMBIE_VILLAGER) &&
+        } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.DROWNED || type == EntityTypes.HUSK || type == EntityTypes.ZOMBIE || type == EntityTypes.VILLAGER || type == EntityTypes.ZOMBIE_VILLAGER || type == EntityTypes.ZOMBIFIED_PIGLIN) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
             return 0.49f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ARROW)) {
+            return 0.5f;
+        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET
+                || EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_WIND_CHARGE)
+                || type == EntityTypes.SMALL_FIREBALL) {
+            return 0.3125f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.PROJECTILE_ABSTRACT) // this includes wind charges, so it must be after the wind charge check
+                || type == EntityTypes.FIREWORK_ROCKET || type == EntityTypes.EYE_OF_ENDER
+                || type == EntityTypes.LLAMA_SPIT || type == EntityTypes.FISHING_BOBBER) {
+            return 0.25f;
         }
+
         return 0.6f;
     }
 
@@ -148,7 +172,7 @@ public final class BoundingBoxSize {
             // Striders also do the same with animations, causing a desync.
             // At least the only people using buckets are people in boats for villager transportation
             // and people trying to false the anticheat.
-            if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT)) {
+            if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.BOAT)) {
                 float f = 0f;
                 float f1 = (float) (getPassengerRidingOffset(player, entity) - 0.35f); // hardcoded player offset
 
@@ -165,14 +189,14 @@ public final class BoundingBoxSize {
                 Vector3d vec3 = new Vector3d(f, 0d, 0d);
                 vec3 = yRot(GrimMath.radians(-xRotEntity.interpYaw) - ((float) Math.PI / 2f), vec3);
                 return new Vector3d(x + vec3.x, y + (double) f1, z + vec3.z);
-            } else if (entity.type == EntityTypes.LLAMA) {
+            } else if (entity.getType() == EntityTypes.LLAMA) {
                 float f = player.trigHandler.cos(GrimMath.radians(xRotEntity.interpYaw));
                 float f1 = player.trigHandler.sin(GrimMath.radians(xRotEntity.interpYaw));
                 return new Vector3d(x + (double) (0.3f * f1), y + getPassengerRidingOffset(player, entity) - 0.35f, z + (double) (0.3f * f));
-            } else if (entity.type == EntityTypes.CHICKEN) {
+            } else if (entity.getType() == EntityTypes.CHICKEN) {
                 float f = player.trigHandler.sin(GrimMath.radians(xRotEntity.interpYaw));
                 float f1 = player.trigHandler.cos(GrimMath.radians(xRotEntity.interpYaw));
-                y = y + (getHeight(player, entity) * 0.5f);
+                y = y + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) ? (entity.isBaby ? 0.375 : 0.7) : getHeight(player, entity) * 0.5f);
                 return new Vector3d(x + (double) (0.1f * f), y - 0.35f, z - (double) (0.1f * f1));
             }
         }
@@ -196,7 +220,7 @@ public final class BoundingBoxSize {
     }
 
     public static double getMyRidingOffset(PacketEntity packetEntity) {
-        final EntityType type = packetEntity.type;
+        final EntityType type = packetEntity.getType();
         if (type == EntityTypes.PIGLIN || type == EntityTypes.ZOMBIFIED_PIGLIN || type == EntityTypes.ZOMBIE) {
             return packetEntity.isBaby ? -0.05 : -0.45;
         } else if (type == EntityTypes.SKELETON) {
@@ -220,14 +244,17 @@ public final class BoundingBoxSize {
         if (packetEntity instanceof PacketEntityHorse)
             return (getHeight(player, packetEntity) * 0.75) - 0.25;
 
-        final EntityType type = packetEntity.type;
-        if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
+        final EntityType type = packetEntity.getType();
+        if (type == EntityTypes.CUSHION) {
+            return 0;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT)) {
             return 0;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
             return -0.1;
         } else if (type == EntityTypes.HAPPY_GHAST) {
             return 0.5;
         } else if (type == EntityTypes.HOGLIN || type == EntityTypes.ZOGLIN) {
+            if (packetEntity.isBaby && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2)) return 0.875;
             return getHeight(player, packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
         } else if (type == EntityTypes.LLAMA) {
             return getHeight(player, packetEntity) * 0.67;
@@ -240,16 +267,21 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.SPIDER) {
             return getHeight(player, packetEntity) * 0.5;
         } else if (type == EntityTypes.STRIDER) {// depends on animation position, good luck getting it exactly, this is the best you can do though
+            if (packetEntity.isBaby && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2)) return 0.65625;
             return getHeight(player, packetEntity) - 0.19;
         }
+
         return getHeight(player, packetEntity) * 0.75;
     }
 
     private static float getHeightMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
-        final EntityType type = packetEntity.type;
-        if (type == EntityTypes.ARMADILLO) {
+        final EntityType type = packetEntity.getType();
+        if (type == EntityTypes.CUSHION) {
+            return 0.25F;
+        } else if (type == EntityTypes.ARMADILLO) {
             return 0.65f;
         } else if (type == EntityTypes.AXOLOTL) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.21f;
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby ? 0.25f : 0.42f;
         } else if (type == EntityTypes.BEE || type == EntityTypes.DOLPHIN || type == EntityTypes.ALLAY) {
             return 0.6f;
@@ -259,8 +291,6 @@ public final class BoundingBoxSize {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby ? 0.63f : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.8f : 0.95f;
         } else if (type == EntityTypes.PARROT || type == EntityTypes.BAT || type == EntityTypes.PIG || type == EntityTypes.SPIDER) {
             return 0.9f;
-        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET) {
-            return 0.3125f;
         } else if (type == EntityTypes.BLAZE) {
             return 1.8f;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.BOAT)) {
@@ -280,6 +310,7 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.CHICKEN) {
             return packetEntity.isBaby && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) ? 0.4f : 0.7f;
         } else if (type == EntityTypes.HOGLIN || type == EntityTypes.ZOGLIN) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.85f;
             return 1.4f;
         } else if (type == EntityTypes.COW) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.4f : 1.3f;
@@ -289,8 +320,8 @@ public final class BoundingBoxSize {
             return 1.7f;
         } else if (type == EntityTypes.DONKEY) {
             return 1.5f;
-        } else if (packetEntity instanceof PacketEntityGuardian packetEntityGuardian) { // TODO: 2.35 * guardian?
-            return packetEntityGuardian.isElder ? 1.9975f : 0.85f;
+        } else if (packetEntity instanceof PacketEntityGuardian guardian) { // TODO: 2.35 * guardian?
+            return guardian.isElder ? 1.9975f : 0.85f;
         } else if (type == EntityTypes.ENDERMAN || type == EntityTypes.WARDEN) {
             return 2.9f;
         } else if (type == EntityTypes.ENDERMITE || type == EntityTypes.COD) {
@@ -299,9 +330,10 @@ public final class BoundingBoxSize {
             return 2f;
         } else if (type == EntityTypes.ENDER_DRAGON) {
             return 8f;
-        } else if (type == EntityTypes.FIREBALL) {
+        } else if (type == EntityTypes.FIREBALL || type == EntityTypes.DRAGON_FIREBALL) {
             return 1f;
         } else if (type == EntityTypes.FOX) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.42f;
             return 0.7f;
         } else if (type == EntityTypes.GHAST) {
             return 4f;
@@ -319,13 +351,19 @@ public final class BoundingBoxSize {
             return 1.87f;
         } else if (type == EntityTypes.TROPICAL_FISH) {
             return 0.4f;
+        } else if (type == EntityTypes.SULFUR_CUBE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2)) {
+            if (packetEntity instanceof PacketEntitySizeable sizeable) {
+                return 0.49f * sizeable.size;
+            }
+
+            return 0.49f;
         } else if (type == EntityTypes.MAGMA_CUBE) {
             if (packetEntity instanceof PacketEntitySizeable sizeable) {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size)
-                        : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
             return 0.7f;
@@ -346,7 +384,12 @@ public final class BoundingBoxSize {
 
             return 1.8f;
         } else if (type == EntityTypes.PLAYER || type == EntityTypes.MANNEQUIN) {
-            return 1.8f;
+            float height = packetEntity.currentPose.height;
+            if (packetEntity.transitionalPose != null) {
+                height = Math.max(height, packetEntity.transitionalPose.height);
+            }
+
+            return height;
         } else if (type == EntityTypes.POLAR_BEAR) {
             return 1.4f;
         } else if (type == EntityTypes.PUFFERFISH) {
@@ -359,6 +402,7 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.SALMON) {
             return 0.4f;
         } else if (type == EntityTypes.SHEEP || type == EntityTypes.GOAT) {
+            if (type == EntityTypes.GOAT && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 0.65f;
             return 1.3f;
         } else if (type == EntityTypes.SHULKER) { // Could maybe guess peek size, although seems useless
             return 2f;
@@ -368,17 +412,15 @@ public final class BoundingBoxSize {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 1.99f : 1.95f;
         } else if (type == EntityTypes.SKELETON_HORSE) {
             return 1.6f;
-        } else if (type == EntityTypes.SLIME) {
+        } else if (type == EntityTypes.SLIME || (player.getClientVersion().isOlderThan(ClientVersion.V_26_2) && type == EntityTypes.SULFUR_CUBE)) {
             if (packetEntity instanceof PacketEntitySizeable sizeable) {
                 float size = sizeable.size;
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)
                         ? 0.52f * size : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)
-                        ? 2.04f * (0.255f * size)
-                        : 0.51000005f * size;
+                        ? 2.04f * (0.255f * size) : player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                        ? 0.51000005f * size : 0.6f * size;
             }
 
-            return 0.3125f;
-        } else if (type == EntityTypes.SMALL_FIREBALL) {
             return 0.3125f;
         } else if (type == EntityTypes.SNOW_GOLEM) {
             return 1.9f;
@@ -399,6 +441,7 @@ public final class BoundingBoxSize {
         } else if (type == EntityTypes.SNIFFER) {
             return 1.75f;
         } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && packetEntity.isBaby) return 1.4f;
             return 2.375f;
         } else if (type == EntityTypes.BREEZE) {
             return 1.77f;
@@ -406,30 +449,38 @@ public final class BoundingBoxSize {
             return 1.99f;
         } else if (type == EntityTypes.PARCHED) {
             return 1.99f;
-        } else if (type == EntityTypes.WIND_CHARGE) {
-            return 0.3125f;
         } else if (type == EntityTypes.ARMOR_STAND) {
             return 1.975F;
         } else if (type == EntityTypes.FALLING_BLOCK) {
             return 0.98F;
         } else if (type == EntityTypes.VILLAGER && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
             return 1.8F;
-        } else if (type == EntityTypes.FIREWORK_ROCKET) {
-            return 0.25F;
         } else if (type == EntityTypes.COPPER_GOLEM) {
             return 1.0F;
-        } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.ZOMBIE || type == EntityTypes.ZOMBIE_VILLAGER || type == EntityTypes.VILLAGER) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
-            return 0.99f;
+        } else if ((EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN) || type == EntityTypes.DROWNED || type == EntityTypes.HUSK || type == EntityTypes.ZOMBIE || type == EntityTypes.ZOMBIE_VILLAGER || type == EntityTypes.VILLAGER || type == EntityTypes.ZOMBIFIED_PIGLIN) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) && packetEntity.isBaby) {
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) ? 0.98f : 0.99f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ARROW)) {
+            return 0.5f;
+        } else if (type == EntityTypes.WITHER_SKULL || type == EntityTypes.SHULKER_BULLET
+                || EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_WIND_CHARGE)
+                || type == EntityTypes.SMALL_FIREBALL) {
+            return 0.3125f;
+        } else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.PROJECTILE_ABSTRACT) // this includes wind charges, so it must be after the wind charge check
+                || type == EntityTypes.FIREWORK_ROCKET || type == EntityTypes.EYE_OF_ENDER
+                || type == EntityTypes.LLAMA_SPIT || type == EntityTypes.FISHING_BOBBER) {
+            return 0.25f;
         }
+
         return 1.95f;
     }
 
     private static float getBabyScaleFactor(GrimPlayer player, PacketEntity packetEntity) {
-        final EntityType type = packetEntity.type;
+        final EntityType type = packetEntity.getType();
         if (type == EntityTypes.TURTLE) return 0.3f;
         else if (type == EntityTypes.HAPPY_GHAST) return 0.2375f;
         else if (type == EntityTypes.DOLPHIN) return 0.65f;
         else if (type == EntityTypes.ARMADILLO) return 0.6f;
+        else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_2) && (type == EntityTypes.HOGLIN || type == EntityTypes.ZOGLIN || type == EntityTypes.FOX || type == EntityTypes.GOAT || EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL))) return 1f;
         else if (type == EntityTypes.GOAT && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) return 0.55f;
         else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.CAMEL)) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1) ? 0.6f : 0.45f;
         else if (EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_HORSE) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_26_1)) return 0.7f;
@@ -442,8 +493,11 @@ public final class BoundingBoxSize {
                         type == EntityTypes.AXOLOTL ||
                         type == EntityTypes.RABBIT ||
                         type == EntityTypes.ZOMBIE ||
+                        type == EntityTypes.DROWNED ||
+                        type == EntityTypes.HUSK ||
                         type == EntityTypes.VILLAGER ||
                         type == EntityTypes.ZOMBIE_VILLAGER ||
+                        type == EntityTypes.ZOMBIFIED_PIGLIN ||
                         EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_PIGLIN)
         )) return 1f;
 

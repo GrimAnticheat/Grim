@@ -1,7 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -31,7 +31,7 @@ import java.util.List;
  * <p>
  * So, this is a value patch like 0.03 because it can be "close enough" that it's better just to not skip ticks
  **/
-public class SneakingEstimator extends Check implements PostPredictionCheck {
+public class SneakingEstimator extends GrimProcessor implements PostPredictionListener {
     @Getter
     private SimpleCollisionBox sneakingPotentialHiddenVelocity = new SimpleCollisionBox();
     private List<VectorData> possible = new ArrayList<>();
@@ -48,10 +48,12 @@ public class SneakingEstimator extends Check implements PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (!predictionComplete.isChecked()) return;
 
-        double trueFriction = player.lastOnGround ? player.friction * 0.91 : 0.91;
+        // player.friction already includes air drag
+        double trueFriction = player.friction;
         if (player.wasTouchingLava) trueFriction = 0.5;
         if (player.wasTouchingWater) trueFriction = 0.96;
-        if (player.isGliding) trueFriction = 0.99;
+        // Gliding takes its drag before the move, so the speed the edge held back carries over as it is
+        if (player.isGliding) trueFriction = 1;
 
         // START HACKERY
 

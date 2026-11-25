@@ -9,36 +9,47 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public final class BlockBreak {
-    public final Vector3i position;
-    public final BlockFace face;
+    public final @NotNull Vector3i position;
+    public final @NotNull BlockFace face;
     public final int faceId;
-    public final DiggingAction action;
+    public final @NotNull DiggingAction action;
     public final int sequence;
-    public final WrappedBlockState block;
-    private final GrimPlayer player;
+    public final @NotNull WrappedBlockState block;
+    private final @NotNull GrimPlayer player;
     @Getter
     private boolean cancelled;
 
-    public BlockBreak(GrimPlayer player, Vector3i position, BlockFace face, int faceId, DiggingAction action, int sequence, WrappedBlockState block) {
-        this.player = player;
-        this.position = position;
-        this.face = face;
+    public BlockBreak(@NotNull GrimPlayer player,
+                      @NotNull Vector3i position,
+                      @NotNull BlockFace face,
+                      int faceId,
+                      @NotNull DiggingAction action,
+                      int sequence,
+                      @NotNull WrappedBlockState block) {
+        this.player = Objects.requireNonNull(player, "player");
+        this.position = Objects.requireNonNull(position, "position");
+        this.face = Objects.requireNonNull(face, "face");
         this.faceId = faceId;
-        this.action = action;
+        this.action = Objects.requireNonNull(action, "action");
         this.sequence = sequence;
-        this.block = block;
+        this.block = Objects.requireNonNull(block, "block");
     }
 
+    @Contract(mutates = "this")
     public void cancel() {
         this.cancelled = true;
     }
 
-    public SimpleCollisionBox getCombinedBox() {
+    @Contract(value = " -> new", pure = true)
+    public @NotNull SimpleCollisionBox getCombinedBox() {
         CollisionBox placedOn = HitboxData.getBlockHitbox(player, player.inventory.getHeldItem().getType().getPlacedType(), player.getClientVersion(), block, true, position.x, position.y, position.z);
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();

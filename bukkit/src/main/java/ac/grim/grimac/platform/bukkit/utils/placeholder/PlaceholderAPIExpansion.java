@@ -41,10 +41,10 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
         Set<String> variableReplacements = GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().keySet();
         ArrayList<String> placeholders = new ArrayList<>(staticReplacements.size() + variableReplacements.size());
         for (String s : staticReplacements) {
-            placeholders.add(s.equals("%grim_version%") ? s : "%grim_" + s.replaceAll("%", "") + "%");
+            placeholders.add(s.equals("%grim_version%") ? s : "%grim_" + s.replace("%", "") + "%");
         }
         for (String s : variableReplacements) {
-            placeholders.add(s.equals("%player%") ? "%grim_player%" : "%grim_player_" + s.replaceAll("%", "") + "%");
+            placeholders.add(s.equals("%player%") ? "%grim_player%" : "%grim_player_" + s.replace("%", "") + "%");
         }
         return placeholders;
     }
@@ -54,7 +54,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
         for (Map.Entry<String, String> entry : GrimAPI.INSTANCE.getExternalAPI().getStaticReplacements().entrySet()) {
             String key = entry.getKey().equals("%grim_version%")
                     ? "version"
-                    : entry.getKey().replaceAll("%", "");
+                    : entry.getKey().replace("%", "");
             if (params.equalsIgnoreCase(key)) {
                 return entry.getValue();
             }
@@ -67,7 +67,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
             for (Map.Entry<String, Function<GrimUser, String>> entry : GrimAPI.INSTANCE.getExternalAPI().getVariableReplacements().entrySet()) {
                 String key = entry.getKey().equals("%player%")
                         ? "player"
-                        : "player_" + entry.getKey().replaceAll("%", "");
+                        : "player_" + entry.getKey().replace("%", "");
                 if (params.equalsIgnoreCase(key)) {
                     return entry.getValue().apply(grimPlayer);
                 }

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "grimac-fabric-intermediary",
+  "version": "${version}",
+  "name": "GrimAC",
+  "description": "Libre simulation anticheat designed for 26.1 with 1.8-26.1 support, powered by PacketEvents 2.0.",
+  "authors": [
+    "GrimAC"
+  ],
+  "license": "GPLv3",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryEntryPoint"
+    ],
+    "preLaunch": [
+      "ac.grim.grimac.platform.fabric.GrimACFabricIntermediaryEntryPoint"
+    ]
+  },
+  "mixins": [
+    "grimac.mixins.json"
+  ],
+  "accessWidener": "grimac.accesswidener",
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/world/level/Level": [
+        "ac/grim/grimac/platform/api/world/PlatformWorld"
+      ],
+      "net/minecraft/world/entity/Entity": [
+        "ac/grim/grimac/platform/fabric/inject/FabricEntityHandle"
+      ],
+      "net/minecraft/server/level/ServerPlayer": [
+        "ac/grim/grimac/platform/fabric/inject/FabricServerPlayerHandle"
+      ],
+      "net/minecraft/server/MinecraftServer": [
+        "ac/grim/grimac/platform/fabric/inject/FabricMinecraftServerHandle"
+      ],
+      "net/minecraft/commands/CommandSourceStack": [
+        "ac/grim/grimac/platform/api/sender/Sender"
+      ]
+    }
+  },
+  "depends": {
+    "minecraft": "\u003e\u003d1.16.1 \u003c26",
+    "java": "\u003e\u003d17",
+    "fabricloader": "\u003e\u003d0.16",
+    "fabric-lifecycle-events-v1": "*",
+    "packetevents": "*"
+  },
+  "recommends": {
+    "cloud": "*",
+    "fabric-permissions-api-v0": "*",
+    "luckperms": "*"
+  }
+}

@@ -1,7 +1,7 @@
 package ac.grim.grimac.manager;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
-public class AttackCooldownHandler extends Check implements PacketCheck {
+public class AttackCooldownHandler extends GrimProcessor implements PacketReceiveListener {
     private int ticksSinceLastSwing;
     private ItemStack stack = ItemStack.EMPTY;
     // Since we don't know when the client ticks, we call updateHeldItem() when the held item changes,
@@ -27,7 +27,7 @@ public class AttackCooldownHandler extends Check implements PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+        if (isAnimation(event.getPacketType())) {
             // FIXME: should only run when the click misses
             reset();
         }
@@ -44,7 +44,7 @@ public class AttackCooldownHandler extends Check implements PacketCheck {
             if (!stackChanged) {
                 ++ticksSinceLastSwing;
             }
-            updateHeldItem();
+            updateHeldItem(true);
             stackChanged = false;
         }
     }
@@ -54,7 +54,8 @@ public class AttackCooldownHandler extends Check implements PacketCheck {
     }
 
     // called on client tick and whenever the slot gets updated
-    public void updateHeldItem() {
+    public void updateHeldItem(boolean tick) {
+        if (!tick && player.supportsEndTick()) return;
         ItemStack held = player.inventory.getHeldItem().copy();
 
         if (!(stack.isEmpty() && held.isEmpty() || stack.getType() == held.getType() && (stack.isDamageableItem() || stack.getLegacyData() == held.getLegacyData()))) {

@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.concurrent.Executors;
@@ -42,6 +43,7 @@ public class PacketEventsInit implements LoadableInitable {
             ChatTypes.CHAT.getName();
             EnchantmentTypes.ALL_DAMAGE_PROTECTION.getName();
             ParticleTypes.DUST.getName();
+            WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), "", false);
         }).start();
     }
 }

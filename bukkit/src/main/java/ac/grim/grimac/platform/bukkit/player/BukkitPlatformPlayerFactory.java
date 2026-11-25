@@ -46,14 +46,12 @@ public class BukkitPlatformPlayerFactory extends AbstractPlatformPlayerFactory<P
 
     @Override
     public OfflinePlatformPlayer getOfflineFromUUID(@NotNull UUID uuid) {
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-        return new BukkitOfflinePlatformPlayer(offlinePlayer);
+        return new BukkitOfflinePlatformPlayer(Bukkit.getOfflinePlayer(uuid));
     }
 
     @Override
     public OfflinePlatformPlayer getOfflineFromName(@NotNull String name) {
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(name);
-        return new BukkitOfflinePlatformPlayer(offlinePlayer);
+        return new BukkitOfflinePlatformPlayer(Bukkit.getOfflinePlayer(name));
     }
 
     @Override

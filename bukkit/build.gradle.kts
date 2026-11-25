@@ -1,5 +1,6 @@
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission
 import versioning.BuildConfig
+import java.util.zip.ZipFile
 
 plugins {
     `maven-publish`
@@ -10,10 +11,9 @@ plugins {
 }
 
 repositories {
-    // 1. Fallback for non-exclusive deps (e.g. Maven Central deps)
-    if (BuildConfig.mavenLocalOverride) mavenLocal()
+    val localOverride = if (BuildConfig.mavenLocalOverride) mavenLocal() else null
 
-    // 2. Exclusive Repositories (One HTTP request per dep)
+    // Exclusive Repositories (One HTTP request per dep)
     exclusive("https://repo.papermc.io/repository/maven-public/", { name = "papermc" }) {
         includeGroup("io.papermc.paper")
         includeGroup("net.md-5")
@@ -27,9 +27,19 @@ repositories {
         includeGroup("me.clip")
     }
 
-    exclusive("https://repo.grim.ac/snapshots") {
-        includeGroup("ac.grim.grimac")
-        includeGroup("com.github.retrooper")
+    val grimPublicReleases = maven("https://maven.grim.ac/public/releases") {
+        mavenContent { releasesOnly() }
+    }
+    val grimPublicSnapshots = maven("https://maven.grim.ac/public/snapshots") {
+        mavenContent { snapshotsOnly() }
+    }
+    val grimLegacySnapshots = maven("https://repo.grim.ac/snapshots")
+    exclusiveContent {
+        forRepositories(*listOfNotNull(localOverride, grimPublicReleases, grimPublicSnapshots, grimLegacySnapshots).toTypedArray())
+        filter {
+            includeGroup("ac.grim.grimac")
+            includeGroup("com.github.retrooper")
+        }
     }
 
     exclusive("https://nexus.scarsz.me/content/repositories/releases", { mavenContent { releasesOnly() } }) {
@@ -39,10 +49,75 @@ repositories {
     mavenCentral()
 }
 
+val configuredLiteSharedProviderJar = providers.gradleProperty("grim.liteSharedProviderJar")
+    .orElse(providers.gradleProperty("liteSharedProviderJar"))
+
+// PE's published Spigot artifact is thin. Its runtime jar bundles these modules,
+// with text serializers relocated into PE's own namespace.
+val liteSharedLibraries by configurations.creating {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+val liteCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+if (!BuildConfig.shadePE) {
+    val adventureVersion = liteCatalog.findVersion("adventure").get().requiredVersion
+    val examinationVersion = liteCatalog.findVersion("examination").get().requiredVersion
+    for (module in listOf("adventure-api", "adventure-key", "adventure-nbt")) {
+        dependencies.add(liteSharedLibraries.name, "net.kyori:$module:$adventureVersion")
+    }
+    for (module in listOf("examination-api", "examination-string")) {
+        dependencies.add(liteSharedLibraries.name, "net.kyori:$module:$examinationVersion")
+    }
+}
+
+val liteSharedPrefixes = listOf(
+    "net/kyori/adventure/",
+    "net/kyori/examination/",
+    "net/kyori/option/",
+)
+
+var cachedLiteSharedProviderClassEntries: Set<String>? = null
+var cachedLiteSharedProviderFiles: List<File>? = null
+
+fun liteSharedProviderFiles(): List<File> {
+    cachedLiteSharedProviderFiles?.let { return it }
+
+    val configured = configuredLiteSharedProviderJar.orNull
+        ?.split(File.pathSeparator)
+        ?.filter { it.isNotBlank() }
+        ?.map { file(it) }
+        ?.takeIf { it.isNotEmpty() }
+
+    val files = configured ?: liteSharedLibraries.resolve().toList()
+
+    cachedLiteSharedProviderFiles = files
+    return files
+}
+
+fun liteSharedProviderClassEntries(): Set<String> {
+    cachedLiteSharedProviderClassEntries?.let { return it }
+
+    val entries = liteSharedProviderFiles().flatMap { jar ->
+        ZipFile(jar).use { zip ->
+            zip.entries().asSequence()
+                .map { it.name }
+                .filter { name ->
+                    name.endsWith(".class") && liteSharedPrefixes.any(name::startsWith) &&
+                        !name.startsWith("net/kyori/adventure/text/serializer/")
+                }
+                .toList()
+        }
+    }.toSet()
+
+    cachedLiteSharedProviderClassEntries = entries
+    return entries
+}
+
 
 dependencies {
     compileOnly(libs.paper.api)
     compileOnly(libs.placeholderapi)
+    compileOnly(libs.luckperms)
 
     if (BuildConfig.shadePE) {
         implementation(libs.packetevents.spigot)
@@ -80,6 +155,7 @@ bukkit {
         "floodgate",
         "FastLogin",
         "PlaceholderAPI",
+        "LuckPerms",
         // Driver holder mods — softdepend so each backend's driver class
         // resolves through the linked classloader.
         "sqlite-jdbc",
@@ -135,6 +211,11 @@ bukkit {
             default = Permission.Default.FALSE
         }
 
+        register("grim.disabled") {
+            description = "Disable Grim checks while keeping player state tracked"
+            default = Permission.Default.FALSE
+        }
+
         register("grim.exempt") {
             description = "Exempt from all checks"
             default = Permission.Default.FALSE
@@ -165,16 +246,51 @@ publishing.publications.create<MavenPublication>("maven") {
 }
 
 tasks {
+    // 1.8.8 - 1.16.5   = Java 8
+    // 1.17             = Java 16
+    // 1.18 - 1.20.4    = Java 17
+    // 1.20.5 - 1.21.11 = Java 21
+    // 26.1+            = Java 25
+    val version = "26.3"
+    val javaVersion = JavaLanguageVersion.of(25)
+
+    val jvmArgsExternal = listOf(
+        "-Dcom.mojang.eula.agree=true",
+        "-Dpaper.explicit-flush=true",
+        "-DPaper.IgnoreJavaVersion=true"
+    )
+
     runServer {
+        minecraftVersion(version)
+        runDirectory = projectDir.resolve("run/$version")
+
         val javaToolchains = project.extensions.getByType<JavaToolchainService>()
         javaLauncher = javaToolchains.launcherFor {
             vendor = JvmVendorSpec.JETBRAINS
-            languageVersion = JavaLanguageVersion.of(25)
+            languageVersion = javaVersion
         }
-        minecraftVersion("26.1.2")
+
+        jvmArgs = jvmArgsExternal
     }
 
     shadowJar {
+        exclude("META-INF/services/javax.annotation.processing.Processor")
+
+        if (!BuildConfig.shadePE) {
+            inputs.files(provider { liteSharedProviderFiles() }).withPropertyName("liteSharedProviders")
+            exclude {
+                val path = it.path
+                path.endsWith(".class") && path in liteSharedProviderClassEntries()
+            }
+
+            doFirst {
+                logger.lifecycle(
+                    "Excluding ${liteSharedProviderClassEntries().size} shared class entries supplied by PacketEvents: " +
+                        liteSharedProviderFiles().joinToString { it.name }
+                )
+            }
+        }
+
         manifest {
             attributes["paperweight-mappings-namespace"] = "mojang"
         }

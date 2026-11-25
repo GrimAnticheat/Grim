@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -32,6 +33,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
     private final PlayerIdentityService identityService;
     private final CheckRegistry checkRegistry;
     private final SessionTracker sessionTracker;
+    private final BooleanSupplier writesAllowed;
     /** display name (lowercased) → checkId. Populated lazily via intern. */
     private final Map<String, Integer> checkIdCache = new ConcurrentHashMap<>();
     /** display-name-lowercase of checks we've already warned about. Prevents log spam. */
@@ -42,6 +44,12 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
             @NotNull PlayerIdentityService identityService,
             @NotNull CheckRegistry checkRegistry,
             @NotNull SessionTracker sessionTracker) {
+        this(store, identityService, checkRegistry, sessionTracker, () -> true);
+    }
+
+    LiveWriteHooksImpl(DataStore store, PlayerIdentityService identityService, CheckRegistry checkRegistry,
+                       SessionTracker sessionTracker, BooleanSupplier writesAllowed) {
+        this.writesAllowed = writesAllowed;
         this.store = store;
         this.identityService = identityService;
         this.checkRegistry = checkRegistry;
@@ -76,6 +84,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
             @Nullable String verbose,
             long now,
             @NotNull SessionTracker.ClientMeta meta) {
+        if (!writesAllowed.getAsBoolean()) return;
         UUID sessionId = sessionTracker.currentSessionId(playerUuid);
         if (sessionId == null) {
             // Two real cases: a check fired on a packet between LOGIN_SUCCESS
@@ -94,6 +103,33 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
                 .occurredEpochMs(now)
                 .verbose(verbose)
                 .verboseFormat(VerboseFormat.TEXT));
+    }
+
+    @Override
+    public void recordFlagData(
+            @NotNull UUID playerUuid,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData,
+            long now,
+            @NotNull SessionTracker.ClientMeta meta) {
+        if (!writesAllowed.getAsBoolean()) return;
+        UUID sessionId = sessionTracker.currentSessionId(playerUuid);
+        if (sessionId == null) {
+            // See recordFlag(): binary verbose uses the same synthesized-session fallback.
+            sessionId = sessionTracker.observeActivity(playerUuid, now, meta);
+        }
+        final int checkId = resolveCheckId(check);
+        final UUID sid = sessionId;
+        final byte[] payload = verboseData == null ? null : verboseData.clone();
+        store.submit(Categories.VIOLATION, e -> e
+                .sessionId(sid)
+                .playerUuid(playerUuid)
+                .checkId(checkId)
+                .vl(vl)
+                .occurredEpochMs(now)
+                .verboseData(payload)
+                .verboseFormat(VerboseFormat.STRUCTURED_V1));
     }
 
     @Override
@@ -131,6 +167,20 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
         }
     }
 
+    @Override
+    public void recordFlagDataFromCheck(
+            @NotNull GrimPlayer player,
+            @NotNull AbstractCheck check,
+            double vl,
+            byte @Nullable [] verboseData) {
+        try {
+            recordFlagData(player.uuid, check, vl, verboseData, System.currentTimeMillis(), SessionTracker.ClientMeta.empty());
+        } catch (RuntimeException e) {
+            // Don't let a datastore issue break the check path.
+            LogUtil.warn("v1 datastore recordFlag failed: " + e.getMessage());
+        }
+    }
+
     private int resolveCheckId(@NotNull AbstractCheck check) {
         String display = check.getCheckName();
         String key = display.toLowerCase(Locale.ROOT);
@@ -162,9 +212,7 @@ public final class LiveWriteHooksImpl implements LiveWriteHooks {
 
     private static @Nullable String safePluginVersion() {
         try {
-            var plugin = GrimAPI.INSTANCE.getGrimPlugin();
-            if (plugin == null || plugin.getDescription() == null) return null;
-            return plugin.getDescription().getVersion();
+            return GrimAPI.INSTANCE.getExternalAPI().getGrimVersion();
         } catch (RuntimeException e) {
             return null;
         }

@@ -7,9 +7,8 @@ import net.kyori.adventure.text.Component;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
 
-public final class PlayerSenderRequirement implements SenderRequirement {
-
-    public static final PlayerSenderRequirement PLAYER_SENDER_REQUIREMENT = new PlayerSenderRequirement();
+public enum PlayerSenderRequirement implements SenderRequirement {
+    INSTANCE;
 
     @Override
     public @NotNull Component errorMessage(Sender sender) {

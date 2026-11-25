@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.multiactions;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PreViaPacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 
 @CheckData(name = "MultiActionsE", stableKey = "grim.multiactions.swing_while_using", description = "Swinging while using an item", experimental = true)
-public class MultiActionsE extends Check implements PacketCheck {
+public class MultiActionsE extends Check implements PreViaPacketReceiveListener {
     private boolean dropping;
 
     public MultiActionsE(GrimPlayer player) {
@@ -20,14 +20,17 @@ public class MultiActionsE extends Check implements PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
-        if (!dropping && player.packetStateData.isSlowedByUsingItem() && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.itemInUseHand == InteractionHand.OFF_HAND) && event.getPacketType() == PacketType.Play.Client.ANIMATION) {
-            // this is possible to false on 1.7
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10)) {
-                return;
-            }
+    public boolean isApplicable() {
+        // this is possible to false on 1.7
+        return player.getClientVersion().isNewerThan(ClientVersion.V_1_7_10);
+    }
 
-            if (flagAndAlert() && shouldModifyPackets()) {
+    @Override
+    public void onPreViaPacketReceive(PacketReceiveEvent event) {
+        if (!dropping && player.packetStateData.isSlowedByUsingItem()
+                && (player.packetStateData.lastSlotSelected == player.packetStateData.getSlowedByUsingItemSlot() || player.packetStateData.itemInUseHand == InteractionHand.OFF_HAND)
+                && isAnimation(event.getPacketType())) {
+            if (flag() && shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }
@@ -37,7 +40,9 @@ public class MultiActionsE extends Check implements PacketCheck {
             dropping = false;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING
+                && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)
+                && player.getClientVersion().isOlderThan(ClientVersion.V_26_3)) {
             DiggingAction action = new WrapperPlayClientPlayerDigging(event).getAction();
             dropping = action == DiggingAction.DROP_ITEM || action == DiggingAction.DROP_ITEM_STACK;
         }

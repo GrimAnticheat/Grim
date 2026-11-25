@@ -6,6 +6,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.util.LpVector3d;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.experimental.UtilityClass;
 
@@ -25,27 +26,28 @@ public class VectorPrecisionConverter {
     }
 
     public static Vector3d legacyToLp(Vector3d legacy) {
-        PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(Unpooled.buffer());
-        LpVector3d.write(wrapper, legacy);
-        return LpVector3d.read(wrapper);
+        ByteBuf buf = Unpooled.buffer();
+        try {
+            PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
+            LpVector3d.write(wrapper, legacy);
+            return LpVector3d.read(wrapper);
+        } finally {
+            buf.release();
+        }
     }
 
-    private static final double PRECISION_LOSS_FIX = 1e-11d;
-
     public static Vector3d lpToLegacy(Vector3d lp) {
-        int xi = (int) (lp.x * 8000d + Math.copySign(PRECISION_LOSS_FIX, lp.x));
-        int yi = (int) (lp.y * 8000d + Math.copySign(PRECISION_LOSS_FIX, lp.y));
-        int zi = (int) (lp.z * 8000d + Math.copySign(PRECISION_LOSS_FIX, lp.z));
+        short x = toLegacyVelocity(lp.getX());
+        short y = toLegacyVelocity(lp.getY());
+        short z = toLegacyVelocity(lp.getZ());
 
-        short x = (short) xi;
-        short y = (short) yi;
-        short z = (short) zi;
+        return new Vector3d(x / 8000d, y / 8000d, z / 8000d);
+    }
 
-        return new Vector3d(
-                x / 8000d,
-                y / 8000d,
-                z / 8000d
-        );
+    private static short toLegacyVelocity(double value) {
+        long quantized = Math.round(value * 8000d);
+        quantized = Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, quantized));
+        return (short) quantized;
     }
 
 }

@@ -1,9 +1,12 @@
 package ac.grim.grimac.checks.impl.misc;
 
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
+import ac.grim.grimac.checks.type.PacketSendListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingQueue;
@@ -23,8 +26,10 @@ import java.util.Locale;
 
 import static com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.*;
 
-@CheckData(name = "Post", stableKey = "grim.post.invalid_order")
-public class Post extends Check implements PacketCheck, PostPredictionCheck {
+@CheckData(name = "Post", stableKey = "grim.post.invalid_order", description = "Sent packets out of the expected movement tick order")
+public class Post extends Check implements PacketReceiveListener, PacketSendListener, PostPredictionListener {
+    private static final Verbose V = Verbose.of("{str}");
+
     private final ArrayDeque<PacketTypeCommon> post = new ArrayDeque<>();
     // Due to 1.9+ missing the idle packet, we must queue flags
     // 1.8 clients will have the same logic for simplicity, although it's not needed
@@ -32,8 +37,8 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
     private boolean sentFlying = false;
     private int isExemptFromSwingingCheck = Integer.MIN_VALUE;
 
-    public Post(GrimPlayer playerData) {
-        super(playerData);
+    public Post(GrimPlayer player) {
+        super(player);
     }
 
     @Override
@@ -47,7 +52,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
         // 1.9+ clients have predictions, which will determine if hidden tick skipping occurred
         if (player.isTickingReliablyFor(3)) {
             for (String flag : flags) {
-                flagAndAlert(flag);
+                flag(V.write(verbose()).str(flag));
             }
         }
 
@@ -93,7 +98,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
         if (PLAYER_ABILITIES.equals(packetType)
                 || (HELD_ITEM_CHANGE.equals(packetType) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
                 || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
-                || ATTACK.equals(packetType) || SPECTATE_ENTITY.equals(packetType)
+                || ATTACK.equals(packetType) || SPECTATE_ENTITY.equals(packetType) || PUNCH.equals(packetType)
                 || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
             post.add(event.getPacketType());
         } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_13)) {

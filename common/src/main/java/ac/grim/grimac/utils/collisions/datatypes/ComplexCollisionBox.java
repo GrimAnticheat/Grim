@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ComplexCollisionBox implements CollisionBox {
@@ -72,7 +71,9 @@ public class ComplexCollisionBox implements CollisionBox {
 
     @Override
     public void downCast(List<SimpleCollisionBox> list) {
-        list.addAll(Arrays.asList(boxes).subList(0, currentLength));
+        for (int i = 0; i < currentLength; i++) {
+            list.add(boxes[i]);
+        }
     }
 
     @Override

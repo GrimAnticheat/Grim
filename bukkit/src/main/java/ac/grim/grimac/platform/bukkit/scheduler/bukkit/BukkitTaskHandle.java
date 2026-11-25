@@ -13,7 +13,7 @@ public class BukkitTaskHandle implements TaskHandle {
 
     @Contract(pure = true)
     public BukkitTaskHandle(@NotNull BukkitTask task) {
-        this.task = Objects.requireNonNull(task);
+        this.task = Objects.requireNonNull(task, "task");
     }
 
     @Override

@@ -31,7 +31,7 @@ public enum BlockPlaceResult {
     // If the block only has directional data
     ANVIL((player, place) -> {
         WrappedBlockState data = place.material.createBlockState(CompensatedWorld.blockVersion);
-        data.setFacing(BlockFaceHelper.getClockWise(place.getPlayerFacing()));
+        data.setFacing(place.getPlayerFacing().getCW());
         place.set(data);
     }, ItemTags.ANVIL),
 
@@ -133,6 +133,17 @@ public enum BlockPlaceResult {
             }
         }
     }, ItemTypes.LADDER),
+
+    SHELF_MUSHROOM((player, place) -> {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            if (BlockFaceHelper.isFaceHorizontal(face) && place.isFullFace(face)) {
+                WrappedBlockState mushroom = place.material.createBlockState(CompensatedWorld.blockVersion);
+                mushroom.setFacing(face.getOppositeFace());
+                place.set(mushroom);
+                return;
+            }
+        }
+    }, ItemTypes.SHELF_MUSHROOM),
 
     FARM_BLOCK((player, place) -> {
         // What we also need to check:
@@ -249,18 +260,9 @@ public enum BlockPlaceResult {
         BlockFace face = place.getFace();
 
         switch (face) {
-            case EAST:
-            case WEST:
-                chain.setAxis(Axis.X);
-                break;
-            case NORTH:
-            case SOUTH:
-                chain.setAxis(Axis.Z);
-                break;
-            case UP:
-            case DOWN:
-                chain.setAxis(Axis.Y);
-                break;
+            case EAST, WEST -> chain.setAxis(Axis.X);
+            case NORTH, SOUTH -> chain.setAxis(Axis.Z);
+            case UP, DOWN -> chain.setAxis(Axis.Y);
         }
 
         place.set(chain);
@@ -336,7 +338,7 @@ public enum BlockPlaceResult {
         // No valid locations
         if (!primaryValid) return;
 
-        WrappedBlockState toPlace = StateTypes.POINTED_DRIPSTONE.createBlockState(CompensatedWorld.blockVersion);
+        WrappedBlockState toPlace = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
         toPlace.setVerticalDirection(VerticalDirection.valueOf(primaryDir.name())); // This block is facing UPWARDS as placed on the top face
 
         // We then have to calculate the thickness of the dripstone
@@ -351,7 +353,7 @@ public enum BlockPlaceResult {
         Dripstone.update(player, toPlace, placedPos.getX(), placedPos.getY(), placedPos.getZ(), place.isSecondaryUse());
 
         place.set(toPlace);
-    }, ItemTypes.POINTED_DRIPSTONE),
+    }, ItemTypes.POINTED_DRIPSTONE, ItemTypes.SULFUR_SPIKE),
 
     CACTUS((player, place) -> {
         for (BlockFace face : BlockPlace.BY_2D) {
@@ -792,7 +794,7 @@ public enum BlockPlaceResult {
             }
         }
 
-        if (below != StateTypes.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == StateTypes.KELP || below == StateTypes.KELP_PLANT) && fluidLevel >= 8 / 9d) {
+        if (below != StateTypes.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == StateTypes.KELP || below == StateTypes.KELP_PLANT) && fluidLevel >= 8 / 9f) {
             place.set(place.material);
         }
     }, ItemTypes.KELP),
@@ -904,19 +906,19 @@ public enum BlockPlaceResult {
             // Get the hinge
             BlockFace playerFacing = place.getPlayerFacing();
 
-            BlockFace ccw = BlockFaceHelper.getCounterClockwise(playerFacing);
+            BlockFace ccw = playerFacing.getCCW();
             WrappedBlockState ccwState = place.getDirectionalState(ccw);
             CollisionBox ccwBox = CollisionData.getData(ccwState.getType()).getMovementCollisionBox(player, player.getClientVersion(), ccwState);
 
-            Vector3dm aboveCCWPos = place.getClickedLocation().add(new Vector3dm(ccw.getModX(), ccw.getModY(), ccw.getModZ())).add(new Vector3dm(0, 1, 0));
+            Vector3dm aboveCCWPos = place.getClickedLocation().add(ccw.getModX(), ccw.getModY(), ccw.getModZ()).add(0, 1, 0);
             WrappedBlockState aboveCCWState = player.compensatedWorld.getBlock(aboveCCWPos);
             CollisionBox aboveCCWBox = CollisionData.getData(aboveCCWState.getType()).getMovementCollisionBox(player, player.getClientVersion(), aboveCCWState);
 
-            BlockFace cw = BlockFaceHelper.getPEClockWise(playerFacing);
+            BlockFace cw = playerFacing.getCW();
             WrappedBlockState cwState = place.getDirectionalState(cw);
             CollisionBox cwBox = CollisionData.getData(cwState.getType()).getMovementCollisionBox(player, player.getClientVersion(), cwState);
 
-            Vector3dm aboveCWPos = place.getClickedLocation().add(new Vector3dm(cw.getModX(), cw.getModY(), cw.getModZ())).add(new Vector3dm(0, 1, 0));
+            Vector3dm aboveCWPos = place.getClickedLocation().add(cw.getModX(), cw.getModY(), cw.getModZ()).add(0, 1, 0);
             WrappedBlockState aboveCWState = player.compensatedWorld.getBlock(aboveCWPos);
             CollisionBox aboveCWBox = CollisionData.getData(aboveCWState.getType()).getMovementCollisionBox(player, player.getClientVersion(), aboveCWState);
 
@@ -993,18 +995,22 @@ public enum BlockPlaceResult {
             // Ghost blocks won't be fixed because of how it depends on the world state
             int i = 0;
 
-            Vector3i starting = new Vector3i(place.position.x + direction.getModX(), place.position.y + direction.getModY(), place.position.z + direction.getModZ());
+            int startingX = place.position.x + direction.getModX();
+            int startingY = place.position.y + direction.getModY();
+            int startingZ = place.position.z + direction.getModZ();
             while (i < 7) {
-                if (player.compensatedWorld.getBlock(starting).getType() != StateTypes.SCAFFOLDING) {
-                    if (player.compensatedWorld.getBlock(starting).getType().isReplaceable()) {
-                        place.position = starting;
+                if (player.compensatedWorld.getBlock(startingX, startingY, startingZ).getType() != StateTypes.SCAFFOLDING) {
+                    if (player.compensatedWorld.getBlock(startingX, startingY, startingZ).getType().isReplaceable()) {
+                        place.position = new Vector3i(startingX, startingY, startingZ);
                         place.replaceClicked = true;
                         break; // We found it!
                     }
                     return; // Cancel block place
                 }
 
-                starting = new Vector3i(starting.x + direction.getModX(), starting.y + direction.getModY(), starting.z + direction.getModZ());
+                startingX += direction.getModX();
+                startingY += direction.getModY();
+                startingZ += direction.getModZ();
                 if (BlockFaceHelper.isFaceHorizontal(direction)) {
                     i++;
                 }
@@ -1085,6 +1091,30 @@ public enum BlockPlaceResult {
         }
     }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
             ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
+
+    CONCRETE_POWDER((player, place) -> {
+        ClientVersion version = player.getClientVersion();
+        if (version.isOlderThan(ClientVersion.V_1_13)) {
+            place.set();
+            return;
+        }
+
+        boolean hardens = Materials.isWater(version, place.getExistingBlockData());
+        if (!hardens) {
+            for (BlockFace face : BlockFace.values()) {
+                // Water below the block alone does not harden placed powder.
+                if (face == BlockFace.DOWN || face == BlockFace.OTHER) continue;
+
+                WrappedBlockState neighbor = place.getDirectionalState(face);
+                if (Materials.isWater(version, neighbor) && !place.isFullFace(face)) {
+                    hardens = true;
+                    break;
+                }
+            }
+        }
+
+        place.set(hardens ? Materials.hardenedConcrete(place.material) : place.material);
+    }, ItemTags.CONCRETE_POWDERS),
 
     NO_DATA((player, place) -> place.set(place.material), ItemTypes.AIR);
 

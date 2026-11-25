@@ -41,7 +41,7 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
             int chunks = Integer.bitCount(mask[column]);
             buffer.readerIndex(buffer.readerIndex() + 256 + (chunks * 2048) + (skylight ? (chunks * 2048) : 0));
 
-            addChunkToCache(event, player, chunkSections, true, x[column], z[column]);
+            addChunkToCache(event, player, chunkSections, true, x[column], z[column], null);
         }
     }
 
@@ -59,7 +59,7 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
         final Chunk_v1_9[] chunks = new Chunk_v1_9[16];
         this.readChunk((ByteBuf) event.getByteBuf(), chunks, mask);
 
-        this.addChunkToCache(event, player, chunks, groundUp, chunkX, chunkZ);
+        this.addChunkToCache(event, player, chunks, groundUp, chunkX, chunkZ, null);
 
         event.setLastUsedWrapper(null); // Make sure this incomplete packet isn't sent
     }

@@ -1,10 +1,11 @@
 package ac.grim.grimac.checks.impl.packetorder;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -14,7 +15,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 
 @Getter
-public final class PacketOrderProcessor extends Check implements PacketCheck {
+public final class PacketOrderProcessor extends GrimProcessor implements PacketReceiveListener {
+
     public PacketOrderProcessor(final GrimPlayer player) {
         super(player);
     }
@@ -44,7 +46,7 @@ public final class PacketOrderProcessor extends Check implements PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         final PacketTypeCommon packetType = event.getPacketType();
 
-        if (packetType == PacketType.Play.Client.CLIENT_STATUS) {
+        if (packetType == PacketType.Play.Client.CLIENT_STATUS && event.getServerVersion().isOlderThan(ServerVersion.V_1_12)) {
             if (new WrapperPlayClientClientStatus(event).getAction() == WrapperPlayClientClientStatus.Action.OPEN_INVENTORY_ACHIEVEMENT) {
                 openingInventory = true;
             }

@@ -12,11 +12,13 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.tags.SyncedTags;
+import ac.grim.grimac.utils.functions.BlockAndPositionConsumer;
+import ac.grim.grimac.utils.functions.BlockAndPositionPredicate;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
-import ac.grim.grimac.utils.math.Location;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.Vector3dm;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -40,8 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 
 @UtilityClass
 public final class Collisions {
@@ -146,7 +146,7 @@ public final class Collisions {
                         Vector3dm vec3d2 = collideBoundingBoxLegacy(new Vector3dm(desiredX, stepHeight, desiredZ), startingOffsetBox, stepCollisions, order);
                         if (getHorizontalDistanceSqr(vec3d2) > getHorizontalDistanceSqr(collisionResult)) {
                             final double d = player.boundingBox.minY - startingOffsetBox.minY;
-                            collisionResult = vec3d2.add(new Vector3dm(0.0, -d, 0.0));
+                            collisionResult = vec3d2.add(0.0, -d, 0.0);
                             break;
                         }
                     }
@@ -213,7 +213,7 @@ public final class Collisions {
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-            PacketWorldBorder border = player.checkManager.getPacketCheck(PacketWorldBorder.class);
+            PacketWorldBorder border = player.checkManager.get(PacketWorldBorder.class);
 
             double minX = Math.floor(border.getMinX());
             double minZ = Math.floor(border.getMinZ());
@@ -389,7 +389,7 @@ public final class Collisions {
 
             double maxStepDown = overrideVersion || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_11) ? -player.getMaxUpStep() : -1 + COLLISION_EPSILON;
 
-            while (x != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, 0.0))) {
+            while (x != 0.0 && canFallAtLeast(player, x, 0.0, -maxStepDown)) {
                 if (x < 0.05D && x >= -0.05D) {
                     x = 0.0D;
                 } else if (x > 0.0D) {
@@ -398,7 +398,7 @@ public final class Collisions {
                     x += 0.05D;
                 }
             }
-            while (z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, maxStepDown, z))) {
+            while (z != 0.0 && canFallAtLeast(player, 0.0, z, -maxStepDown)) {
                 if (z < 0.05D && z >= -0.05D) {
                     z = 0.0D;
                 } else if (z > 0.0D) {
@@ -407,7 +407,7 @@ public final class Collisions {
                     z += 0.05D;
                 }
             }
-            while (x != 0.0 && z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, z))) {
+            while (x != 0.0 && z != 0.0 && canFallAtLeast(player, x, z, -maxStepDown)) {
                 if (x < 0.05D && x >= -0.05D) {
                     x = 0.0D;
                 } else if (x > 0.0D) {
@@ -433,7 +433,23 @@ public final class Collisions {
     public static boolean isAboveGround(GrimPlayer player) {
         // https://bugs.mojang.com/browse/MC-2404
         return player.lastOnGround || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && (player.fallDistance < player.getMaxUpStep() &&
-                !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0))));
+                !canFallAtLeast(player, 0.0, 0.0, player.getMaxUpStep() - player.fallDistance)));
+    }
+
+    // Whether a sneaking player has nothing to stand on within this height, this far from where it is
+    private static boolean canFallAtLeast(GrimPlayer player, double x, double z, double height) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+            // 1.20.5+ only looks at the space under the feet (Player#canFallAtLeast), so a wall next to the
+            // player is not ground. In from the sides and the top because isEmpty counts touching as colliding
+            // (1.21.5+ moves the sides in by the same 1.0E-7 itself)
+            SimpleCollisionBox box = player.boundingBox;
+            double below = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_5) ? COLLISION_EPSILON : (double) 1.0E-5F;
+            return isEmpty(player, new SimpleCollisionBox(
+                    box.minX + COLLISION_EPSILON + x, box.minY - height - below, box.minZ + COLLISION_EPSILON + z,
+                    box.maxX - COLLISION_EPSILON + x, box.minY - COLLISION_EPSILON, box.maxZ - COLLISION_EPSILON + z, false));
+        }
+
+        return isEmpty(player, player.boundingBox.copy().offset(x, -height, z));
     }
 
     public static void handleInsideBlocks(GrimPlayer player) {
@@ -441,57 +457,68 @@ public final class Collisions {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)) return;
         // Use the bounding box for after the player's movement is applied
         double expandAmount = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19_4) ? 1e-5 : 0.001;
-        SimpleCollisionBox aABB = (player.inVehicle()
+        SimpleCollisionBox box = (player.inVehicle()
                 ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z)
                 : player.boundingBox.copy()).expand(-expandAmount);
 
-        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
-        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
+        int minX = GrimMath.mojangFloor(box.minX);
+        int minY = GrimMath.mojangFloor(box.minY);
+        int minZ = GrimMath.mojangFloor(box.minZ);
+        int maxX = GrimMath.mojangFloor(box.maxX);
+        int maxY = GrimMath.mojangFloor(box.maxY);
+        int maxZ = GrimMath.mojangFloor(box.maxZ);
 
-        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+        if (player.compensatedWorld.areChunksUnloadedAt(minX, minY, minZ, maxX, maxY, maxZ))
             return;
 
-        for (int blockX = blockPos.getBlockX(); blockX <= blockPos2.getBlockX(); ++blockX) {
-            for (int blockY = blockPos.getBlockY(); blockY <= blockPos2.getBlockY(); ++blockY) {
-                for (int blockZ = blockPos.getBlockZ(); blockZ <= blockPos2.getBlockZ(); ++blockZ) {
-                    WrappedBlockState block = player.compensatedWorld.getBlock(blockX, blockY, blockZ);
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    WrappedBlockState block = player.compensatedWorld.getBlock(x, y, z);
                     StateType blockType = block.getType();
 
                     if (blockType.isAir()) {
                         continue;
                     }
 
-                    onInsideBlock(player, blockType, block, blockX, blockY, blockZ, true);
+                    onInsideBlock(player, player.clientVelocity, false, blockType, block, x, y, z, true);
                 }
             }
         }
     }
 
-    public static void onInsideBlock(GrimPlayer player, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ, boolean magic) {
-        if (blockType == StateTypes.COBWEB) {
-            if (player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
-                player.stuckSpeedMultiplier = new Vector3dm(0.5, 0.25, 0.5);
+    public static void onInsideBlock(GrimPlayer player, Vector3dm clientVelocity, boolean onlyApplyVelocity, StateType blockType, WrappedBlockState block, int blockX, int blockY, int blockZ, boolean magic) {
+        PacketEntity riding = player.compensatedEntities.self.getRiding();
+        boolean stuckEntityIsLiving = riding == null || riding.isLivingEntity;
+
+        if (blockType == StateTypes.NETHER_PORTAL) {
+            player.intersectedWithNetherPortal = true;
+        }
+
+        if (!onlyApplyVelocity && blockType == StateTypes.COBWEB) {
+            if (stuckEntityIsLiving && player.compensatedEntities.hasPotionEffect(PotionTypes.WEAVING)) {
+                player.stuckSpeedMultiplier = StuckSpeed.COBWEB_WEAVING;
             } else {
-                player.stuckSpeedMultiplier = new Vector3dm(0.25, 0.05f, 0.25);
+                player.stuckSpeedMultiplier = StuckSpeed.COBWEB;
             }
         }
 
-        if (blockType == StateTypes.SWEET_BERRY_BUSH
+        if (!onlyApplyVelocity && stuckEntityIsLiving && blockType == StateTypes.SWEET_BERRY_BUSH
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            player.stuckSpeedMultiplier = new Vector3dm(0.8f, 0.75, 0.8f);
+            player.stuckSpeedMultiplier = StuckSpeed.SWEET_BERRY_BUSH;
         }
 
-        if (blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
+        if (!onlyApplyVelocity && blockType == StateTypes.POWDER_SNOW && blockX == Math.floor(player.x) && blockY == Math.floor(player.y) && blockZ == Math.floor(player.z)
                 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-            player.stuckSpeedMultiplier = new Vector3dm(0.9f, 1.5, 0.9f);
+            player.stuckSpeedMultiplier = StuckSpeed.POWDER_SNOW;
         }
 
         if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
-            player.clientVelocity.setX(player.clientVelocity.getX() * 0.4D);
-            player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
+            clientVelocity.setX(clientVelocity.getX() * 0.4D);
+            clientVelocity.setZ(clientVelocity.getZ() * 0.4D);
         }
 
-        if (blockType == StateTypes.LAVA && player.getClientVersion().isOlderThan(ClientVersion.V_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+        if (!onlyApplyVelocity && blockType == StateTypes.LAVA && player.getClientVersion().isOlderThan(ClientVersion.V_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
             player.wasTouchingLava = true;
         }
 
@@ -501,49 +528,45 @@ public final class Collisions {
             if (player.inVehicle() && player.compensatedEntities.self.getRiding().isBoat) {
                 if (!blockAbove.getType().isAir()) {
                     if (block.isDrag()) {
-                        player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));
+                        clientVelocity.setY(Math.max(-0.3D, clientVelocity.getY() - 0.03D));
                     } else {
-                        player.clientVelocity.setY(Math.min(0.7D, player.clientVelocity.getY() + 0.06D));
+                        clientVelocity.setY(Math.min(0.7D, clientVelocity.getY() + 0.06D));
                     }
                 }
             } else {
                 if (blockAbove.getType().isAir()) {
-                    for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-                        if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));
-                        } else {
-                            vector.vector.setY(Math.min(1.8D, vector.vector.getY() + 0.1D));
-                        }
+                    if (block.isDrag()) {
+                        clientVelocity.setY(Math.max(-0.9D, clientVelocity.getY() - 0.03D));
+                    } else {
+                        clientVelocity.setY(Math.min(1.8D, clientVelocity.getY() + 0.1D));
                     }
                 } else {
-                    for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-                        if (block.isDrag()) {
-                            vector.vector.setY(Math.max(-0.3D, vector.vector.getY() - 0.03D));
-                        } else {
-                            vector.vector.setY(Math.min(0.7D, vector.vector.getY() + 0.06D));
-                        }
+                    if (block.isDrag()) {
+                        clientVelocity.setY(Math.max(-0.3D, clientVelocity.getY() - 0.03D));
+                    } else {
+                        clientVelocity.setY(Math.min(0.7D, clientVelocity.getY() + 0.06D));
                     }
                 }
             }
 
             // Reset fall distance inside bubble column
-            player.fallDistance = 0;
+            if (!onlyApplyVelocity) player.fallDistance = 0;
         }
 
         if (blockType == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
-            if (isSlidingDown(player.clientVelocity, player, blockX, blockY, blockZ)) {
-                if (getOldDeltaY(player, player.clientVelocity.getY()) < -0.13D) {
-                    double d0 = -0.05 / getOldDeltaY(player, player.clientVelocity.getY());
-                    player.clientVelocity.setX(player.clientVelocity.getX() * d0);
-                    player.clientVelocity.setY(getNewDeltaY(player, -0.05D));
-                    player.clientVelocity.setZ(player.clientVelocity.getZ() * d0);
+            if (isSlidingDown(clientVelocity, player, blockX, blockY, blockZ)) {
+                if (getOldDeltaY(player, clientVelocity.getY()) < -0.13D) {
+                    double d0 = -0.05 / getOldDeltaY(player, clientVelocity.getY());
+                    clientVelocity.setX(clientVelocity.getX() * d0);
+                    clientVelocity.setY(getNewDeltaY(player, -0.05D));
+                    clientVelocity.setZ(clientVelocity.getZ() * d0);
                 } else {
-                    player.clientVelocity.setY(getNewDeltaY(player, -0.05D));
+                    clientVelocity.setY(getNewDeltaY(player, -0.05D));
                 }
             }
 
             // If honey sliding, fall distance is 0
-            player.fallDistance = 0;
+            if (!onlyApplyVelocity) player.fallDistance = 0;
         }
     }
 
@@ -558,7 +581,7 @@ public final class Collisions {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
-        player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+        player.resetStuckSpeedMultiplier();
         player.finalMovementsThisTick.clear();
 
         Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
@@ -587,7 +610,7 @@ public final class Collisions {
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
-            player.stuckSpeedMultiplier = new Vector3dm(1, 1, 1);
+            player.stuckSpeedMultiplier = StuckSpeed.NONE;
         }
     }
 
@@ -596,6 +619,10 @@ public final class Collisions {
     }
 
     public static void resolveBlockEffects(GrimPlayer player, List<GrimPlayer.Movement> movements) {
+        resolveBlockEffects(player, player.clientVelocity, false, movements);
+    }
+
+    public static void resolveBlockEffects(GrimPlayer player, Vector3dm clientVelocity, boolean onlyApplyVelocity, List<GrimPlayer.Movement> movements) {
         ClientVersion version = player.getClientVersion();
         BlockEffectsResolver resolver;
 
@@ -611,7 +638,7 @@ public final class Collisions {
             resolver = BlockEffectsResolverV1_21_10.INSTANCE; // 1.21.10
         }
 
-        resolver.applyEffectsFromBlocks(player, movements);
+        resolver.applyEffectsFromBlocks(player, clientVelocity, onlyApplyVelocity, movements);
     }
 
     private static double getOldDeltaY(GrimPlayer player, double value) {
@@ -631,47 +658,13 @@ public final class Collisions {
         } else if (getOldDeltaY(player, vector.getY()) >= -0.08D) {
             return false;
         } else {
-            double d0 = Math.abs(locationX + 0.5D - player.lastX);
-            double d1 = Math.abs(locationZ + 0.5D - player.lastZ);
+            // Vanilla reads x/y/z from the same (post-move) position, so this has to match the y check above
+            double d0 = Math.abs(locationX + 0.5D - player.x);
+            double d1 = Math.abs(locationZ + 0.5D - player.z);
             // Calculate player width using bounding box, which will change while swimming or gliding
             double d2 = 0.4375D + ((player.pose.width) / 2.0F);
             return d0 + COLLISION_EPSILON > d2 || d1 + COLLISION_EPSILON > d2;
         }
-    }
-
-    // 0.03 hack
-    public static boolean checkStuckSpeed(GrimPlayer player, double expand) {
-        // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(expand);
-
-        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
-        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
-
-        if (CheckIfChunksLoaded.areChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
-            return false;
-
-        for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
-            for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
-                for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
-                    WrappedBlockState block = player.compensatedWorld.getBlock(i, j, k);
-                    StateType blockType = block.getType();
-
-                    if (blockType == StateTypes.COBWEB) {
-                        return true;
-                    }
-
-                    if (blockType == StateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-                        return true;
-                    }
-
-                    if (blockType == StateTypes.POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     public static boolean suffocatesAt(GrimPlayer player, SimpleCollisionBox playerBB) {
@@ -740,7 +733,7 @@ public final class Collisions {
     }
 
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3i>> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, @NotNull BlockAndPositionPredicate searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -794,7 +787,7 @@ public final class Collisions {
 
                             WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
-                            if (searchingFor.test(new Pair<>(data, new Vector3i(x, y, z))))
+                            if (searchingFor.test(data, x, y, z))
                                 return true;
                         }
                     }
@@ -805,7 +798,7 @@ public final class Collisions {
     }
 
     // Thanks Tuinity
-    public static void forEachCollisionBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox checkBox, @NotNull BiConsumer<WrappedBlockState, Vector3i> searchingFor) {
+    public static void forEachCollisionBox(@NotNull GrimPlayer player, @NotNull SimpleCollisionBox checkBox, @NotNull BlockAndPositionConsumer searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
         int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
@@ -873,7 +866,7 @@ public final class Collisions {
                                 final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
 
                                 if (collisionBox.isIntersected(checkBox)) {
-                                    searchingFor.accept(data, new Vector3i(x, y, z));
+                                    searchingFor.accept(data, x, y, z);
                                 }
                             }
                         }

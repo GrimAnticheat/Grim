@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 public class BukkitOfflinePlatformPlayer implements OfflinePlatformPlayer {
-    private final OfflinePlayer offlinePlayer;
+    private final @NotNull OfflinePlayer offlinePlayer;
 
     @Override
     public boolean isOnline() {
@@ -19,7 +19,7 @@ public class BukkitOfflinePlatformPlayer implements OfflinePlatformPlayer {
 
     @Override
     public @NotNull String getName() {
-        return Objects.requireNonNull(offlinePlayer.getName());
+        return Objects.requireNonNull(offlinePlayer.getName(), "this.offlinePlayer.getName()");
     }
 
     @Override

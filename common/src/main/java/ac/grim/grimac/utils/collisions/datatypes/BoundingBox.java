@@ -171,6 +171,7 @@ public class BoundingBox {
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
+    @Override
     public String toString() {
         return "[" + minX + ", " + minY + ", " + minZ + ", " + maxX + ", " + maxY + ", " + maxZ + "]";
     }

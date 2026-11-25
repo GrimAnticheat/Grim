@@ -18,17 +18,10 @@ abstract class WriteLog {
 
     enum Op { PUT, REMOVE }
 
-    static final class Entry {
-        final Op op;
-        final String path;
-        final Object value; // null for REMOVE
-
-        Entry(Op op, String path, Object value) {
-            this.op = op;
-            this.path = path;
-            this.value = value;
-        }
-    }
+    /**
+     * @param value null for {@linkplain Op#REMOVE REMOVE}
+     */
+    record Entry(Op op, String path, Object value) {}
 
     abstract void recordPut(@NotNull String path, @NotNull Object value);
     abstract void recordRemove(@NotNull String path);

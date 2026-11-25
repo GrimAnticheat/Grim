@@ -163,6 +163,12 @@ VehicleTimer:
     # Detecta até 1.005 de timer.
     setbackvl: 10
 
+FastBreak:
+    # Quantos milissegundos de vantagem por quebrar blocos rápido demais antes de sinalizar
+    break-threshold: 1000
+    # Quantos milissegundos de vantagem por começar a quebrar um bloco cedo demais após o anterior antes de sinalizar
+    delay-threshold: 1000
+
 PacketOrderI:
     # Ativar se os jogadores estão sendo sinalizados por usar mods de animação 1.7
     exempt-placing-while-digging: false
@@ -204,6 +210,9 @@ debug-pipeline-on-join: false
 # Habilita verificações experimentais.
 experimental-checks: false
 
+# Compartilha seções de chunks idênticas entre jogadores para economizar memória (cópia ao escrever).
+experimental-chunk-sharing: false
+
 reset-item-usage-on-item-update: true
 reset-item-usage-on-attack: true
 reset-item-usage-on-slot-change: true
@@ -233,5 +242,16 @@ max-ping-firework-boost: 1000
 #   config-version: incrementado a cada mudança de forma incompatível. Configs
 #                   antigas são migradas automaticamente pelo updater embutido
 #                   na próxima inicialização.
+# O Grim sempre atualiza as permissões em cache quando um jogador entra e quando
+# o Grim é recarregado, esteja o LuckPerms instalado ou não.
+# Os hooks de eventos do LuckPerms também atualizam imediatamente as permissões
+# do Grim em cache em configurações normais.
+# Este fallback periódico só é necessário para mudanças de permissões online não
+# cobertas por esses eventos, como um contexto personalizado do LuckPerms que não
+# chama signalContextUpdate, lacunas de contexto no Fabric ou um provedor de
+# permissões diferente do LuckPerms que altera permissões ao vivo.
+# Defina -1 para desativar a verificação periódica. Use um valor positivo para atualizar a cada X ticks.
+update-permission-ticks: -1
+
 config-flavor: V2
-config-version: 10
+config-version: 11

@@ -1,9 +1,9 @@
 package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.input.Input;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineNautilusWater;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityNautilus;
-import ac.grim.grimac.utils.math.Vector3dm;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 
 public class MovementTickerNautilus extends MovementTickerLivingVehicle {
@@ -33,8 +33,7 @@ public class MovementTickerNautilus extends MovementTickerLivingVehicle {
             forward = calcForward;
         }
 
-        this.movementInput = new Vector3dm(sideways, upAndDown, forward);
-        if (this.movementInput.lengthSquared() > 1) this.movementInput.normalize();
+        this.movementInput = Input.createInput(player, sideways, upAndDown, forward).normalize(player);
     }
 
     @Override

@@ -96,7 +96,7 @@ database:
 
   # 新しいセッションレコードに刻印される、表示用のタグです。`/grim history`
   # のセッションヘッダー行に表示されます。運用中の変更も安全です。
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # スキーマ用マーカー — config.yml のヘッダーコメントを参照。
 config-flavor: V2

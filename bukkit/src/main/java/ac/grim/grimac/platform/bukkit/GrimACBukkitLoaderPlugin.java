@@ -18,17 +18,17 @@ import ac.grim.grimac.platform.api.command.CommandService;
 import ac.grim.grimac.platform.api.manager.ItemResetHandler;
 import ac.grim.grimac.platform.api.manager.MessagePlaceHolderManager;
 import ac.grim.grimac.platform.api.manager.PlatformPluginManager;
-import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.player.PlatformPlayerFactory;
 import ac.grim.grimac.platform.api.scheduler.PlatformScheduler;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.platform.api.sender.SenderFactory;
 import ac.grim.grimac.platform.bukkit.initables.BukkitBStats;
-import ac.grim.grimac.platform.bukkit.initables.BukkitEventManager;
+import ac.grim.grimac.platform.bukkit.initables.BukkitLuckPermsInitable;
 import ac.grim.grimac.platform.bukkit.initables.BukkitTickEndEvent;
 import ac.grim.grimac.platform.bukkit.manager.BukkitItemResetHandler;
 import ac.grim.grimac.platform.bukkit.manager.BukkitMessagePlaceHolderManager;
-import ac.grim.grimac.platform.bukkit.manager.BukkitParserDescriptorFactory;
+import ac.grim.grimac.platform.bukkit.manager.BukkitCloudPlatformCommandArguments;
 import ac.grim.grimac.platform.bukkit.manager.BukkitPermissionRegistrationManager;
 import ac.grim.grimac.platform.bukkit.manager.BukkitPlatformPluginManager;
 import ac.grim.grimac.platform.bukkit.player.BukkitPlatformPlayerFactory;
@@ -52,9 +52,7 @@ import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
-
 public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements PlatformLoader {
-
     public static GrimACBukkitLoaderPlugin LOADER;
 
     private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(this::createScheduler);
@@ -62,7 +60,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private final LazyHolder<BukkitSenderFactory> senderFactory = LazyHolder.simple(BukkitSenderFactory::new);
     private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(BukkitItemResetHandler::new);
     private final LazyHolder<CommandService> commandService = LazyHolder.simple(this::createCommandService);
-    private final CloudCommandAdapter commandAdapter = new BukkitParserDescriptorFactory();
+    private final CloudPlatformCommandArguments commandArguments = new BukkitCloudPlatformCommandArguments();
 
     @Getter private final PlatformPlayerFactory platformPlayerFactory = new BukkitPlatformPlayerFactory();
     @Getter private final PlatformPluginManager pluginManager = new BukkitPlatformPluginManager();
@@ -86,9 +84,9 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     private Initable[] getBukkitInitTasks() {
         return new Initable[] {
                 new ExemptOnlinePlayersOnReload(),
-                new BukkitEventManager(),
                 new BukkitTickEndEvent(),
                 new BukkitBStats(),
+                new BukkitLuckPermsInitable(),
                 (StartableInitable) () -> {
                     if (BukkitMessagePlaceHolderManager.hasPlaceholderAPI) {
                         new PlaceholderAPIExpansion().register();
@@ -133,6 +131,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     @Override
+    @SuppressWarnings("removal")
     public void registerAPIService() {
         final GrimExternalAPI externalAPI = GrimAPI.INSTANCE.getExternalAPI();
         final EventBus eventBus = externalAPI.getEventBus();
@@ -155,14 +154,14 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
             Bukkit.getPluginManager().callEvent(new ac.grim.grimac.api.events.GrimReloadEvent(success));
         });
 
-        eventBus.get(ac.grim.grimac.api.event.events.FlagEvent.class).onFlag(plugin, (user, check, verbose, cancelled) -> {
+        eventBus.subscribe(plugin, ac.grim.grimac.api.event.events.FlagEvent.class, event -> {
             ac.grim.grimac.api.events.FlagEvent bukkitEvent =
-                    new ac.grim.grimac.api.events.FlagEvent(user, check, verbose);
+                    new ac.grim.grimac.api.events.FlagEvent(event.getUser(), event.getCheck(), event::getVerbose);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
-            return cancelled || bukkitEvent.isCancelled();
-        });
+            event.setCancelled(event.isCancelled() || bukkitEvent.isCancelled());
+        }, 0, false, GrimACBukkitLoaderPlugin.class);
 
-        eventBus.get(ac.grim.grimac.api.event.events.CommandExecuteEvent.class).onCommandExecute(plugin, (user, check, verbose, command, cancelled) -> {
+        eventBus.get(ac.grim.grimac.api.event.events.CommandExecuteEvent.class).onCommandExecuteSupplier(plugin, (user, check, verbose, command, cancelled) -> {
             ac.grim.grimac.api.events.CommandExecuteEvent bukkitEvent =
                     new ac.grim.grimac.api.events.CommandExecuteEvent(user, check, verbose, command);
             Bukkit.getPluginManager().callEvent(bukkitEvent);
@@ -178,7 +177,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
         });
 
         GrimAPIProvider.init(externalAPI);
-        Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, GrimACBukkitLoaderPlugin.LOADER, ServicePriority.Normal);
+        Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, this, ServicePriority.Normal);
     }
 
     private PlatformScheduler createScheduler() {
@@ -187,7 +186,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
 
     private CommandService createCommandService() {
         try {
-            return new CloudCommandService(this::createCloudCommandManager, commandAdapter);
+            return new CloudCommandService(this::createCloudCommandManager, commandArguments);
         } catch (Throwable t) {
             LogUtil.warn("CRITICAL: Failed to initialize Command Framework. " +
                     "Grim will continue to run with no commands.", t);
@@ -216,6 +215,6 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     }
 
     public BukkitSenderFactory getBukkitSenderFactory() {
-        return LOADER.senderFactory.get();
+        return senderFactory.get();
     }
 }

@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.groundspoof;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PacketReceiveListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -17,8 +17,8 @@ import java.util.List;
 
 // Catches NoFalls for LOOK and GROUND packets
 // This check runs AFTER the predictions
-@CheckData(name = "NoFall", stableKey = "grim.groundspoof.no_fall", setback = 10)
-public class NoFall extends Check implements PacketCheck {
+@CheckData(name = "NoFall", stableKey = "grim.groundspoof.no_fall", description = "Sent an on-ground packet while not colliding with the ground", setback = 10)
+public class NoFall extends Check implements PacketReceiveListener {
 
     public boolean flipPlayerGroundStatus = false;
 
@@ -41,7 +41,7 @@ public class NoFall extends Check implements PacketCheck {
             if (wrapper.isOnGround() && !wrapper.hasPositionChanged()) {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
-                    if (!GhostBlockDetector.isGhostBlock(player)) flagAndAlertWithSetback();
+                    if (!GhostBlockDetector.isGhostBlock(player)) flagWithSetback();
                     if (shouldModifyPackets()) {
                         wrapper.setOnGround(false);
                         event.markForReEncode(true);
@@ -57,18 +57,10 @@ public class NoFall extends Check implements PacketCheck {
             // This happens to make both checks use the same logic... and
             // since we don't have access to modify the packet with prediction based checks
             // I could add that feature but ehh... this works and is better anyway.
-            //
-            // Also flip teleports because I don't trust vanilla's handling of teleports and ground
             if (flipPlayerGroundStatus) {
                 flipPlayerGroundStatus = false;
                 if (shouldModifyPackets()) {
                     wrapper.setOnGround(!wrapper.isOnGround());
-                    event.markForReEncode(true);
-                }
-            }
-            if (player.packetStateData.lastPacketWasTeleport) {
-                if (shouldModifyPackets()) {
-                    wrapper.setOnGround(false);
                     event.markForReEncode(true);
                 }
             }

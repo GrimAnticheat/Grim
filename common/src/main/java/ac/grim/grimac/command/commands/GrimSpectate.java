@@ -5,7 +5,7 @@ import ac.grim.grimac.command.BuildableCommand;
 import ac.grim.grimac.command.CloudCommandService;
 import ac.grim.grimac.command.requirements.PlayerSenderRequirement;
 import ac.grim.grimac.platform.api.command.PlayerSelector;
-import ac.grim.grimac.platform.api.manager.cloud.CloudCommandAdapter;
+import ac.grim.grimac.platform.api.manager.cloud.CloudPlatformCommandArguments;
 import ac.grim.grimac.platform.api.player.PlatformPlayer;
 import ac.grim.grimac.platform.api.sender.Sender;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
@@ -18,14 +18,14 @@ import java.util.Objects;
 
 public class GrimSpectate implements BuildableCommand {
     @Override
-    public void register(CommandManager<Sender> commandManager, CloudCommandAdapter adapter) {
+    public void register(CommandManager<Sender> commandManager, CloudPlatformCommandArguments arguments) {
         commandManager.command(
                 commandManager.commandBuilder("grim", "grimac")
                         .literal("spectate")
                         .permission("grim.spectate")
-                        .required("target", adapter.singlePlayerSelectorParser())
+                        .required("target", arguments.singlePlayerSelectorParser())
                         .handler(this::handleSpectate)
-                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.PLAYER_SENDER_REQUIREMENT))
+                        .apply(CloudCommandService.REQUIREMENT_FACTORY.create(PlayerSenderRequirement.INSTANCE))
         );
     }
 
@@ -46,7 +46,7 @@ public class GrimSpectate implements BuildableCommand {
             return;
         }
 
-        @NotNull PlatformPlayer platformPlayer = Objects.requireNonNull(sender.getPlatformPlayer());
+        @NotNull PlatformPlayer platformPlayer = Objects.requireNonNull(sender.getPlatformPlayer(), "platformPlayer");
 
         // hide player from tab list
         if (GrimAPI.INSTANCE.getSpectateManager().enable(platformPlayer)) {
@@ -54,6 +54,6 @@ public class GrimSpectate implements BuildableCommand {
         }
 
         platformPlayer.setGameMode(GameMode.SPECTATOR);
-        platformPlayer.teleportAsync(Objects.requireNonNull(targetPlatformPlayer).getLocation());
+        platformPlayer.teleportAsync(Objects.requireNonNull(targetPlatformPlayer, "targetPlatformPlayer").getLocation());
     }
 }

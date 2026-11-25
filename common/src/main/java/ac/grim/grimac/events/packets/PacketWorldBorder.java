@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.worldborder.BorderExtent;
 import ac.grim.grimac.utils.worldborder.RealTimeMovingBorderExtent;
@@ -19,8 +19,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWo
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayWorldBorderLerpSize;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
-public class PacketWorldBorder extends Check implements PacketCheck {
+public class PacketWorldBorder extends GrimProcessor implements PacketSendListener {
+    private static final boolean SERVER_TICK_BASED = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
+
     @Getter
     private double centerX;
     @Getter
@@ -30,8 +33,8 @@ public class PacketWorldBorder extends Check implements PacketCheck {
     @Getter
     private BorderExtent extent;
 
-    public PacketWorldBorder(GrimPlayer playerData) {
-        super(playerData);
+    public PacketWorldBorder(GrimPlayer player) {
+        super(player);
         this.extent = new StaticBorderExtent(5.999997E7);
     }
 
@@ -153,9 +156,8 @@ public class PacketWorldBorder extends Check implements PacketCheck {
         }
     }
 
-    private static final boolean SERVER_TICK_BASED = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_11);
-
-    private BorderExtent createMovingExtent(double from, double to, long speed) {
+    @Contract("_, _, _ -> new")
+    private @NotNull BorderExtent createMovingExtent(double from, double to, long speed) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11)) { // tick-based
             long durationTicks = SERVER_TICK_BASED ? speed : (speed / 50);
             return new TickBasedMovingBorderExtent(from, to, durationTicks);

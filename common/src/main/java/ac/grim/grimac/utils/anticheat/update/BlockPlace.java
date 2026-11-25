@@ -51,7 +51,7 @@ public class BlockPlace {
     @Getter private boolean isCancelled;
     private final GrimPlayer player;
     public final ItemStack itemStack;
-    public final StateType material;
+    @Getter public final StateType material;
     public final @Nullable HitData hitData;
     @Getter private int faceId;
     @Getter private BlockFace face;
@@ -517,21 +517,10 @@ public class BlockPlace {
     public Vector3i getPlacedBlockPos() {
         if (replaceClicked) return position;
 
-        int x = position.getX() + getNormalBlockFace().getX();
-        int y = position.getY() + getNormalBlockFace().getY();
-        int z = position.getZ() + getNormalBlockFace().getZ();
+        int x = position.getX() + face.getModX();
+        int y = position.getY() + face.getModY();
+        int z = position.getZ() + face.getModZ();
         return new Vector3i(x, y, z);
-    }
-
-    public Vector3i getNormalBlockFace() {
-        return switch (face) {
-            case DOWN -> new Vector3i(0, -1, 0);
-            case SOUTH -> new Vector3i(0, 0, 1);
-            case NORTH -> new Vector3i(0, 0, -1);
-            case WEST -> new Vector3i(-1, 0, 0);
-            case EAST -> new Vector3i(1, 0, 0);
-            default -> new Vector3i(0, 1, 0);
-        };
     }
 
     public void set(StateType material) {
@@ -608,7 +597,7 @@ public class BlockPlace {
         }
 
         player.inventory.onBlockPlace(this);
-        player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getGlobalId());
+        player.compensatedWorld.updateBlock(position, state);
     }
 
     public boolean isZAxis() {
@@ -623,9 +612,7 @@ public class BlockPlace {
         cascadeBlockUpdates(pos);
     }
 
-    private void cascadeBlockUpdates(Vector3i pos) {
-
-    }
+    private void cascadeBlockUpdates(Vector3i pos) {}
 
     public void set(WrappedBlockState state) {
         set(getPlacedBlockPos(), state);
@@ -651,19 +638,24 @@ public class BlockPlace {
         Vector3dm look = ReachUtils.getLook(player, player.yaw, player.pitch);
 
         final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 3;
-        Vector3dm eyePos = new Vector3dm(player.x, player.y + player.getEyeHeight(), player.z);
-        Vector3dm endReachPos = eyePos.clone().add(new Vector3dm(look.getX() * distance, look.getY() * distance, look.getZ() * distance));
-        Vector3dm intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).first();
+        double eyeX = player.x;
+        double eyeY = player.y + player.getEyeHeight();
+        double eyeZ = player.z;
+        double endX = eyeX + look.getX() * distance;
+        double endY = eyeY + look.getY() * distance;
+        double endZ = eyeZ + look.getZ() * distance;
+        Vector3d intercept = ReachUtils.calculateIntercept(box, eyeX, eyeY, eyeZ, endX, endY, endZ).first();
 
         // Bring this back to relative to the block
         // The player didn't even click the block... (we should force resync BEFORE we get here!)
-        if (intercept == null) return new Vector3dm();
+        if (intercept == null) return look.zero(); // reuse look vector object
 
-        intercept.setX(intercept.getX() - box.minX);
-        intercept.setY(intercept.getY() - box.minY);
-        intercept.setZ(intercept.getZ() - box.minZ);
+        // reuse look vector object
+        look.setX(intercept.getX() - box.minX);
+        look.setY(intercept.getY() - box.minY);
+        look.setZ(intercept.getZ() - box.minZ);
 
-        return intercept;
+        return look;
     }
 
     // Remember to use the next tick's look, which we handle elsewhere

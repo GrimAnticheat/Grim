@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.PacketWorld;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.change.BlockModification;
+import ac.grim.grimac.utils.chunks.ChunkSectionCache;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -26,6 +27,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import com.github.retrooper.packetevents.protocol.world.chunk.TileEntity;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
 import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette;
@@ -55,6 +57,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -84,7 +88,7 @@ public class CompensatedWorld implements PacketWorld {
     // The owning list is so that this info can be removed when the final list is processed
     private final Long2ObjectOpenHashMap<BlockPrediction> originalServerBlocks = new Long2ObjectOpenHashMap<>();
     // Blocks the client changed while placing or breaking blocks
-    private List<Vector3i> currentlyChangedBlocks = new LinkedList<>();
+    private @NotNull List<@NotNull Vector3i> currentlyChangedBlocks = new LinkedList<>();
     private final Int2ObjectMap<List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new Int2ObjectOpenHashMap<>();
     private final Object2ObjectLinkedOpenHashMap<Pair<Vector3i, DiggingAction>, Vector3d> unackedActions = new Object2ObjectLinkedOpenHashMap<>();
     private boolean isCurrentlyPredicting = false;
@@ -92,10 +96,10 @@ public class CompensatedWorld implements PacketWorld {
 
     private final boolean noNegativeBlocks;
 
-    public CompensatedWorld(GrimPlayer player) {
+    public CompensatedWorld(@NotNull GrimPlayer player) {
         this.player = player;
-        chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
-        noNegativeBlocks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
+        this.chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
+        this.noNegativeBlocks = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4);
     }
 
     public void startPredicting() {
@@ -104,26 +108,40 @@ public class CompensatedWorld implements PacketWorld {
     }
 
     public void handlePredictionConfirmation(int prediction) {
-        for (Iterator<Int2ObjectMap.Entry<List<Vector3i>>> it = serverIsCurrentlyProcessingThesePredictions.int2ObjectEntrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Integer, List<Vector3i>> iter = it.next();
-            if (iter.getKey() <= prediction) {
-                applyBlockChanges(iter.getValue());
-                it.remove();
-            } else {
-                break;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        // Nothing predicted and nothing waiting to be
+        if (serverIsCurrentlyProcessingThesePredictions.isEmpty() && player.placeUseItemPackets.isEmpty()) return;
+
+        // A place or use item is only replayed at the client's next movement packet or transaction, so the server can
+        // acknowledge it before we have predicted it. Look the predictions up once the client has this packet,
+        // by then anything it acknowledges has been replayed
+        player.sendTransaction();
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            for (Iterator<Int2ObjectMap.Entry<List<Vector3i>>> it = serverIsCurrentlyProcessingThesePredictions.int2ObjectEntrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<Integer, List<Vector3i>> iter = it.next();
+                if (iter.getKey() <= prediction) {
+                    revertPredictions(iter.getValue());
+                    it.remove();
+                }
             }
-        }
+        });
     }
 
-    public void handleBlockBreakAck(Vector3i blockPos, int blockState, DiggingAction action, boolean accepted) {
-        if (!accepted || action != DiggingAction.START_DIGGING || !unackedActions.containsKey(new Pair<>(blockPos, action))) {
+    public void handleBlockBreakAck(@NotNull Vector3i blockPos, int blockState, DiggingAction action, boolean accepted) {
+        Pair<Vector3i, DiggingAction> key = new Pair<>(blockPos, action);
+        if (!accepted || action != DiggingAction.START_DIGGING || !unackedActions.containsKey(key)) {
             player.sendTransaction(); // This packet actually matters
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                Vector3d playerPos = unackedActions.remove(new Pair<>(blockPos, action));
-                handleAck(blockPos, blockState, playerPos);
+                Vector3d playerPos = unackedActions.remove(key);
+                // No entry for clients outside 1.14.4 - 1.18.2, or when an earlier ack for the same block and action took it
+                if (playerPos == null) {
+                    revertBlock(blockPos, blockState);
+                } else {
+                    handleAck(blockPos, blockState, playerPos.getX(), playerPos.getY(), playerPos.getZ());
+                }
             });
         } else {
-            unackedActions.remove(new Pair<>(blockPos, action));
+            unackedActions.remove(key);
         }
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -133,49 +151,76 @@ public class CompensatedWorld implements PacketWorld {
         });
     }
 
-    private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
+    private void applyBlockChanges(@NotNull List<@NotNull Vector3i> toApplyBlocks) {
         player.sendTransaction();
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
-            BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> revertPredictions(toApplyBlocks));
+    }
+
+    private void revertPredictions(@NotNull List<@NotNull Vector3i> toApplyBlocks) {
+        toApplyBlocks.forEach(blockPos -> {
+            BlockPrediction predictionData = originalServerBlocks.get(blockPos.getSerializedPosition());
 
             // We are the last to care about this prediction, remove it to stop memory leak
             // Block changes are allowed to execute out of order, because it actually doesn't matter
             if (predictionData != null && predictionData.getForBlockUpdate() == toApplyBlocks) {
-                originalServerBlocks.remove(vector3i.getSerializedPosition());
-                handleAck(vector3i, predictionData.getOriginalBlockId(), predictionData.getPlayerPosition());
+                originalServerBlocks.remove(blockPos.getSerializedPosition());
+                handleAck(blockPos, predictionData.getOriginalBlockId(), predictionData.getPlayerX(), predictionData.getPlayerY(), predictionData.getPlayerZ());
             }
-        }));
+        });
     }
 
-    private void handleAck(Vector3i vector3i, int originalBlockId, Vector3d playerPosition) {
+    // Puts the server's block back, false if grim already had it
+    private boolean revertBlock(@NotNull Vector3i blockPos, int originalBlockId) {
         // If we need to change the world block state
-        if (getBlock(vector3i).getGlobalId() != originalBlockId) {
-            player.blockHistory.add(
-                    new BlockModification(
-                            getBlock(vector3i),
-                            WrappedBlockState.getByGlobalId(originalBlockId),
-                            vector3i,
-                            GrimAPI.INSTANCE.getTickManager().currentTick,
-                            BlockModification.Cause.HANDLE_NETTY_SYNC_TRANSACTION
-                    )
-            );
-            updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalBlockId);
-            WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
+        if (getBlock(blockPos).getGlobalId() == originalBlockId) return false;
 
-            // The player will teleport themselves if they get stuck in the reverted block
-            if (playerPosition != null && CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
-                player.lastX = player.x;
-                player.lastY = player.y;
-                player.lastZ = player.z;
-                player.x = playerPosition.getX();
-                player.y = playerPosition.getY();
-                player.z = playerPosition.getZ();
-                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-            }
+        player.blockHistory.add(
+                new BlockModification(
+                        getBlock(blockPos),
+                        WrappedBlockState.getByGlobalId(blockVersion, originalBlockId),
+                        blockPos,
+                        GrimAPI.INSTANCE.getTickManager().currentTick,
+                        BlockModification.Cause.HANDLE_NETTY_SYNC_TRANSACTION
+                )
+        );
+
+        updateBlock(blockPos, originalBlockId);
+        return true;
+    }
+
+    private void handleAck(@NotNull Vector3i blockPos, int originalBlockId, double playerX, double playerY, double playerZ) {
+        if (!revertBlock(blockPos, originalBlockId)) return;
+
+        WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, originalBlockId);
+
+        // The player will teleport themselves if they get stuck in the reverted block
+        if (isStuckInRevertedBlock(blockPos, state)) {
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+            player.x = playerX;
+            player.y = playerY;
+            player.z = playerZ;
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
         }
     }
 
-    public void handleBlockBreakPrediction(WrapperPlayClientPlayerDigging digging) {
+    // 1.16.2+ only goes back if the reverted block would leave it stuck, checked from where it is when the block comes back
+    // (Player.isColliding). Older clients always go back
+    private boolean isStuckInRevertedBlock(Vector3i pos, WrappedBlockState state) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16_2)) return true;
+
+        // Shapes like scaffolding pick their box from lastY, which is still where the player broke the block from
+        final double lastY = player.lastY;
+        player.lastY = player.y;
+        try {
+            return CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, pos.getX(), pos.getY(), pos.getZ()).isIntersected(player.boundingBox);
+        } finally {
+            player.lastY = lastY;
+        }
+    }
+
+    public void handleBlockBreakPrediction(@NotNull WrapperPlayClientPlayerDigging digging) {
         // 1.14.4 intentional and correct, do not change it to 1.14
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14_4) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) {
             unackedActions.put(new Pair<>(digging.getBlockPosition(), digging.getAction()), new Vector3d(player.x, player.y, player.z));
@@ -195,12 +240,12 @@ public class CompensatedWorld implements PacketWorld {
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
             // Pull the confirmation ID out of the packet
             int confirmationId = 0;
-            if (wrapper instanceof WrapperPlayClientPlayerBlockPlacement) {
-                confirmationId = ((WrapperPlayClientPlayerBlockPlacement) wrapper).getSequence();
-            } else if (wrapper instanceof WrapperPlayClientUseItem) {
-                confirmationId = ((WrapperPlayClientUseItem) wrapper).getSequence();
-            } else if (wrapper instanceof WrapperPlayClientPlayerDigging) {
-                confirmationId = ((WrapperPlayClientPlayerDigging) wrapper).getSequence();
+            if (wrapper instanceof WrapperPlayClientPlayerBlockPlacement playerBlockPlacement) {
+                confirmationId = playerBlockPlacement.getSequence();
+            } else if (wrapper instanceof WrapperPlayClientUseItem useItem) {
+                confirmationId = useItem.getSequence();
+            } else if (wrapper instanceof WrapperPlayClientPlayerDigging playerDigging) {
+                confirmationId = playerDigging.getSequence();
             }
 
             serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
@@ -216,13 +261,22 @@ public class CompensatedWorld implements PacketWorld {
         }
     }
 
+    public void clearPredictions() {
+        originalServerBlocks.clear();
+        currentlyChangedBlocks = new LinkedList<>();
+        serverIsCurrentlyProcessingThesePredictions.clear();
+        unackedActions.clear();
+        isCurrentlyPredicting = false;
+    }
+
+    @Contract(pure = true)
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
 
-    public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
+    public boolean isNearHardEntity(@NotNull SimpleCollisionBox playerBox) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.isBoat || entity.type == EntityTypes.SHULKER || entity.isHappyGhast) && player.compensatedEntities.self.getRiding() != entity) {
+            if ((entity.isBoat || entity.getType() == EntityTypes.SHULKER || entity.isHappyGhast) && player.compensatedEntities.self.getRiding() != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;
@@ -250,7 +304,8 @@ public class CompensatedWorld implements PacketWorld {
         return false;
     }
 
-    private static BaseChunk create() {
+    @Contract(" -> new")
+    private static @NotNull BaseChunk create() {
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             return new Chunk_v1_18();
         } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
@@ -259,21 +314,24 @@ public class CompensatedWorld implements PacketWorld {
         return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
     }
 
-    public void updateBlock(Vector3i pos, WrappedBlockState state) {
-        updateBlock(pos.getX(), pos.getY(), pos.getZ(), state.getGlobalId());
+    public void updateBlock(@NotNull Vector3i pos, @NotNull WrappedBlockState state) {
+        updateBlock(pos, state.getGlobalId());
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
-        Vector3i asVector = new Vector3i(x, y, z);
-        BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
+        updateBlock(new Vector3i(x, y, z), combinedID);
+    }
+
+    public void updateBlock(@NotNull Vector3i pos, int combinedID) {
+        BlockPrediction prediction = originalServerBlocks.get(pos.getSerializedPosition());
 
         if (isCurrentlyPredicting) {
             if (prediction == null) {
-                originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getBlock(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+                originalServerBlocks.put(pos.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, getBlock(pos).getGlobalId(), player.x, player.y, player.z)); // Remember server controlled block type
             } else {
                 prediction.setForBlockUpdate(currentlyChangedBlocks); // Block existing there was placed by client, mark block to have a new prediction
             }
-            currentlyChangedBlocks.add(asVector);
+            currentlyChangedBlocks.add(pos);
         }
 
         if (!isCurrentlyPredicting && prediction != null) {
@@ -281,6 +339,10 @@ public class CompensatedWorld implements PacketWorld {
             prediction.setOriginalBlockId(combinedID);
             return;
         }
+
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
 
         Column column = getChunk(x >> 4, z >> 4);
 
@@ -290,11 +352,13 @@ public class CompensatedWorld implements PacketWorld {
         if (column != null) {
             if (column.chunks().length <= (offsetY >> 4) || (offsetY >> 4) < 0) return;
 
-            BaseChunk chunk = column.chunks()[offsetY >> 4];
+            int sectionIndex = offsetY >> 4;
+            BaseChunk chunk = column.chunks()[sectionIndex];
 
             if (chunk == null) {
                 chunk = create();
-                column.chunks()[offsetY >> 4] = chunk;
+                column.chunks()[sectionIndex] = chunk;
+                column.sectionKeys()[sectionIndex] = 0L;
 
                 // Sets entire chunk to air
                 // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
@@ -302,13 +366,24 @@ public class CompensatedWorld implements PacketWorld {
                 chunk.set(0, 0, 0, 0);
             }
 
-            // The method also gets called for the previous state before replacement
-            player.pointThreeEstimator.handleChangeBlock(x, y, z, chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF));
+            WrappedBlockState previousState = chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF);
+            WrappedBlockState newState = WrappedBlockState.getByGlobalId(blockVersion, combinedID);
 
-            chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+            // A resync that rewrites the same block is not a change.
+            // Treating it as one would hand out the wall-hit exemption, a point-three
+            // recalculation and a geyser update for free, so only process real changes.
+            if (previousState.getGlobalId() != combinedID) {
+                // The method also gets called for the previous state before replacement
+                player.pointThreeEstimator.handleChangeBlock(x, y, z, previousState);
 
-            // Handle stupidity such as fluids changing in idle ticks.
-            player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
+                // Copy-on-write: never mutate a shared section in place
+                chunk = ChunkSectionCache.detachSectionForWrite(column, sectionIndex, chunk);
+                chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+                player.compensatedGeysers.updateBlock(x, y, z, previousState, newState, minHeight);
+
+                // Handle stupidity such as fluids changing in idle ticks.
+                player.pointThreeEstimator.handleChangeBlock(x, y, z, newState);
+            }
         }
     }
 
@@ -438,7 +513,7 @@ public class CompensatedWorld implements PacketWorld {
         });
     }
 
-    public WrappedBlockState getBlock(Vector3i position) {
+    public WrappedBlockState getBlock(@NotNull Vector3i position) {
         return getBlock(position.x, position.y, position.z);
     }
 
@@ -624,9 +699,34 @@ public class CompensatedWorld implements PacketWorld {
         return chunks.containsKey(chunkPosition);
     }
 
-    public void addToCache(Column chunk, int chunkX, int chunkZ) {
+    public boolean areChunksUnloadedAt(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        if (maxY < minHeight || minY >= maxHeight) {
+            return true;
+        }
+
+        minX >>= 4;
+        minZ >>= 4;
+        maxX >>= 4;
+        maxZ >>= 4;
+
+        for (int i = minX; i <= maxX; i++) {
+            for (int j = minZ; j <= maxZ; j++) {
+                if (!isChunkLoaded(i, j)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void addToCache(Column chunk, int chunkX, int chunkZ, TileEntity[] tileEntities) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> chunks.put(chunkPosition, chunk));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            Column previous = chunks.put(chunkPosition, ChunkSectionCache.shareColumnSections(chunk));
+            if (previous != null) ChunkSectionCache.releaseColumnSections(previous);
+            player.compensatedGeysers.addChunkToCache(chunk, tileEntities, minHeight);
+        });
     }
 
     public StateType getBlockType(double x, double y, double z) {
@@ -637,7 +737,7 @@ public class CompensatedWorld implements PacketWorld {
         return getBlock((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
-    public double getFluidLevelAt(int x, int y, int z) {
+    public float getFluidLevelAt(int x, int y, int z) {
         return Math.max(getWaterFluidLevelAt(x, y, z), getLavaFluidLevelAt(x, y, z));
     }
 
@@ -646,16 +746,16 @@ public class CompensatedWorld implements PacketWorld {
         return Materials.isWaterSource(player.getClientVersion(), bukkitBlock);
     }
 
-    public boolean containsLiquid(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.first()) || data.first().getType() == StateTypes.LAVA);
+    public boolean containsLiquid(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> Materials.isWater(player.getClientVersion(), block) || block.getType() == StateTypes.LAVA);
     }
 
-    public double getLavaFluidLevelAt(int x, int y, int z) {
+    public float getLavaFluidLevelAt(int x, int y, int z) {
         WrappedBlockState magicBlockState = getBlock(x, y, z);
         WrappedBlockState magicBlockStateAbove = getBlock(x, y + 1, z);
 
-        if (magicBlockState.getType() != StateTypes.LAVA) return 0;
-        if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1;
+        if (magicBlockState.getType() != StateTypes.LAVA) return 0f;
+        if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1f;
 
         int level = magicBlockState.getLevel();
 
@@ -668,23 +768,23 @@ public class CompensatedWorld implements PacketWorld {
         return (8 - level) / 9f;
     }
 
-    public boolean containsLava(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> data.first().getType() == StateTypes.LAVA);
+    public boolean containsLava(SimpleCollisionBox box) {
+        return Collisions.hasMaterial(player, box, (block, x, y, z) -> block.getType() == StateTypes.LAVA);
     }
 
-    public double getWaterFluidLevelAt(double x, double y, double z) {
+    public float getWaterFluidLevelAt(double x, double y, double z) {
         return getWaterFluidLevelAt(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
     }
 
-    public double getWaterFluidLevelAt(int x, int y, int z) {
+    public float getWaterFluidLevelAt(int x, int y, int z) {
         WrappedBlockState wrappedBlock = getBlock(x, y, z);
         boolean isWater = Materials.isWater(player.getClientVersion(), wrappedBlock);
 
-        if (!isWater) return 0;
+        if (!isWater) return 0f;
 
         // If water has water above it, it's block height is 1, even if it's waterlogged
         if (Materials.isWater(player.getClientVersion(), getBlock(x, y + 1, z))) {
-            return 1;
+            return 1f;
         }
 
         // If it is water or flowing water
@@ -704,7 +804,13 @@ public class CompensatedWorld implements PacketWorld {
 
     public void removeChunkLater(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> chunks.remove(chunkPosition));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            Column column = chunks.remove(chunkPosition);
+            if (column != null) {
+                ChunkSectionCache.releaseColumnSections(column);
+                player.compensatedGeysers.removeChunk(chunkX, chunkZ, column.chunks().length);
+            }
+        });
     }
 
     public void setDimension(DimensionType dimension, User user) {
@@ -715,7 +821,7 @@ public class CompensatedWorld implements PacketWorld {
         maxHeight = minHeight + dimension.getHeight();
     }
 
-    public WrappedBlockState getBlock(Vector3dm aboveCCWPos) {
-        return getBlock(aboveCCWPos.getX(), aboveCCWPos.getY(), aboveCCWPos.getZ());
+    public WrappedBlockState getBlock(@NotNull Vector3dm blockPos) {
+        return getBlock(blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 }

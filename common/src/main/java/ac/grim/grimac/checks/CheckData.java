@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface CheckData {
-    String name() default "UNKNOWN";
+
+    String name();
 
     String alternativeName() default "UNKNOWN";
 
@@ -22,7 +23,7 @@ public @interface CheckData {
      * legacy/unpopulated — the runtime will fall back to
      * {@code StableKeyMapping} during rollout and log a warning.
      */
-    String stableKey() default "";
+    String stableKey();
 
     double decay() default 0.05;
 

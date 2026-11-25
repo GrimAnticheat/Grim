@@ -29,8 +29,8 @@ public class PacketPluginMessage extends PacketListenerAbstract {
     private void checkChannel(User user, String channelName) {
         if (!"vv:proxy_details".equals(channelName)) return;
         final boolean usingProxy = ProxyAlertMessenger.isUsingProxy();
-        // warn if they are using a proxy
-        if (usingProxy) {
+        // warn if they are using a proxy, unless the server has asked not to be told again
+        if (usingProxy && CommonGrimArguments.WARN_ON_VIA_PROXY.value()) {
             LogUtil.warn(
                     user.getName() + " seems to have connected through a proxy running ViaVersion. "
                             + "Having ViaVersion installed on the proxy is incompatible with GrimAC and causes many issues. "

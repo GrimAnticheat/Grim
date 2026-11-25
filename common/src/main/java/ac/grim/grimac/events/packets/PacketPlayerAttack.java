@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsW;
+import ac.grim.grimac.checks.impl.combat.InvalidInteractTarget;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -22,6 +22,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAt
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSpectateEntity;
+import org.jetbrains.annotations.NotNull;
 
 public class PacketPlayerAttack extends PacketListenerAbstract {
 
@@ -30,13 +31,17 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
     }
 
     @Override
+    public boolean isPreVia() {
+        return true;
+    }
+
+    @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-            WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-
             if (player == null) return;
 
+            WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
             int entityId = interact.getEntityId();
 
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
@@ -53,38 +58,33 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                     }
                 }
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
-            if (packet.getAction() == DiggingAction.STAB) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-                if (player == null) return;
+            if (packet.getAction() != DiggingAction.STAB) return;
 
-                if (player.isResetItemUsageOnAttack()) {
-                    GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
-                }
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            if (player.isResetItemUsageOnAttack()) {
+                GrimAPI.INSTANCE.getItemResetHandler().resetItemUsage(player.platformPlayer);
             }
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
+        } else if (event.getPacketType() == PacketType.Play.Client.ATTACK) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             WrapperPlayClientAttack packet = new WrapperPlayClientAttack(event);
             onAttack(event, player, packet.getEntityId());
-        }
-
-        if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
+        } else if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+            if (player == null || player.gamemode != GameMode.SPECTATOR) return;
 
             WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
+            if (!packet.hasEntityId()) return;
             onAttack(event, player, packet.getEntityId());
         }
     }
 
-    private void onAttack(PacketReceiveEvent event, GrimPlayer player, int entityId) {
+    private static void onAttack(@NotNull PacketReceiveEvent event, @NotNull GrimPlayer player, int entityId) {
         if (isInvalidEntity(event, player, entityId)) return;
 
         if (player.isResetItemUsageOnAttack()) {
@@ -98,8 +98,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         ItemStack heldItem = player.inventory.getHeldItem();
         PacketEntity entity = player.compensatedEntities.getEntity(entityId);
 
-        if (entity != null && (!entity.isLivingEntity || entity.type == EntityTypes.PLAYER || entity.type == EntityTypes.PAINTING
-                || entity.type == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
+        if (shouldPredictAttackSlow(player, entity)) {
             int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
                     ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK)
                     : 0;
@@ -143,13 +142,24 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         }
     }
 
-    private boolean isInvalidEntity(PacketReceiveEvent event, GrimPlayer player, int entityId) {
+    private static boolean shouldPredictAttackSlow(@NotNull GrimPlayer player, PacketEntity entity) {
+        if (entity == null) return false;
+
+        // Hanging entities (item frames, paintings, leash knots) handle the hit themselves
+        // and the client returns from the attack before it gets to the slowdown
+        if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.ABSTRACT_HANGING)) return false;
+
+        return !entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER
+                || entity.getType() == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2);
+    }
+
+    private static boolean isInvalidEntity(@NotNull PacketReceiveEvent event, @NotNull GrimPlayer player, int entityId) {
         // The entity does not exist
         if (!player.compensatedEntities.entityMap.containsKey(entityId) && !player.compensatedEntities.serverPositionsMap.containsKey(entityId)
                 // the list of entities used to raytrace isn't the same as the list of entities in the world in pre-1.14 (wtf mojang)
                 && (!player.compensatedEntities.entitiesRemovedThisTick.contains(entityId) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14))) {
-            final BadPacketsW badPacketsW = player.checkManager.getCheck(BadPacketsW.class);
-            if (badPacketsW.flagAndAlert("entityId=" + entityId) && badPacketsW.shouldModifyPackets()) {
+            final InvalidInteractTarget check = player.checkManager.get(InvalidInteractTarget.class);
+            if (check.flag("entityId=" + entityId) && check.shouldModifyPackets()) {
                 event.setCancelled(true);
                 player.onPacketCancel();
             }

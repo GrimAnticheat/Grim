@@ -2,7 +2,7 @@ package ac.grim.grimac.checks.impl.prediction;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.checks.type.PostPredictionListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -11,13 +11,14 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "Phase", stableKey = "grim.prediction.phase", setback = 1, decay = 0.005)
-public class Phase extends Check implements PostPredictionCheck {
-    private SimpleCollisionBox oldBB;
+@CheckData(name = "Phase", stableKey = "grim.prediction.phase", description = "Moved into a solid block during movement prediction", setback = 1, decay = 0.005)
+public class Phase extends Check implements PostPredictionListener {
+    private @NotNull SimpleCollisionBox oldBB;
 
     public Phase(GrimPlayer player) {
         super(player);
@@ -41,7 +42,7 @@ public class Phase extends Check implements PostPredictionCheck {
                             continue; // 1.8 glitchy block, ignore
                         }
                     }
-                    flagAndAlertWithSetback();
+                    flagWithSetback();
                     return;
                 }
             }

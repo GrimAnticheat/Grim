@@ -18,14 +18,22 @@ public class JumpPower {
         float jumpPower = getJumpPower(player);
 
         final OptionalInt jumpBoost = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
-        if (jumpBoost.isPresent()) {
-            jumpPower += 0.1f * (jumpBoost.getAsInt() + 1);
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+            double jumpVelocity = jumpPower;
+            if (jumpBoost.isPresent()) {
+                jumpVelocity += (jumpBoost.getAsInt() + 1) * 0.1F;
+            }
+            vector.setY(jumpVelocity);
+        } else {
+            if (jumpBoost.isPresent()) {
+                jumpPower += 0.1f * (jumpBoost.getAsInt() + 1);
+            }
+
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && jumpPower <= 1.0E-5f)
+                return;
+
+            vector.setY(player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) ? jumpPower : Math.max(jumpPower, vector.getY()));
         }
-
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5) && jumpPower <= 1.0E-5f)
-            return;
-
-        vector.setY(player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) ? jumpPower : Math.max(jumpPower, vector.getY()));
 
         if (player.isSprinting) {
             float radRotation = GrimMath.radians(player.yaw);
@@ -38,7 +46,10 @@ public class JumpPower {
     }
 
     public static float getJumpPower(@NotNull GrimPlayer player) {
-        return (float) player.compensatedEntities.self.getAttributeValue(Attributes.JUMP_STRENGTH) * getPlayerJumpFactor(player);
+        float jumpStrength = player.getClientVersion().isOlderThan(ClientVersion.V_1_20_5)
+                ? 0.42F
+                : (float) player.compensatedEntities.self.getAttributeValue(Attributes.JUMP_STRENGTH);
+        return jumpStrength * getPlayerJumpFactor(player);
     }
 
     public static float getPlayerJumpFactor(@NotNull GrimPlayer player) {

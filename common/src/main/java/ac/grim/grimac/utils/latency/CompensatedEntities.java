@@ -162,9 +162,11 @@ public class CompensatedEntities {
             return;
         }
 
-        passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
+        // TODO: is this correct?
+        double offset = BoundingBoxSize.getMyRidingOffset(passenger) + BoundingBoxSize.getPassengerRidingOffset(player, riding);
+        passenger.setPositionRaw(player, riding.getPossibleLocationBoxes().offset(0, offset, 0));
 
-        for (PacketEntity passengerPassenger : riding.passengers) {
+        for (PacketEntity passengerPassenger : passenger.passengers) {
             tickPassenger(passenger, passengerPassenger);
         }
     }
@@ -182,6 +184,8 @@ public class CompensatedEntities {
             packetEntity = new PacketEntityCamel(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
             packetEntity = new PacketEntityHorse(player, uuid, entityType, position.getX(), position.getY(), position.getZ(), xRot);
+        } else if (entityType == EntityTypes.SULFUR_CUBE) {
+            packetEntity = new PacketEntitySizeable(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (entityType == EntityTypes.SLIME || entityType == EntityTypes.MAGMA_CUBE || entityType == EntityTypes.PHANTOM) {
             packetEntity = new PacketEntitySizeable(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         } else if (EntityTypes.PIG.equals(entityType)) {
@@ -215,6 +219,8 @@ public class CompensatedEntities {
             packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, false); // can still be an Elder Guardian in 1.8-1.10.2 from entity metadata updates
         } else if (EntityTypes.ELDER_GUARDIAN.equals(entityType)) {
             packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, true);
+        } else if (EntityTypes.SKELETON == entityType) {
+            packetEntity = new PacketEntitySkeleton(player, uuid, entityType, position.x, position.y, position.z);
         } else {
             packetEntity = new PacketEntity(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         }
@@ -260,7 +266,7 @@ public class CompensatedEntities {
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
             } else {
-                id = 16 + (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.ABSTRACT_PIGLIN) ? 1 : 0); // BABY is still at 16 in 26.1 (AGE_LOCKED is 17, after BABY), for some reason, piglins have their own age metadata??
+                id = 16 + (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.ABSTRACT_PIGLIN) ? 1 : 0); // BABY is still at 16 in 26.1 (AGE_LOCKED is 17, after BABY), for some reason, piglins have their own age metadata??
             }
 
             // 1.14 good
@@ -288,8 +294,17 @@ public class CompensatedEntities {
                 id = 14;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
-            } else {
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_26_2)) {
                 id = 16;
+            } else {
+                final EntityType type = sizeable.getType();
+                // 26.2 cube mobs have different index (phantoms and others still retain old index)
+                final boolean cubeMob = type == EntityTypes.SLIME || type == EntityTypes.MAGMA_CUBE || type == EntityTypes.SULFUR_CUBE;
+                if (cubeMob) {
+                    id = 18;
+                } else {
+                    id = 16;
+                }
             }
 
             EntityData<?> sizeObject = WatchableIndexUtil.getIndex(watchableObjects, id);
@@ -330,22 +345,16 @@ public class CompensatedEntities {
                     .isNewerThanOrEquals(ServerVersion.V_1_17) ? 1 : 2;
             EntityData<?> height = WatchableIndexUtil.getIndex(watchableObjects, id + peekOffset);
             if (height != null) {
-                if ((byte) height.getValue() == 0) {
-                    ShulkerData data = new ShulkerData(shulker, player.lastTransactionSent.get(), true);
-                    player.compensatedWorld.openShulkerBoxes.remove(data);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
-                } else {
-                    ShulkerData data = new ShulkerData(shulker, player.lastTransactionSent.get(), false);
-                    player.compensatedWorld.openShulkerBoxes.remove(data);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
-                }
+                ShulkerData data = new ShulkerData(shulker, player.lastTransactionSent.get(), (byte) height.getValue() == 0);
+                player.compensatedWorld.openShulkerBoxes.remove(data);
+                player.compensatedWorld.openShulkerBoxes.add(data);
             }
         }
 
         if (entity instanceof PacketEntityRideable rideable) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
-                if (entity.type == EntityTypes.PIG) {
+                if (entity.getType() == EntityTypes.PIG) {
                     EntityData<?> pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 16);
                     if (pigSaddle != null) {
                         rideable.hasSaddle = ((byte) pigSaddle.getValue()) != 0;
@@ -361,7 +370,7 @@ public class CompensatedEntities {
                 offset = 1;
             }
 
-            if (entity.type == EntityTypes.PIG) {
+            if (entity.getType() == EntityTypes.PIG) {
                 // SADDLE removed in 1.21.5, shifting BOOST_TIME from 18→17.
                 // ageableOffset naturally cancels this out in 26.1 (BOOST_TIME back at 18).
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_5))
@@ -477,7 +486,7 @@ public class CompensatedEntities {
             }
         }
 
-        if (entity.type == EntityTypes.FIREWORK_ROCKET) {
+        if (entity.getType() == EntityTypes.FIREWORK_ROCKET) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) {
                 offset = 2;
@@ -493,12 +502,10 @@ public class CompensatedEntities {
                 if (attachedEntityID == player.entityID) {
                     player.fireworks.addNewFirework(entityID);
                 }
-            } else { // 1.14+
-                Optional<Integer> attachedEntityID = (Optional<Integer>) fireworkWatchableObject.getValue();
-
-                if (attachedEntityID.isPresent() && attachedEntityID.get().equals(player.entityID)) {
-                    player.fireworks.addNewFirework(entityID);
-                }
+            } else if (fireworkWatchableObject.getValue() instanceof Optional<?> optional
+                    && optional.isPresent() && optional.get() instanceof Integer attachedEntityID
+                    && attachedEntityID.equals(player.entityID)) { // 1.14+
+                player.fireworks.addNewFirework(entityID);
             }
         }
 
@@ -562,6 +569,13 @@ public class CompensatedEntities {
             if (guardianByte != null) {
                 int info = (Integer) guardianByte.getValue(); // wiki says this is a byte but testing on 1.8 shows it's an integer
                 ((PacketEntityGuardian) entity).isElder = (info & isElderlyBitMask) != 0;
+            }
+        }
+
+        if (entity instanceof PacketEntitySkeleton skeleton && PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
+            EntityData<?> skeletonTypeObject = WatchableIndexUtil.getIndex(watchableObjects, 13);
+            if (skeletonTypeObject != null && skeletonTypeObject.getValue() instanceof Byte skeletonType) {
+                skeleton.isWitherSkeleton = skeletonType == 1;
             }
         }
     }

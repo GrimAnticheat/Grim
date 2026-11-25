@@ -45,8 +45,10 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
         if (!super.shouldInjectEndTick()) {
             return;
         }
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_11_2) && !Boolean.getBoolean("paper.explicit-flush")) {
+        boolean flush = false;
+        if (!PaperUtils.HAS_TICK_END_EVENT && !Boolean.getBoolean("paper.explicit-flush")) {
             LogUtil.warn("Reach.enable-post-packet=true but paper.explicit-flush=false, add \"-Dpaper.explicit-flush=true\" to your server's startup flags for fully functional extra reach accuracy.");
+            flush = true;
         }
         // this is necessary for folia
         if (GrimAPI.INSTANCE.getPlatform() == Platform.FOLIA) {
@@ -54,7 +56,7 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             return;
         }
         // if it fails to register Paper event, try to inject via reflection
-        if (!PaperUtils.registerTickEndEvent(this, this::tickAllPlayers) && !injectWithReflection()) {
+        if (!PaperUtils.registerTickEndEvent(this, () -> this.tickAllPlayers(true)) && !injectWithReflection(flush)) {
             LogUtil.error("Failed to inject into the end of tick event!");
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14_4)) {
@@ -68,10 +70,10 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
         }
     }
 
-    private void tickAllPlayers() {
+    private void tickAllPlayers(boolean flush) {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.disableGrim) continue;
-            super.onEndOfTick(player);
+            super.onEndOfTick(player, flush);
         }
     }
 
@@ -81,11 +83,11 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             if (player.platformPlayer == null) continue;
             Player p = ((BukkitPlatformPlayer) player.platformPlayer).getNative();
             if (!Bukkit.isOwnedByCurrentRegion(p)) continue;
-            super.onEndOfTick(player);
+            super.onEndOfTick(player, true);
         }
     }
 
-    private boolean injectWithReflection() {
+    private boolean injectWithReflection(boolean flush) {
         // Inject so we can add the final transaction pre-flush event
         try {
             Object connection = SpigotReflectionUtil.getMinecraftServerConnectionInstance();
@@ -102,7 +104,7 @@ public class BukkitTickEndEvent extends AbstractTickEndEvent implements Listener
             List<?> wrapper = Collections.synchronizedList(new HookedListWrapper<>(endOfTickObject) {
                 @Override
                 public void onIterator() {
-                    tickAllPlayers();
+                    tickAllPlayers(flush);
                 }
             });
 

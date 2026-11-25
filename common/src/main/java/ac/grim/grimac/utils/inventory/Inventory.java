@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import lombok.Getter;
+import org.jetbrains.annotations.Range;
 
 public class Inventory extends AbstractContainerMenu {
     public static final int SLOT_OFFHAND = 45;
@@ -77,16 +78,18 @@ public class Inventory extends AbstractContainerMenu {
         return false;
     }
 
+    public ItemStack getHotbar(@Range(from = 0, to = 8) int slot) {
+        //noinspection ConstantValue
+        if (slot > 8 || slot < 0) throw new IllegalArgumentException("slot must be from 0 to 8, got " + slot);
+        return inventoryStorage.getItem(slot + HOTBAR_OFFSET);
+    }
+
     public ItemStack getHeldItem() {
         return inventoryStorage.getItem(selected + HOTBAR_OFFSET);
     }
 
     public void setHeldItem(ItemStack item) {
         inventoryStorage.setItem(selected + HOTBAR_OFFSET, item);
-    }
-
-    public ItemStack getOffhandItem() {
-        return inventoryStorage.getItem(SLOT_OFFHAND);
     }
 
     public boolean add(ItemStack p_36055_) {
@@ -106,7 +109,7 @@ public class Inventory extends AbstractContainerMenu {
     public int getSlotWithRemainingSpace(ItemStack toAdd) {
         if (this.hasRemainingSpaceForItem(getHeldItem(), toAdd)) {
             return this.selected;
-        } else if (this.hasRemainingSpaceForItem(getOffhandItem(), toAdd)) {
+        } else if (this.hasRemainingSpaceForItem(getOffhand(), toAdd)) {
             return 40;
         } else {
             for (int i = ITEMS_START; i <= ITEMS_END; ++i) {
@@ -256,6 +259,6 @@ public class Inventory extends AbstractContainerMenu {
 
     public void setSelected(int selected) {
         this.selected = selected;
-        this.player.attackCooldown.updateHeldItem();
+        this.player.attackCooldown.updateHeldItem(false);
     }
 }

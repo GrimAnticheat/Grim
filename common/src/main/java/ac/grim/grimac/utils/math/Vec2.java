@@ -32,7 +32,7 @@ public record Vec2(float x, float y) {
         return this.x == vec.x && this.y == vec.y;
     }
 
-    public Vec2 normalized() {
+    public @NotNull Vec2 normalized() {
         float length = GrimMath.sqrt(this.x * this.x + this.y * this.y);
         return length < 1.0E-4F ? ZERO : new Vec2(this.x / length, this.y / length);
     }

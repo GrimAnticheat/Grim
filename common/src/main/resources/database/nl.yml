@@ -98,7 +98,7 @@ database:
   # Alleen-tonen tag die op nieuwe sessierecords wordt gestempeld. Wordt
   # getoond in de sessie-header van `/grim history`. Veilig om mid-operatie
   # te wijzigen.
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # Schemamarkers — zie de header-comment in config.yml.
 config-flavor: V2

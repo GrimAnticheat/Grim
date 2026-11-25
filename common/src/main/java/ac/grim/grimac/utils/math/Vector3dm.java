@@ -50,6 +50,11 @@ public class Vector3dm implements Cloneable, Serializable {
         this.z = z;
     }
 
+    @Contract(value = "null -> null; !null -> new", pure = true)
+    public static Vector3dm from(Vector3d vec) {
+        return vec == null ? null : new Vector3dm(vec.x, vec.y, vec.z);
+    }
+
     @Contract("_, _ -> new")
     public static @NotNull Vector3dm min(@NotNull Vector3dm a, @NotNull Vector3dm b) {
         return new Vector3dm(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z));
@@ -91,6 +96,10 @@ public class Vector3dm implements Cloneable, Serializable {
         return multiply(vec.x, vec.y, vec.z);
     }
 
+    public @NotNull Vector3dm multiply(@NotNull Vector3d vec) {
+        return multiply(vec.x, vec.y, vec.z);
+    }
+
     public @NotNull Vector3dm multiply(double x, double y, double z) {
         this.x *= x;
         this.y *= y;
@@ -112,6 +121,13 @@ public class Vector3dm implements Cloneable, Serializable {
         return this;
     }
 
+    public @NotNull Vector3dm copy(@NotNull Vector3d vec) {
+        this.x = vec.x;
+        this.y = vec.y;
+        this.z = vec.z;
+        return this;
+    }
+
     public double length() {
         return Math.sqrt(GrimMath.square(this.x) + GrimMath.square(this.y) + GrimMath.square(this.z));
     }
@@ -124,7 +140,15 @@ public class Vector3dm implements Cloneable, Serializable {
         return Math.sqrt(distanceSquared(o));
     }
 
+    public double distance(@NotNull Vector3d o) {
+        return Math.sqrt(distanceSquared(o));
+    }
+
     public double distanceSquared(@NotNull Vector3dm o) {
+        return distanceSquared(o.x, o.y, o.z);
+    }
+
+    public double distanceSquared(@NotNull Vector3d o) {
         return distanceSquared(o.x, o.y, o.z);
     }
 
@@ -263,6 +287,13 @@ public class Vector3dm implements Cloneable, Serializable {
         return this.setX(x).setY(y);
     }
 
+    public @NotNull Vector3dm set(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
+    }
+
     public @NotNull Vector3dm setX(int x) {
         this.x = x;
         return this;
@@ -321,10 +352,12 @@ public class Vector3dm implements Cloneable, Serializable {
     }
 
     @Contract(value = "null -> false", pure = true)
+    @Override
     public boolean equals(Object obj) {
         return obj instanceof Vector3dm other && Math.abs(this.x - other.x) < 1.0E-6 && Math.abs(this.y - other.y) < 1.0E-6 && Math.abs(this.z - other.z) < 1.0E-6 && this.getClass().equals(obj.getClass());
     }
 
+    @Override
     public int hashCode() {
         int hash = 7;
         hash = 79 * hash + Long.hashCode(Double.doubleToLongBits(this.x));
@@ -341,6 +374,7 @@ public class Vector3dm implements Cloneable, Serializable {
         }
     }
 
+    @Override
     public String toString() {
         return this.x + "," + this.y + "," + this.z;
     }

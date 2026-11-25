@@ -98,7 +98,7 @@ database:
   # Tag de exibição estampada nos novos registros de sessão. Mostrada na
   # linha de cabeçalho de sessão de `/grim history`. Seguro alterar em
   # operação.
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # Marcadores de esquema — ver o comentário do cabeçalho em config.yml.
 config-flavor: V2

@@ -8,14 +8,14 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 import static ac.grim.grimac.utils.latency.CompensatedEntities.SPRINTING_MODIFIER_UUID;
 
 public final class ValuedAttribute {
 
-    private static final Function<Double, Double> DEFAULT_GET_REWRITE = Function.identity();
+    private static final DoubleUnaryOperator DEFAULT_GET_REWRITE = DoubleUnaryOperator.identity();
 
     private final Attribute attribute;
     // Attribute limits defined by https://minecraft.wiki/w/Attribute
@@ -25,10 +25,9 @@ public final class ValuedAttribute {
     private WrapperPlayServerUpdateAttributes.Property lastProperty;
     private double value;
 
-    // BiFunction of <Old, New, Output>
     // This allows us to rewrite the value based on client & server version
-    private BiFunction<Double, Double, Double> setRewriter;
-    private Function<Double, Double> getRewriter;
+    private DoubleBinaryOperator setRewriter;
+    private DoubleUnaryOperator getRewriter;
 
     private ValuedAttribute(Attribute attribute, double defaultValue, double min, double max) {
         if (defaultValue < min || defaultValue > max) {
@@ -48,7 +47,7 @@ public final class ValuedAttribute {
         return new ValuedAttribute(attribute, defaultValue, min, max);
     }
 
-    public ValuedAttribute withSetRewriter(BiFunction<Double, Double, Double> rewriteFunction) {
+    public ValuedAttribute withSetRewriter(DoubleBinaryOperator rewriteFunction) {
         this.setRewriter = rewriteFunction;
         return this;
     }
@@ -69,7 +68,7 @@ public final class ValuedAttribute {
         return this;
     }
 
-    public ValuedAttribute withGetRewriter(Function<Double, Double> getRewriteFunction) {
+    public ValuedAttribute withGetRewriter(DoubleUnaryOperator getRewriteFunction) {
         this.getRewriter = getRewriteFunction;
         return this;
     }
@@ -85,7 +84,7 @@ public final class ValuedAttribute {
     }
 
     public double get() {
-        return getRewriter.apply(this.value);
+        return getRewriter.applyAsDouble(this.value);
     }
 
     public void override(double value) {
@@ -126,11 +125,9 @@ public final class ValuedAttribute {
             }
         }
 
-        double newValue =
-                GrimMath.clamp((baseValue + additionSum) * (1 + multiplyBaseSum) * multiplyTotalProduct,
-                        min, max);
+        double newValue = GrimMath.clamp((baseValue + additionSum) * (1 + multiplyBaseSum) * multiplyTotalProduct, min, max);
         if (setRewriter != null) {
-            newValue = setRewriter.apply(this.value, newValue);
+            newValue = setRewriter.applyAsDouble(this.value, newValue);
         }
 
         if (newValue < min || newValue > max) {

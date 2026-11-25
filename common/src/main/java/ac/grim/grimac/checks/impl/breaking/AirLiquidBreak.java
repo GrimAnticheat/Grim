@@ -1,11 +1,14 @@
 package ac.grim.grimac.checks.impl.breaking;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.api.storage.verbose.Verbose;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.BlockBreakCheck;
+import ac.grim.grimac.checks.impl.verbose.VerboseCodecs;
+import ac.grim.grimac.checks.type.BlockBreakListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockBreak;
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
@@ -15,7 +18,9 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import org.jetbrains.annotations.NotNull;
 
 @CheckData(name = "AirLiquidBreak", stableKey = "grim.breaking.air_liquid_break", description = "Breaking a block that cannot be broken")
-public class AirLiquidBreak extends Check implements BlockBreakCheck {
+public class AirLiquidBreak extends Check implements BlockBreakListener {
+    private static final Verbose V = Verbose.of("block={block}, type={digging}");
+
     public final boolean noFireHitbox = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
     private int lastTick;
     private boolean didLastFlag;
@@ -59,9 +64,13 @@ public class AirLiquidBreak extends Check implements BlockBreakCheck {
                 || block == StateTypes.MOVING_PISTON
                 || block == StateTypes.FIRE && noFireHitbox
                 // or the client claims to have broken an unbreakable block
-                || block.getHardness() == -1.0f && blockBreak.action == DiggingAction.FINISHED_DIGGING;
+                || block.getHardness() == -1.0f && blockBreak.action == DiggingAction.FINISHED_DIGGING
+                // or the player is holding a spear
+                || player.inventory.getHeldItem().hasComponent(ComponentTypes.PIERCING_WEAPON) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_11);
 
-        if (invalid && flagAndAlert("block=" + block.getName() + ", type=" + blockBreak.action) && shouldModifyPackets()) {
+        if (invalid && flag(V.write(verbose())
+                .sint(VerboseCodecs.block(block, player.getClientVersion()))
+                .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldModifyPackets()) {
             didLastFlag = true;
             blockBreak.cancel();
         } else {

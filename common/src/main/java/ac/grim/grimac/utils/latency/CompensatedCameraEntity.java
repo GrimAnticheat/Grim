@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.checks.Check;
-import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.GrimProcessor;
+import ac.grim.grimac.checks.type.PreViaPacketSendListener;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -12,16 +12,16 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompensatedCameraEntity extends Check implements PacketCheck {
+public class CompensatedCameraEntity extends GrimProcessor implements PreViaPacketSendListener {
     private final ArrayDeque<PacketEntity> entities = new ArrayDeque<>(1);
 
     public CompensatedCameraEntity(GrimPlayer player) {
         super(player);
-        entities.add(player.compensatedEntities.self);
+        reset();
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
+    public void onPreViaPacketSend(PacketSendEvent event) {
         if (event.getPacketType() != PacketType.Play.Server.CAMERA) return;
         int camera = new WrapperPlayServerCamera(event).getCameraId();
         player.sendTransaction();
@@ -57,5 +57,10 @@ public class CompensatedCameraEntity extends Check implements PacketCheck {
 
     public List<PacketEntity> getPossibilities() {
         return new ArrayList<>(entities);
+    }
+
+    public void reset() {
+        entities.clear();
+        entities.add(player.compensatedEntities.self);
     }
 }

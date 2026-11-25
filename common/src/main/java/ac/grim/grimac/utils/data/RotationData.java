@@ -1,23 +1,27 @@
 package ac.grim.grimac.utils.data;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import ac.grim.grimac.utils.math.GrimMath;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.jetbrains.annotations.Contract;
 
-@Getter
-@RequiredArgsConstructor
-@EqualsAndHashCode
-@ToString
-public final class RotationData {
-    private final float yaw;
-    private final float pitch;
-    private final int transaction;
-    private boolean isAccepted;
+public record RotationData(
+        float yaw, float pitch,
+        boolean relativeYaw, boolean relativePitch,
+        int transaction) {
 
-    @Contract(mutates = "this")
-    public void accept() {
-        this.isAccepted = true;
+    public static RotationData fromServer(ClientVersion version, float yaw, float pitch, boolean relativeYaw, boolean relativePitch, int transaction) {
+        if (!relativePitch) {
+            // since 1.21.9, PLAYER_ROTATION clamps in calculateAbsolute before setXRot
+            if (version.isOlderThan(ClientVersion.V_1_21_9)) pitch %= 360.0F;
+            pitch = GrimMath.clamp(pitch, -90.0F, 90.0F);
+        }
+
+        return new RotationData(yaw, pitch, relativeYaw, relativePitch, transaction);
+    }
+
+    @Contract(pure = true)
+    public boolean allowRotation(float yaw, float pitch) {
+        // TODO: pitch bounds?
+        return (this.relativeYaw || this.yaw == yaw) && (this.relativePitch || this.pitch == pitch);
     }
 }

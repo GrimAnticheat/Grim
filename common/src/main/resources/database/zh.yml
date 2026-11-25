@@ -85,7 +85,7 @@ database:
 
   # 仅用于显示的标签，会刻在新建的会话记录上。在 `/grim history` 的会话
   # 头部行中显示。运行中修改是安全的。
-  server-name: "Prison"
+  server-name: "ChangeMe"
 
 # 模式标记 — 参见 config.yml 顶部的注释。
 config-flavor: V2

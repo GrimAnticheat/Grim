@@ -5,6 +5,7 @@ import ac.grim.grimac.manager.tick.impl.ClearRecentlyUpdatedBlocks;
 import ac.grim.grimac.manager.tick.impl.ClientVersionSetter;
 import ac.grim.grimac.manager.tick.impl.ResetTick;
 import ac.grim.grimac.manager.tick.impl.TickInventory;
+import ac.grim.grimac.manager.tick.impl.TickPermissions;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 
@@ -21,6 +22,7 @@ public class TickManager {
 
         asyncTick = new ImmutableClassToInstanceMap.Builder<Tickable>()
                 .put(ClientVersionSetter.class, new ClientVersionSetter()) // Async because permission lookups might take a while, depending on the plugin
+                .put(TickPermissions.class, new TickPermissions())
                 .put(TickInventory.class, new TickInventory()) // Async because I've never gotten an exception from this.  It's probably safe.
                 .put(ClearRecentlyUpdatedBlocks.class, new ClearRecentlyUpdatedBlocks())
                 .build();
@@ -28,10 +30,14 @@ public class TickManager {
 
     public void tickSync() {
         currentTick++;
-        syncTick.values().forEach(Tickable::tick);
+        for (Tickable tickable : syncTick.values()) {
+            tickable.tick();
+        }
     }
 
     public void tickAsync() {
-        asyncTick.values().forEach(Tickable::tick);
+        for (Tickable tickable : asyncTick.values()) {
+            tickable.tick();
+        }
     }
 }
