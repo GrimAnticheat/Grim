@@ -75,6 +75,8 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.data.Mappings;
 import com.viaversion.viaversion.api.protocol.Protocol;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
@@ -102,6 +104,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 // Everything in this class should be sync'd to the anticheat thread.
 // Put variables sync'd to the Netty thread in PacketStateData
@@ -1136,10 +1139,10 @@ public class GrimPlayer implements GrimUser {
         return this.viaUserConnection;
     }
 
-    public int getViaTranslatedClientBlockID(int blockStateId) {
+    public int getViaTranslatedID(int id, Function<MappingData, Mappings> mapper) {
         final UserConnection connection = getViaUserConnection();
         if (connection == null) {
-            return blockStateId;
+            return id;
         }
 
         final ProtocolVersion clientVersion = connection.getProtocolInfo().protocolVersion();
@@ -1147,17 +1150,28 @@ public class GrimPlayer implements GrimUser {
 
         final List<ProtocolPathEntry> protocolPath = Via.getManager().getProtocolManager().getProtocolPath(clientVersion, serverVersion);
         if (protocolPath == null) {
-            return blockStateId;
+            return id;
         }
 
         for (int i = protocolPath.size() - 1; i >= 0; i--) {
             final Protocol<?, ?, ?, ?> protocol = protocolPath.get(i).protocol();
-            if (protocol.getMappingData() != null && protocol.getMappingData().getBlockStateMappings() != null) {
-                blockStateId = protocol.getMappingData().getNewBlockStateId(blockStateId);
+            MappingData mappingData = protocol.getMappingData();
+            if (mappingData == null) continue;
+            Mappings mappings = mapper.apply(mappingData);
+            if (mappings != null) {
+                id = mappings.getNewId(id);
             }
         }
 
-        return blockStateId;
+        return id;
+    }
+
+    public int getViaTranslatedClientBlockID(int blockStateId) {
+        return getViaTranslatedID(blockStateId, MappingData::getBlockStateMappings);
+    }
+
+    public int getViaTranslatedClientEntityID(int entityTypeId) {
+        return getViaTranslatedID(entityTypeId, MappingData::getEntityMappings);
     }
 
     public double getFluidHeight(FluidTag fluidTag) {

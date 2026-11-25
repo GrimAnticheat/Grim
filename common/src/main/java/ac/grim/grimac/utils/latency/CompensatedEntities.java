@@ -221,6 +221,8 @@ public class CompensatedEntities {
             packetEntity = new PacketEntityGuardian(player, uuid, entityType, position.x, position.y, position.z, true);
         } else if (EntityTypes.SKELETON == entityType) {
             packetEntity = new PacketEntitySkeleton(player, uuid, entityType, position.x, position.y, position.z);
+        } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_ARROW)) {
+            packetEntity = new PacketEntityArrow(player, uuid, entityType, position.x, position.y, position.z);
         } else {
             packetEntity = new PacketEntity(player, uuid, entityType, position.getX(), position.getY(), position.getZ());
         }
@@ -548,6 +550,14 @@ public class CompensatedEntities {
 
                 entity.isBaby = (info & 0x01) != 0; // technically this is IsSmall which is a different tag, but it has the same effect for us
                 ((PacketEntityArmorStand) entity).isMarker = (info & 0x10) != 0;
+            }
+        }
+
+        if (entity instanceof PacketEntityArrow arrow && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_21_2)) {
+            int index = 10;
+            EntityData<?> value = WatchableIndexUtil.getIndex(watchableObjects, index);
+            if (value != null) {
+                arrow.inGround = (Boolean) value.getValue();
             }
         }
 

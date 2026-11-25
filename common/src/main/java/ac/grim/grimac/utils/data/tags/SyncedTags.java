@@ -4,6 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.generation.fluids.Fluid;
 import com.github.retrooper.packetevents.protocol.world.generation.fluids.Fluids;
@@ -39,9 +41,11 @@ public final class SyncedTags {
     public static final ResourceLocation ENTITY_FLOATABLE = ResourceLocation.minecraft("entity_floatable");
     public static final ResourceLocation WATER = ResourceLocation.minecraft("water");
     public static final ResourceLocation LAVA = ResourceLocation.minecraft("lava");
+    public static final ResourceLocation REDIRECTABLE_PROJECTILE = ResourceLocation.minecraft("redirectable_projectile");
     private static final ServerVersion VERSION = PacketEvents.getAPI().getServerManager().getVersion();
     private static final ResourceLocation BLOCK = ResourceLocation.minecraft("block");
     private static final ResourceLocation FLUID = ResourceLocation.minecraft("fluid");
+    private static final ResourceLocation ENTITY_TYPE = ResourceLocation.minecraft("entity_type");
     private final GrimPlayer player;
     private final Map<ResourceLocation, Map<ResourceLocation, SyncedTag<?>>> synced = new HashMap<>();
 
@@ -66,6 +70,12 @@ public final class SyncedTags {
                         .supported(version.isNewerThanOrEquals(ClientVersion.V_26_3)),
                 SyncedTag.<Fluid>builder(ENTITY_FLOATABLE).defaults(Set.of(Fluids.WATER, Fluids.FLOWING_WATER))
                         .supported(version.isNewerThanOrEquals(ClientVersion.V_26_3))
+        );
+
+        Set<EntityType> defaultRedirectableProjectiles = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
+                ? Set.of(EntityTypes.FIREBALL, EntityTypes.WIND_CHARGE, EntityTypes.BREEZE_WIND_CHARGE) : Set.of(EntityTypes.FIREBALL);
+        trackTags(ENTITY_TYPE, this::getEntities,
+                SyncedTag.<EntityType>builder(REDIRECTABLE_PROJECTILE).defaults(defaultRedirectableProjectiles).supported(version.isNewerThanOrEquals(ClientVersion.V_1_20_5))
         );
     }
 
@@ -93,6 +103,18 @@ public final class SyncedTags {
         return clientType == serverType || clientType == StateTypes.AIR ? Collections.singletonList(serverType) : List.of(serverType, clientType);
     }
 
+    private Collection<EntityType> getEntities(int id) {
+        final EntityType serverType = EntityTypes.getRegistry().getById(VERSION.toClientVersion(), id);
+        if (serverType == null || !ViaVersionUtil.isAvailable || player.getClientVersion().isNewerThanOrEquals(VERSION.toClientVersion())
+                || player.getViaUserConnection() == null) {
+            return Collections.singletonList(serverType);
+        }
+
+        final int clientStateId = player.getViaTranslatedClientEntityID(id);
+        final EntityType clientType = EntityTypes.getRegistry().getById(player.getClientVersion(), clientStateId);
+        return clientType == serverType || clientType == null ? Collections.singletonList(serverType) : List.of(serverType, clientType);
+    }
+
     public SyncedTag<StateType> block(ResourceLocation tag) {
         final Map<ResourceLocation, SyncedTag<?>> blockTags = synced.get(BLOCK);
         return (SyncedTag<StateType>) blockTags.get(tag);
@@ -113,5 +135,10 @@ public final class SyncedTags {
     public SyncedTag<Fluid> fluid(ResourceLocation tag) {
         Map<ResourceLocation, SyncedTag<?>> fluidTags = synced.get(FLUID);
         return (SyncedTag<Fluid>) fluidTags.get(tag);
+    }
+
+    public SyncedTag<EntityType> entityType(ResourceLocation tag) {
+        Map<ResourceLocation, SyncedTag<?>> entityTypeTags = synced.get(ENTITY_TYPE);
+        return (SyncedTag<EntityType>) entityTypeTags.get(tag);
     }
 }
