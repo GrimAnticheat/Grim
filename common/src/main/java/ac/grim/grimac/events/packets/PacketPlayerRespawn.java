@@ -97,9 +97,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.sendTransaction();
 
             if (health.getFood() == 20) { // Split so transaction before packet
-                player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get(), () -> player.food = 20);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.food = 20);
             } else { // Split so transaction after packet
-                player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get() + 1, () -> player.food = health.getFood());
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.food = health.getFood());
             }
 
             if (health.getHealth() <= 0) {
@@ -171,7 +171,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.isInBed = false;
                 player.packetStateData.setSlowedByUsingItem(false);
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
-                player.packetStateData.lastClaimedPosition = new Vector3d();
+                player.packetStateData.lastClaimedPosition = Vector3d.zero();
                 player.filterMojangStupidityOnMojangStupidity.zero();
 
                 player.checkManager.get(BadPacketsM.class).onRespawn();

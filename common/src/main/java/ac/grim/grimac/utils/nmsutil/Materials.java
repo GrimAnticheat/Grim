@@ -15,6 +15,7 @@ import lombok.experimental.UtilityClass;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,25 @@ public class Materials {
     private static final Set<StateType> COPPER_TRAPDOORS = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private static final Set<StateType> CLIENT_SIDE = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    private static final Map<StateType, StateType> CONCRETE_BY_POWDER = Map.ofEntries(
+            Map.entry(StateTypes.WHITE_CONCRETE_POWDER, StateTypes.WHITE_CONCRETE),
+            Map.entry(StateTypes.ORANGE_CONCRETE_POWDER, StateTypes.ORANGE_CONCRETE),
+            Map.entry(StateTypes.MAGENTA_CONCRETE_POWDER, StateTypes.MAGENTA_CONCRETE),
+            Map.entry(StateTypes.LIGHT_BLUE_CONCRETE_POWDER, StateTypes.LIGHT_BLUE_CONCRETE),
+            Map.entry(StateTypes.YELLOW_CONCRETE_POWDER, StateTypes.YELLOW_CONCRETE),
+            Map.entry(StateTypes.LIME_CONCRETE_POWDER, StateTypes.LIME_CONCRETE),
+            Map.entry(StateTypes.PINK_CONCRETE_POWDER, StateTypes.PINK_CONCRETE),
+            Map.entry(StateTypes.GRAY_CONCRETE_POWDER, StateTypes.GRAY_CONCRETE),
+            Map.entry(StateTypes.LIGHT_GRAY_CONCRETE_POWDER, StateTypes.LIGHT_GRAY_CONCRETE),
+            Map.entry(StateTypes.CYAN_CONCRETE_POWDER, StateTypes.CYAN_CONCRETE),
+            Map.entry(StateTypes.PURPLE_CONCRETE_POWDER, StateTypes.PURPLE_CONCRETE),
+            Map.entry(StateTypes.BLUE_CONCRETE_POWDER, StateTypes.BLUE_CONCRETE),
+            Map.entry(StateTypes.BROWN_CONCRETE_POWDER, StateTypes.BROWN_CONCRETE),
+            Map.entry(StateTypes.GREEN_CONCRETE_POWDER, StateTypes.GREEN_CONCRETE),
+            Map.entry(StateTypes.RED_CONCRETE_POWDER, StateTypes.RED_CONCRETE),
+            Map.entry(StateTypes.BLACK_CONCRETE_POWDER, StateTypes.BLACK_CONCRETE)
+    );
 
     static {
         // Base water, flowing on 1.12- but not on 1.13+ servers
@@ -276,6 +296,10 @@ public class Materials {
         return mat == ItemTypes.AXOLOTL_BUCKET || mat == ItemTypes.COD_BUCKET || mat == ItemTypes.PUFFERFISH_BUCKET
                 || mat == ItemTypes.SALMON_BUCKET || mat == ItemTypes.TROPICAL_FISH_BUCKET || mat == ItemTypes.WATER_BUCKET
                 || mat == ItemTypes.TADPOLE_BUCKET;
+    }
+
+    public static StateType hardenedConcrete(StateType powder) {
+        return CONCRETE_BY_POWDER.getOrDefault(powder, powder);
     }
 
     public static StateType transformBucketMaterial(ItemType mat) {

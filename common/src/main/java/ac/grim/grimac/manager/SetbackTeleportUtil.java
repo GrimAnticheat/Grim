@@ -337,7 +337,7 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
             double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocation().getZ();
 
             // There seems to be a version difference in teleports past 30 million... just clamp the vector
-            Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
+            Vector3d clamped = VectorUtils.clampVector(trueTeleportX, trueTeleportY, trueTeleportZ);
             double threshold = teleportPos.isRelativePos() ? player.getMovementThreshold() : 0;
             double yRoundingTolerance = player.getClientVersion().isOlderThan(ClientVersion.V_1_8) ? 1e-7 : 0; // 1.7 rounding
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= yRoundingTolerance + threshold;

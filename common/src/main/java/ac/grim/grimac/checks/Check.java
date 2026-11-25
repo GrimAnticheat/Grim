@@ -26,7 +26,6 @@ public class Check extends GrimProcessor implements AbstractCheck {
     // violations
     public double violations;
     private long lastViolationTime;
-    private boolean lastFlagStoredBinaryVerbose;
     private final VerboseBuf verbose = VERBOSE.get();
 
     // check data
@@ -134,23 +133,24 @@ public class Check extends GrimProcessor implements AbstractCheck {
 
         if (FLAG_CHANNEL.fire(player, this, verbose)) return false;
 
-        lastFlagStoredBinaryVerbose = false;
         player.punishmentManager.handleViolation(this);
         lastViolationTime = System.currentTimeMillis();
         violations++;
+        String verboseWithoutGl = verbose.get().replaceAll(" /gl .*", "");
+        GrimAPI.INSTANCE.getDataStoreLifecycle().liveWriteHooks()
+                .recordFlagFromCheck(player, this, violations, verboseWithoutGl);
         return true;
     }
 
     private boolean recordFlag(@NotNull BinaryVerbose verbose) {
-        Supplier<String> rendered = verbose.rendered();
-        byte[] verboseData = verbose.data();
-
         if (player.disableGrim || (experimental && !player.isExperimentalChecks()) || exemptPermission)
             return false; // Avoid calling event if disabled
 
+        Supplier<String> rendered = verbose.rendered();
+        byte[] verboseData = verbose.data();
+
         if (FLAG_CHANNEL.fire(player, this, rendered)) return false;
 
-        lastFlagStoredBinaryVerbose = true;
         player.punishmentManager.handleViolation(this);
         lastViolationTime = System.currentTimeMillis();
         violations++;

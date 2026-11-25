@@ -97,6 +97,7 @@ public class CheckManager implements BasicReloadable {
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
                 .put(BadPacketsM.class, new BadPacketsM(player))
+                .put(BadPacketsT.class, new BadPacketsT(player))
                 .put(BadPacketsY.class, new BadPacketsY(player))
                 .put(BadPacketsZ.class, new BadPacketsZ(player))
                 .put(PacketOrderB.class, new PacketOrderB(player))

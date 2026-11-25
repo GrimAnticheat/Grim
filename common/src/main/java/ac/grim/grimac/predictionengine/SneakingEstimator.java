@@ -52,7 +52,8 @@ public class SneakingEstimator extends GrimProcessor implements PostPredictionLi
         double trueFriction = player.friction;
         if (player.wasTouchingLava) trueFriction = 0.5;
         if (player.wasTouchingWater) trueFriction = 0.96;
-        if (player.isGliding) trueFriction = 0.99;
+        // Gliding takes its drag before the move, so the speed the edge held back carries over as it is
+        if (player.isGliding) trueFriction = 1;
 
         // START HACKERY
 

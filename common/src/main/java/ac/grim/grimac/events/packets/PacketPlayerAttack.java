@@ -76,9 +76,10 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             onAttack(event, player, packet.getEntityId());
         } else if (event.getPacketType() == PacketType.Play.Client.SPECTATE_ENTITY) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
+            if (player == null || player.gamemode != GameMode.SPECTATOR) return;
 
             WrapperPlayClientSpectateEntity packet = new WrapperPlayClientSpectateEntity(event);
+            if (!packet.hasEntityId()) return;
             onAttack(event, player, packet.getEntityId());
         }
     }
@@ -97,8 +98,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         ItemStack heldItem = player.inventory.getHeldItem();
         PacketEntity entity = player.compensatedEntities.getEntity(entityId);
 
-        if (entity != null && (!entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER || entity.getType() == EntityTypes.PAINTING
-                || entity.getType() == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2))) {
+        if (shouldPredictAttackSlow(player, entity)) {
             int knockbackLevel = player.getClientVersion().isOlderThan(ClientVersion.V_1_21) && heldItem != null
                     ? heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK)
                     : 0;
@@ -140,6 +140,17 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
         if (player.gamemode != GameMode.SPECTATOR) {
             player.attackCooldown.reset();
         }
+    }
+
+    private static boolean shouldPredictAttackSlow(@NotNull GrimPlayer player, PacketEntity entity) {
+        if (entity == null) return false;
+
+        // Hanging entities (item frames, paintings, leash knots) handle the hit themselves
+        // and the client returns from the attack before it gets to the slowdown
+        if (EntityTypes.isTypeInstanceOf(entity.getType(), EntityTypes.ABSTRACT_HANGING)) return false;
+
+        return !entity.isLivingEntity || entity.getType() == EntityTypes.PLAYER
+                || entity.getType() == EntityTypes.ENDER_DRAGON && player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2);
     }
 
     private static boolean isInvalidEntity(@NotNull PacketReceiveEvent event, @NotNull GrimPlayer player, int entityId) {

@@ -32,7 +32,9 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
-            Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
+            double posX = teleport.getX();
+            double posY = teleport.getY();
+            double posZ = teleport.getZ();
 
             // This is the first packet sent to the client which we need to track
             if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) {
@@ -64,24 +66,24 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                         relativeZ = teleport.isRelativeFlag(RelativeFlag.Z);
 
                 if (relativeX) {
-                    pos = pos.add(new Vector3d(player.x, 0, 0));
+                    posX += player.x;
                     teleport.setRelative(RelativeFlag.X, false);
                 }
 
                 if (relativeY) {
-                    pos = pos.add(new Vector3d(0, player.y, 0));
+                    posY += player.y;
                     teleport.setRelative(RelativeFlag.Y, false);
                 }
 
                 if (relativeZ) {
-                    pos = pos.add(new Vector3d(0, 0, player.z));
+                    posZ += player.z;
                     teleport.setRelative(RelativeFlag.Z, false);
                 }
 
                 if (relativeX || relativeY || relativeZ) {
-                    teleport.setX(pos.getX());
-                    teleport.setY(pos.getY());
-                    teleport.setZ(pos.getZ());
+                    teleport.setX(posX);
+                    teleport.setY(posY);
+                    teleport.setZ(posZ);
 
                     event.markForReEncode(true);
                 }
@@ -112,7 +114,10 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             // 1.21.2+ client ignore teleports if player is inside vehicle, ABSOLUTE CINEMA MOJANG
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2) && player.compensatedEntities.serverPlayerVehicle != null) {
-                pos = player.getSetbackTeleportUtil().lastKnownGoodPosition.getPos();
+                Vector3d pos = player.getSetbackTeleportUtil().lastKnownGoodPosition.getPos();
+                posX = pos.getX();
+                posY = pos.getY();
+                posZ = pos.getZ();
             }
 
             player.sendTransaction();
@@ -126,9 +131,9 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             // For some reason, teleports on 1.7 are offset by 1.62?
             if (event.getServerVersion().isOlderThan(ServerVersion.V_1_8))
-                pos = pos.withY(pos.getY() - 1.62);
+                posY -= 1.62;
 
-            Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ(), teleport.getYaw(), teleport.getPitch());
+            Location target = new Location(null, posX, posY, posZ, teleport.getYaw(), teleport.getPitch());
             player.getSetbackTeleportUtil().addSentTeleport(target, teleport.getDeltaMovement(), lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
         } else if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());

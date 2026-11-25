@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.connection;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.viaversion.ViaVersionUtil;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.PacketSide;
 import com.github.retrooper.packetevents.util.PacketEventsImplHelper;
@@ -81,8 +80,6 @@ public class ConnectionUtils {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        ByteBufHelper.retain(buffer);
 
         // pass buffer to next handler
         if (side == PacketSide.SERVER) {

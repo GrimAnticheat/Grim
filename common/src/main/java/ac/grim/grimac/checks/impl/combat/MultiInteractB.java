@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -19,8 +20,7 @@ public class MultiInteractB extends Check implements PacketReceiveListener, Post
     private static final Verbose V = Verbose.of("pos={f64}, {f64}, {f64}, lastPos={f64}, {f64}, {f64}");
 
     private final ArrayList<FlagData> flags = new ArrayList<>();
-    private Vector3d lastPos;
-    private boolean hasInteracted;
+    private @Nullable Vector3d lastPos;
 
     public MultiInteractB(final GrimPlayer player) {
         super(player);
@@ -35,7 +35,7 @@ public class MultiInteractB extends Check implements PacketReceiveListener, Post
             Vector3d pos = packet.getLocation();
             if (pos == null) return; // shouldn't ever happen, but whatever
 
-            if (hasInteracted && !pos.equals(lastPos)) {
+            if (lastPos != null && !pos.equals(lastPos)) {
                 if (!player.canSkipTicks()) {
                     if (flag(V.write(verbose()).f64(pos.x).f64(pos.y).f64(pos.z).f64(lastPos.x).f64(lastPos.y).f64(lastPos.z))
                             && shouldModifyPackets()) {
@@ -48,11 +48,10 @@ public class MultiInteractB extends Check implements PacketReceiveListener, Post
             }
 
             lastPos = pos;
-            hasInteracted = true;
         }
 
         if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
-            hasInteracted = false;
+            lastPos = null;
         }
     }
 

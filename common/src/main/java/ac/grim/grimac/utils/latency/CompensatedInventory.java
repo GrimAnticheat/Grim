@@ -254,8 +254,8 @@ public class CompensatedInventory extends GrimProcessor implements PacketReceive
             this.startOfTickStack = getHeldItem();
             inventory.setSelected(slot);
         } else if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
-            WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
             if (player.gamemode != GameMode.CREATIVE) return;
+            WrapperPlayClientCreativeInventoryAction action = new WrapperPlayClientCreativeInventoryAction(event);
 
             boolean valid = action.getSlot() >= 1 &&
                     (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_8) ?
