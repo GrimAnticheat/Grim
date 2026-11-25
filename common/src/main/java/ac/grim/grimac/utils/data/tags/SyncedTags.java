@@ -71,10 +71,11 @@ public final class SyncedTags {
                 SyncedTag.<Fluid>builder(ENTITY_FLOATABLE).defaults(Set.of(Fluids.WATER, Fluids.FLOWING_WATER))
                         .supported(version.isNewerThanOrEquals(ClientVersion.V_26_3))
         );
-        trackTags(ENTITY_TYPE, id -> EntityTypes.getRegistry().getById(VERSION.toClientVersion(), id),
-                SyncedTag.<EntityType>builder(REDIRECTABLE_PROJECTILE).defaults(player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
-                                ? Set.of(EntityTypes.FIREBALL, EntityTypes.WIND_CHARGE, EntityTypes.BREEZE_WIND_CHARGE) : Set.of(EntityTypes.FIREBALL))
-                        .supported(version.isNewerThanOrEquals(ClientVersion.V_1_20_5))
+
+        Set<EntityType> defaultRedirectableProjectiles = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21)
+                ? Set.of(EntityTypes.FIREBALL, EntityTypes.WIND_CHARGE, EntityTypes.BREEZE_WIND_CHARGE) : Set.of(EntityTypes.FIREBALL);
+        trackTags(ENTITY_TYPE, this::getEntities,
+                SyncedTag.<EntityType>builder(REDIRECTABLE_PROJECTILE).defaults(defaultRedirectableProjectiles).supported(version.isNewerThanOrEquals(ClientVersion.V_1_20_5))
         );
     }
 
@@ -100,6 +101,18 @@ public final class SyncedTags {
         final int serverStateId = WrappedBlockState.getDefaultState(VERSION.toClientVersion(), serverType).getGlobalId();
         final StateType clientType = WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(serverStateId)).getType();
         return clientType == serverType || clientType == StateTypes.AIR ? Collections.singletonList(serverType) : List.of(serverType, clientType);
+    }
+
+    private Collection<EntityType> getEntities(int id) {
+        final EntityType serverType = EntityTypes.getRegistry().getById(VERSION.toClientVersion(), id);
+        if (serverType == null || !ViaVersionUtil.isAvailable || player.getClientVersion().isNewerThanOrEquals(VERSION.toClientVersion())
+                || player.getViaUserConnection() == null) {
+            return Collections.singletonList(serverType);
+        }
+
+        final int clientStateId = player.getViaTranslatedClientEntityID(id);
+        final EntityType clientType = EntityTypes.getRegistry().getById(player.getClientVersion(), clientStateId);
+        return clientType == serverType || clientType == null ? Collections.singletonList(serverType) : List.of(serverType, clientType);
     }
 
     public SyncedTag<StateType> block(ResourceLocation tag) {
