@@ -383,21 +383,38 @@ public class SetbackTeleportUtil extends GrimProcessor implements PostPrediction
      */
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.lastTransactionReceived.get();
+        player.vehicleData.teleportInTickMove = false;
+        player.vehicleData.swallowMove = false;
+        // Relative axes are from where the client had the vehicle, its last vehicle move or a teleport it took just before
+        double baseX = player.x, baseY = player.y, baseZ = player.z;
 
         while (true) {
-            IntToObjectPair<Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
+            VehicleData.Teleport teleportPos = player.vehicleData.vehicleTeleports.peek();
             if (teleportPos == null) break;
-            if (lastTransaction < teleportPos.first()) {
+            if (lastTransaction < teleportPos.transaction()) {
                 break;
             }
 
-            Vector3d position = teleportPos.second();
-            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
+            Vector3d position = teleportPos.position();
+            RelativeFlag relative = teleportPos.relative();
+            double teleportX = (relative.has(RelativeFlag.X) ? baseX : 0) + position.getX();
+            double teleportY = (relative.has(RelativeFlag.Y) ? baseY : 0) + position.getY();
+            double teleportZ = (relative.has(RelativeFlag.Z) ? baseZ : 0) + position.getZ();
+            if (teleportX == x && teleportY == y && teleportZ == z) {
                 player.vehicleData.vehicleTeleports.poll();
+                // An answer to the teleport comes before the transaction after it. A 1.21.2+ client gliding its vehicle
+                // there (under 64 blocks) reports it in its next tick move instead, and that move still takes a tick
+                player.vehicleData.teleportInTickMove = lastTransaction > teleportPos.transaction();
+                // The answer to our own snap: the server already has the vehicle there, and it can beat the server's
+                // lastGood update, which makes vanilla log moved wrongly and send it back
+                player.vehicleData.swallowMove = teleportPos.snap() && !player.vehicleData.teleportInTickMove;
 
                 return true;
-            } else if (lastTransaction > teleportPos.first() + 1) {
+            } else if (lastTransaction > teleportPos.transaction() + 1) {
                 player.vehicleData.vehicleTeleports.poll();
+                baseX = teleportX;
+                baseY = teleportY;
+                baseZ = teleportZ;
 
                 // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back
                 // Players don't have to respond to vehicle teleports if they aren't controlling the entity anyways
