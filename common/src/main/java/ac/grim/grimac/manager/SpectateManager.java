@@ -66,9 +66,17 @@ public class SpectateManager implements StartableInitable, ReloadableInitable {
         hiddenPlayers.add(uuid);
     }
 
+    // Keep the saved state when a spectator quits: they come back in spectator mode and still need
+    // /grim stopspectating to get their game mode and location back.
     public void onQuit(UUID uuid) {
         hiddenPlayers.remove(uuid);
-        handlePlayerStopSpectating(uuid);
+    }
+
+    // Drop a saved state that no longer applies, e.g. when another plugin changed the game mode while they were offline.
+    public void onJoin(@NotNull PlatformPlayer platformPlayer) {
+        if (spectatingPlayers.containsKey(platformPlayer.getUniqueId()) && platformPlayer.getGameMode() != GameMode.SPECTATOR) {
+            handlePlayerStopSpectating(platformPlayer.getUniqueId());
+        }
     }
 
     // only call this synchronously
