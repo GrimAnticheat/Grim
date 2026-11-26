@@ -645,6 +645,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END && player.supportsEndTick()) {
             player.serverOpenedInventoryThisTick = false;
+            // The client counts its jump delay down every tick, check() only runs when it sends a position
+            if (!player.packetStateData.knownInput.jump() || player.isFlying) {
+                player.jumpDelay = 0;
+            } else if (player.jumpDelay > 0) {
+                player.jumpDelay--;
+            }
             if (!player.packetStateData.didSendMovementBeforeTickEnd) {
                 // The player didn't send a movement packet, so we can predict this like we had idle tick on 1.8
                 player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
