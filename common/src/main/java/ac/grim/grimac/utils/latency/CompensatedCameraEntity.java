@@ -7,60 +7,64 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCamera;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Getter;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CompensatedCameraEntity extends GrimProcessor implements PreViaPacketSendListener {
-    private final ArrayDeque<PacketEntity> entities = new ArrayDeque<>(1);
+    private @NotNull PacketEntity camera;
+    private @Nullable PacketEntity splitCamera;
 
-    public CompensatedCameraEntity(GrimPlayer player) {
+    @Getter
+    private boolean isSelf;
+
+    public CompensatedCameraEntity(@NotNull GrimPlayer player) {
         super(player);
         reset();
     }
 
     @Override
-    public void onPreViaPacketSend(PacketSendEvent event) {
+    public void onPreViaPacketSend(@NotNull PacketSendEvent event) {
         if (event.getPacketType() != PacketType.Play.Server.CAMERA) return;
         int camera = new WrapperPlayServerCamera(event).getCameraId();
         player.sendTransaction();
 
         player.addRealTimeTaskNow(() -> {
             PacketEntity entity = player.compensatedEntities.getEntity(camera);
-            if (entity != null) {
-                entities.add(entity);
-            }
+            if (entity == null || entity == this.camera) return;
+            this.splitCamera = this.camera;
+            this.camera = entity;
+            update();
         });
 
         player.addRealTimeTaskNext(() -> {
-            while (entities.size() > 1) {
-                entities.poll();
-            }
-
-            if (entities.isEmpty()) {
-                entities.add(player.compensatedEntities.self);
-            }
+            if (this.splitCamera == null) return;
+            this.splitCamera = null;
+            update();
         });
     }
 
-    public boolean isSelf() {
-        PacketEntity self = player.compensatedEntities.self;
-        for (PacketEntity entity : entities) {
-            if (entity != self) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public List<PacketEntity> getPossibilities() {
-        return new ArrayList<>(entities);
-    }
-
+    @Contract(mutates = "this")
     public void reset() {
-        entities.clear();
-        entities.add(player.compensatedEntities.self);
+        this.camera = player.compensatedEntities.self;
+        this.splitCamera = null;
+        update();
+    }
+
+    public @Nullable PacketEntity getSinglePossibilityOrNull() {
+        return splitCamera == null ? camera : null;
+    }
+
+    public PacketEntity[] getPossibilities() {
+        return splitCamera == null
+                ? new PacketEntity[] { camera }
+                : new PacketEntity[] { camera, splitCamera};
+    }
+
+    @Contract(mutates = "this")
+    private void update() {
+        PacketEntity self = player.compensatedEntities.self;
+        isSelf = camera == self && (splitCamera == null || splitCamera == self);
     }
 }
