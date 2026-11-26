@@ -500,6 +500,17 @@ public class PredictionEngine {
         return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
     }
 
+    private static Vector3dm carriedVelocity(VectorData data) {
+        for (VectorData d = data; d != null; d = d.lastVector) {
+            if (d.vectorType != VectorData.VectorType.InputResult) continue;
+            // The jump and its sprint boost come after the slime, so they aren't slowed
+            VectorData carried = d.lastVector;
+            while (carried != null && carried.vectorType == VectorData.VectorType.Jump) carried = carried.lastVector;
+            return carried == null ? null : carried.vector;
+        }
+        return null;
+    }
+
     public Vector3dm handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector, Vector3dm targetVec) {
         double avgColliding = Collections.max(player.uncertaintyHandler.collidingEntities);
 
@@ -655,11 +666,28 @@ public class PredictionEngine {
 
         // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
         // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
+        // With the tick end packet and on foot it gets simulated instead (Collisions.stepOnSlime)
         //
         // Stuck on edge also reduces the player's movement.  It's wrong by 0.05 so hard to implement.
-        if (player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(0) || player.uncertaintyHandler.influencedBySlime()) {
+        boolean slimeSimulated = Collisions.simulatesSlime(player);
+        if (player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(0) || (player.uncertaintyHandler.influencedBySlime() && !slimeSimulated)) {
             // Avoid changing Y axis
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
+        }
+
+        // Slime only slows last tick's velocity, not the input, so turning around on it can end up past zero.
+        // 1.21.2+ only, it applies the block speed multiplier before the slime now (#2706)
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_21_2)
+                && player.uncertaintyHandler.influencedBySlime() && !vector.isKnockback() && !vector.isExplosion()) {
+            Vector3dm carried = carriedVelocity(vector);
+            if (carried != null && !slimeSimulated) {
+                box.combineToMinimum(vector.vector.getX() - 0.6 * carried.getX(), box.minY, vector.vector.getZ() - 0.6 * carried.getZ());
+            } else if (carried != null && player.getClientVersion().isOlderThan(ClientVersion.V_26_2)) {
+                // Simulated, but before 26.2 walking on slime keeps a tiny bounce, so the slowdown flips between
+                // 0.4003 and 0.4154 from tick to tick and ours can be on the other tick. 5% either way covers it
+                box.combineToMinimum(vector.vector.getX() - 0.05 * carried.getX(), box.minY, vector.vector.getZ() - 0.05 * carried.getZ());
+                box.combineToMinimum(vector.vector.getX() + 0.05 * carried.getX(), box.minY, vector.vector.getZ() + 0.05 * carried.getZ());
+            }
         }
 
         // Alright, so hard lerping entities are a pain to support.
