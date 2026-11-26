@@ -101,13 +101,19 @@ public class PredictionEngineNormal extends PredictionEngine {
                 || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
             Vector3dm ladderVelocity = player.clientVelocity.clone().setY(0.2);
-            staticVectorEndOfTick(player, ladderVelocity, player.clientVelocity.getY());
+            staticVectorEndOfTick(player, ladderVelocity, slowFallingY(player, player.clientVelocity.getY()));
             player.lastWasClimbing = ladderVelocity.getY();
         }
 
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(player, vector.vector);
+            staticVectorEndOfTick(player, vector.vector, slowFallingY(player, vector.vector.getY()));
         }
+    }
+
+    // 1.21.2 picks slow falling after the move (getEffectiveGravity). Before that travel picks it at the top, from the Y
+    // going into the move, so a head hit or a bounce in between gets the other gravity
+    private double slowFallingY(GrimPlayer player, double afterMoveY) {
+        return player.getClientVersion().isOlderThan(ClientVersion.V_1_21_2) && !Double.isNaN(player.preMoveY) ? player.preMoveY : afterMoveY;
     }
 
     @Override
