@@ -81,7 +81,6 @@ class RecoveryQuitRetryTest {
         UUID player = UUID.randomUUID();
         UUID quietPlayer = UUID.randomUUID();
         ServerOwnershipGate gate = new ServerOwnershipGate(true);
-        gate.open(original, originalFence, TTL, 5_000L);
         Ownership ownership = new Ownership(instance, original, originalFence);
         SQLiteDataSource source = new SQLiteDataSource();
         source.setUrl("jdbc:sqlite:" + directory.resolve("sessions.sqlite"));
@@ -108,10 +107,15 @@ class RecoveryQuitRetryTest {
         set(lifecycle, "startupLiveness", new LeaseStartupLiveness(ownership, OWNERSHIP, ownership::dbNowEpochMs, 30_000));
         lifecycle.installWriteServices(routes);
         store.start();
+        // Open the timed lease after Mockito and schema initialization so cold fixture setup
+        // cannot consume the 15-second write window before the initial sessions are submitted.
+        gate.open(original, originalFence, TTL, 5_000L);
         SessionTracker tracker = lifecycle.sessionTracker();
         UUID session = tracker.observeActivity(player, 70_000, meta("fabric", 765));
         UUID quietSession = tracker.observeActivity(quietPlayer, 71_000, meta("vanilla", 766));
         assertEquals(0, store.drain(2_000));
+        assertTrue(sql.<Optional<SessionRecord>>execute(SESSIONS, kind,
+                new EntityOps.GetByIdOp<>(Categories.SESSION, session)).isPresent(), "initial session is durable");
         long quitAt = ownership.now + 500;
         UUID[] rejoined = {null};
         Runnable disconnect = () -> {

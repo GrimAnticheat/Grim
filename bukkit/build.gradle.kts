@@ -296,3 +296,16 @@ tasks {
         }
     }
 }
+
+val verifyApiPackaging = tasks.register<buildlogic.VerifyApiPackaging>("verifyApiPackaging") {
+    group = "verification"
+    description = "Verifies that the plugin retains every class from its resolved public API jar."
+    apiArtifacts.from(configurations.runtimeClasspath.map { files ->
+        files.filter { it.name.startsWith("GrimAPI-") && it.extension == "jar" }
+    })
+    pluginJar.set(tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar").flatMap { it.archiveFile })
+}
+
+tasks.named("check") {
+    dependsOn(verifyApiPackaging)
+}

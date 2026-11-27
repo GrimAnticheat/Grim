@@ -528,7 +528,8 @@ public final class DataStoreLifecycle implements StartableInitable, StoppableIni
         }
         this.playerIdentityService = new PlayerIdentityService(dataStore);
         this.nameResolver = buildNameResolver(dataStore, config.nameResolutionChain(), playerIdentityRouted);
-        this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(), logger);
+        this.retentionSweeper = new RetentionSweeper(dataStore, config.retention(),
+                GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse(RetentionSweeper.ENABLE_KEY, false), logger);
         installWriteServices(routes);
         return true;
     }

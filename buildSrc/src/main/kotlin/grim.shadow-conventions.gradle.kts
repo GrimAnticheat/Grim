@@ -7,6 +7,8 @@ plugins {
 
 tasks.named<ShadowJar>("shadowJar") {
     minimize {
+        // Plugins compile against every API class, including contracts Grim does not reference itself.
+        exclude(dependency("ac.grim.grimac:GrimAPI:.*"))
         // adventure's DataComponentValueConverter gson provider is only referenced via
         // ServiceLoader, so minimize() strips it and adventure's static init then throws
         // (ServiceConfigurationError) on enable. Keep the gson serializer's classes.
