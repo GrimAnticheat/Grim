@@ -48,6 +48,7 @@ public class InitManager {
                 .add(new PacketManager())
                 .add(new ViaBackwardsManager())
                 .add(new TickRunner())
+                .add(GrimAPI.INSTANCE.getServerStall())
                 .add(new CommandRegister(GrimAPI.INSTANCE.getCommandService()))
                 .add(new UpdateChecker())
                 .add(new PacketLimiter())
@@ -63,6 +64,7 @@ public class InitManager {
 
         initializersOnStop = ImmutableList.<StoppableInitable>builder()
                 .add(new TerminatePacketEvents())
+                .add(GrimAPI.INSTANCE.getServerStall())
                 .add(GrimAPI.INSTANCE.getDataStoreLifecycle())
                 .addAll(extraStoppableInitables)
                 .build();
