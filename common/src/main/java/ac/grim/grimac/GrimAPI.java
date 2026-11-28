@@ -15,6 +15,7 @@ import ac.grim.grimac.internal.storage.backend.sqlite.SqliteBackendProvider;
 import ac.grim.grimac.manager.AlertManagerImpl;
 import ac.grim.grimac.manager.DiscordManager;
 import ac.grim.grimac.manager.InitManager;
+import ac.grim.grimac.manager.ServerStall;
 import ac.grim.grimac.manager.SpectateManager;
 import ac.grim.grimac.manager.TickManager;
 import ac.grim.grimac.manager.config.BaseConfigManager;
@@ -48,6 +49,7 @@ public final class GrimAPI {
     private final DiscordManager discordManager;
     private final PlayerDataManager playerDataManager;
     private final TickManager tickManager;
+    private final ServerStall serverStall;
     private final GrimExtensionManager extensionManager;
     private final EventBus eventBus;
     private final GrimExternalAPI externalAPI;
@@ -64,6 +66,7 @@ public final class GrimAPI {
         this.discordManager = new DiscordManager();
         this.playerDataManager = new PlayerDataManager();
         this.tickManager = new TickManager();
+        this.serverStall = new ServerStall();
         this.extensionManager = new GrimExtensionManager();
         this.eventBus = new OptimizedEventBus(extensionManager);
         this.externalAPI = new GrimExternalAPI(this);

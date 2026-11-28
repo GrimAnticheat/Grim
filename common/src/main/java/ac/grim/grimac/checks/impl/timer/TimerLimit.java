@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.timer;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.api.config.ConfigManager;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.player.GrimPlayer;
@@ -39,8 +40,12 @@ public class TimerLimit extends Timer {
     protected void limitFallBehind() {
         // Limit using transaction ping if over 1000ms (default)
         long playerClock = lastMovementPlayerClock;
-        if (limitAbuseOverPing != -1 && System.nanoTime() - playerClock > limitAbuseOverPing) {
-            playerClock = System.nanoTime() - limitAbuseOverPing;
+        // Read before the stall check, so a stall right after it cannot move the limit forward
+        long now = System.nanoTime();
+        // A server stall looks like player latency until the player answers a transaction sent after it
+        if (limitAbuseOverPing != -1 && now - playerClock > limitAbuseOverPing
+                && !GrimAPI.INSTANCE.getServerStall().hasStalledSince(playerClock)) {
+            playerClock = now - limitAbuseOverPing;
         }
         timerBalanceRealTime = Math.max(timerBalanceRealTime, playerClock - clockDrift);
     }
